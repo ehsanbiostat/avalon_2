@@ -16,7 +16,7 @@ interface VoteResultRevealProps {
   onComplete: () => void;
 }
 
-const DISPLAY_DURATION = 5000; // 5 seconds
+const DISPLAY_DURATION = 10000; // 10 seconds
 
 export function VoteResultReveal({
   votes,
@@ -25,7 +25,7 @@ export function VoteResultReveal({
   rejectCount,
   onComplete,
 }: VoteResultRevealProps) {
-  const [timeLeft, setTimeLeft] = useState(5);
+  const [timeLeft, setTimeLeft] = useState(10);
 
   // Countdown timer
   useEffect(() => {

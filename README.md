@@ -51,10 +51,10 @@ Create a `.env.local` file in the project root:
 ```env
 # Supabase (required) - Get from Supabase Dashboard > Settings > API
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
 
 # Server-only (NEVER expose to client or commit to git)
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_SERVICE_ROLE_KEY=
 ```
 
 **Where to find these:**
@@ -163,4 +163,3 @@ This project uses:
 ## License
 
 Private - All rights reserved
-
