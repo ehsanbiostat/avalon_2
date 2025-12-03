@@ -314,8 +314,51 @@ export interface PlayerRole {
 
 ## RLS Policy Updates
 
-No RLS changes needed - existing policies cover new columns:
-- `role_config` readable by room members (via rooms table policy)
-- `lady_of_lake_holder_id` readable by room members
-- `has_lady_of_lake` readable only by role owner (via player_roles policy)
+### Verification Required
+
+The new columns inherit from existing RLS policies. **Before migration**, verify these policies exist:
+
+**rooms table** - Existing policy should cover new columns:
+```sql
+-- Verify this policy exists and covers all columns:
+-- "Room members can view their room"
+SELECT * FROM pg_policies WHERE tablename = 'rooms';
+```
+
+**player_roles table** - Existing policy should cover `has_lady_of_lake`:
+```sql
+-- Verify this policy exists:
+-- "Players can view their own role"
+SELECT * FROM pg_policies WHERE tablename = 'player_roles';
+```
+
+### Columns Covered by Existing Policies
+
+| Column | Table | Policy | Access |
+|--------|-------|--------|--------|
+| `role_config` | rooms | "Room members can view their room" | Room members can read |
+| `lady_of_lake_enabled` | rooms | "Room members can view their room" | Room members can read |
+| `lady_of_lake_holder_id` | rooms | "Room members can view their room" | Room members can read |
+| `has_lady_of_lake` | player_roles | "Players can view their own role" | Role owner only |
+
+### If Policies Missing
+
+If verification fails, add these policies before T002:
+
+```sql
+-- Ensure room members can read all room columns including new ones
+CREATE POLICY IF NOT EXISTS "Room members can view room config"
+  ON rooms FOR SELECT
+  USING (
+    id IN (
+      SELECT room_id FROM room_players
+      WHERE player_id = (
+        SELECT id FROM players
+        WHERE player_id = current_setting('app.player_id', true)
+      )
+    )
+  );
+```
+
+**Note**: The existing MVP policies should already cover these columns since RLS applies at the row level, not column level. The verification is to confirm.
 

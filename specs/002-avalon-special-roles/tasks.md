@@ -65,7 +65,7 @@
 - [ ] T014 Create getPercivalVisibility (Merlin candidates) in src/lib/domain/visibility.ts
 - [ ] T015 Create getEvilVisibility (teammates except Oberon) in src/lib/domain/visibility.ts
 - [ ] T016 Create getOberonVisibility (Standard vs Chaos modes) in src/lib/domain/visibility.ts
-- [ ] T017 [P] Create unit tests for visibility matrix in tests/unit/domain/visibility.test.ts
+- [ ] T017 [P] Create unit tests for basic visibility functions (individual role visibility) in tests/unit/domain/visibility.test.ts
 
 ### Role Distribution Updates
 
@@ -97,6 +97,8 @@
 - [ ] T027 [US1] Update CreateRoomModal to include role configuration in src/components/CreateRoomModal.tsx
 - [ ] T028 [US1] Add Oberon mode toggle (Standard/Chaos) to RoleConfigPanel in src/components/RoleConfigPanel.tsx
 - [ ] T029 [US1] Add validation warnings display to RoleConfigPanel in src/components/RoleConfigPanel.tsx
+- [ ] T029a [US1] Add balance recommendations (e.g., "Percival works best with Morgana") to RoleConfigPanel in src/components/RoleConfigPanel.tsx
+- [ ] T029b [US1] Re-validate role_config when expected_players changes in src/components/RoleConfigPanel.tsx
 - [ ] T030 [US1] Update landing page to pass role_config to API in src/app/page.tsx
 
 **Checkpoint**: Manager can configure and create room with custom roles
@@ -262,7 +264,7 @@
 
 ### Error Handling & UX
 
-- [ ] T069 Add error handling for invalid role configs in all API routes
+- [ ] T069 Add error handling for invalid role configs in: POST /api/rooms, POST /api/rooms/[code]/distribute, POST /api/rooms/validate-config
 - [ ] T070 [P] Add loading states for role configuration in src/components/RoleConfigPanel.tsx
 - [ ] T071 [P] Add form validation feedback for role config in src/components/RoleConfigPanel.tsx
 
@@ -275,7 +277,7 @@
 ### Final Testing
 
 - [ ] T075 E2E smoke test: role configuration flow in tests/e2e/role-config.spec.ts
-- [ ] T076 [P] Integration test: visibility matrix combinations in tests/unit/domain/visibility.test.ts
+- [ ] T076 [P] Comprehensive test: all 20+ visibility combinations (Merlin+Mordred, Merlin+Oberon, etc.) in tests/unit/domain/visibility.test.ts
 - [ ] T077 [P] Integration test: Lady of Lake designation in tests/unit/domain/role-config.test.ts
 - [ ] T078 Verify backward compatibility with default (MVP) config
 
@@ -384,7 +386,7 @@ T018 → T019 → T020
 |-------|-------|----------------|
 | 1. Setup | 6 | 4 |
 | 2. Foundational | 14 | 3 |
-| 3. US1 Configure Roles | 10 | 2 |
+| 3. US1 Configure Roles | 12 | 2 |
 | 4. US3 View Roles | 6 | 1 |
 | 5. US2 Lady of Lake | 10 | 1 |
 | 6. US4 Percival | 5 | 0 |
@@ -393,7 +395,7 @@ T018 → T019 → T020
 | 9. US7 Oberon | 5 | 0 |
 | 10. US8 Merlin | 5 | 0 |
 | 11. Polish | 10 | 6 |
-| **Total** | **78** | **17** |
+| **Total** | **80** | **17** |
 
 ---
 

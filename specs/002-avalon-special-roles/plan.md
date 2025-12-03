@@ -131,7 +131,9 @@ See [data-model.md](./data-model.md) for complete schema details.
 
 **rooms table changes:**
 ```sql
-ALTER TABLE rooms ADD COLUMN role_config JSONB DEFAULT '{"roles":["merlin","assassin"]}';
+-- Default '{}' means Merlin + Assassin are implicit (always present)
+-- Empty config = MVP behavior; additional roles are explicitly added
+ALTER TABLE rooms ADD COLUMN role_config JSONB DEFAULT '{}';
 ALTER TABLE rooms ADD COLUMN lady_of_lake_enabled BOOLEAN DEFAULT false;
 ALTER TABLE rooms ADD COLUMN lady_of_lake_holder_id UUID REFERENCES players(id);
 ```
