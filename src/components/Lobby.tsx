@@ -12,6 +12,7 @@ interface LobbyProps {
   onStartGame?: () => Promise<void>;
   isDistributing?: boolean;
   isStarting?: boolean;
+  isConnected?: boolean;
 }
 
 /**
@@ -24,6 +25,7 @@ export function Lobby({
   onStartGame,
   isDistributing = false,
   isStarting = false,
+  isConnected = true,
 }: LobbyProps) {
   const [copied, setCopied] = useState(false);
 
@@ -91,6 +93,23 @@ export function Lobby({
             {room.room.status === 'waiting' && 'Waiting for players'}
             {room.room.status === 'roles_distributed' && 'Roles distributed'}
             {room.room.status === 'started' && 'Game in progress'}
+          </span>
+          
+          {/* Real-time Connection Status */}
+          <span
+            className={`
+              flex items-center gap-1 text-xs
+              ${isConnected ? 'text-good' : 'text-avalon-silver/50'}
+            `}
+            title={isConnected ? 'Real-time sync active' : 'Reconnecting...'}
+          >
+            <span
+              className={`
+                w-2 h-2 rounded-full
+                ${isConnected ? 'bg-good animate-pulse' : 'bg-avalon-silver/50'}
+              `}
+            />
+            {isConnected ? 'Live' : 'Syncing...'}
           </span>
         </div>
       </div>
