@@ -192,6 +192,19 @@ export interface GameState {
   total_players: number;
   actions_submitted: number;
   total_team_members: number;
+  // Last vote result (for reveal animation)
+  last_vote_result: LastVoteResult | null;
+}
+
+/**
+ * Last vote result for reveal animation
+ */
+export interface LastVoteResult {
+  proposal_id: string;
+  is_approved: boolean;
+  approve_count: number;
+  reject_count: number;
+  votes: VoteInfo[];
 }
 
 /**

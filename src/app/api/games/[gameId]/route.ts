@@ -8,7 +8,7 @@ import { createServerClient, getPlayerIdFromRequest } from '@/lib/supabase/serve
 import { findPlayerByPlayerId } from '@/lib/supabase/players';
 import { getGameById } from '@/lib/supabase/games';
 import { getCurrentProposal, getActiveProposalForQuest } from '@/lib/supabase/proposals';
-import { getPlayerVote, getVotedPlayerIds } from '@/lib/supabase/votes';
+import { getPlayerVote, getVotedPlayerIds, getVotesForProposal } from '@/lib/supabase/votes';
 import { getActionCount, hasPlayerSubmittedAction } from '@/lib/supabase/quest-actions';
 import { getPlayerRole } from '@/lib/supabase/roles';
 import { getQuestRequirementsMap } from '@/lib/domain/quest-config';
@@ -89,6 +89,19 @@ export async function GET(request: Request, { params }: RouteParams) {
       myVote = vote?.vote || null;
     }
 
+    // Get last vote result (for reveal animation after voting)
+    let lastVoteResult = null;
+    if ((game.phase === 'quest' || game.phase === 'team_building') && currentProposal && currentProposal.status !== 'pending') {
+      const voteInfos = await getVotesForProposal(supabase, currentProposal.id);
+      lastVoteResult = {
+        proposal_id: currentProposal.id,
+        is_approved: currentProposal.status === 'approved',
+        approve_count: currentProposal.approve_count,
+        reject_count: currentProposal.reject_count,
+        votes: voteInfos,
+      };
+    }
+
     // Check if player is on quest team
     const amTeamMember = currentProposal?.team_member_ids.includes(player.id) || false;
 
@@ -146,6 +159,7 @@ export async function GET(request: Request, { params }: RouteParams) {
       total_players: game.player_count,
       actions_submitted: actionsSubmitted,
       total_team_members: totalTeamMembers,
+      last_vote_result: lastVoteResult,
     };
 
     // Include current player's database ID and role for proper identification

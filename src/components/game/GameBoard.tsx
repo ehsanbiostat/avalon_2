@@ -5,13 +5,14 @@
  * Main game UI container
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useGameState } from '@/hooks/useGameState';
 import { QuestTracker } from './QuestTracker';
 import { TeamProposal } from './TeamProposal';
 import { VotingPanel } from './VotingPanel';
 import { QuestExecution } from './QuestExecution';
 import { QuestResultDisplay } from './QuestResultDisplay';
+import { VoteResultReveal } from './VoteResultReveal';
 import { GameOver } from './GameOver';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -25,6 +26,24 @@ interface GameBoardProps {
 export function GameBoard({ gameId }: GameBoardProps) {
   const { gameState, currentPlayerId, playerRole, specialRole, loading, error, refetch } = useGameState(gameId);
   const [showRoleModal, setShowRoleModal] = useState(false);
+  const [showVoteReveal, setShowVoteReveal] = useState(false);
+  const lastSeenProposalId = useRef<string | null>(null);
+
+  // Show vote reveal when there's a new resolved proposal
+  useEffect(() => {
+    if (gameState?.last_vote_result) {
+      const proposalId = gameState.last_vote_result.proposal_id;
+      // Only show if this is a new proposal we haven't seen
+      if (proposalId !== lastSeenProposalId.current) {
+        lastSeenProposalId.current = proposalId;
+        setShowVoteReveal(true);
+      }
+    }
+  }, [gameState?.last_vote_result]);
+
+  const handleVoteRevealComplete = useCallback(() => {
+    setShowVoteReveal(false);
+  }, []);
 
   const handleAction = useCallback(() => {
     // Refetch after any action to get latest state
@@ -163,6 +182,17 @@ export function GameBoard({ gameId }: GameBoardProps) {
           />
         )}
       </div>
+
+      {/* Vote Result Reveal Overlay */}
+      {showVoteReveal && gameState.last_vote_result && (
+        <VoteResultReveal
+          votes={gameState.last_vote_result.votes}
+          isApproved={gameState.last_vote_result.is_approved}
+          approveCount={gameState.last_vote_result.approve_count}
+          rejectCount={gameState.last_vote_result.reject_count}
+          onComplete={handleVoteRevealComplete}
+        />
+      )}
 
       {/* Role Modal */}
       <Modal
