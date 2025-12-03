@@ -50,17 +50,22 @@ function log(level: LogLevel, event: string, context?: LogContext): void {
 
   const formattedLog = formatLog(entry);
 
+  // eslint-disable-next-line no-console
   switch (level) {
     case 'debug':
+      // eslint-disable-next-line no-console
       console.debug(formattedLog);
       break;
     case 'info':
+      // eslint-disable-next-line no-console
       console.info(formattedLog);
       break;
     case 'warn':
+      // eslint-disable-next-line no-console
       console.warn(formattedLog);
       break;
     case 'error':
+      // eslint-disable-next-line no-console
       console.error(formattedLog);
       break;
   }

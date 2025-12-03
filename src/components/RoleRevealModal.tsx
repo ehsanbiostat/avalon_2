@@ -183,7 +183,7 @@ export function RoleRevealModal({
               </>
             ) : specialRole === 'oberon' ? (
               <>
-                👤 <strong>Work alone!</strong> You don't know the other evil
+                👤 <strong>Work alone!</strong> You don&apos;t know the other evil
                 players. Sabotage carefully without coordination.
               </>
             ) : isEvil ? (
