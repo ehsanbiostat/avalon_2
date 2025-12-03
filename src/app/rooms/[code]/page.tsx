@@ -71,9 +71,27 @@ export default function RoomPage() {
 
   // Redirect to game page when game starts
   useEffect(() => {
-    if (room?.room.status === 'started') {
-      router.push(`/game/${code}`);
-    }
+    const redirectToGame = async () => {
+      if (room?.room.status === 'started') {
+        try {
+          const playerId = getPlayerId();
+          const response = await fetch(`/api/rooms/${code}/game`, {
+            headers: { 'X-Player-ID': playerId },
+          });
+          
+          if (response.ok) {
+            const { data } = await response.json();
+            if (data.has_game && data.game_id) {
+              router.push(`/game/${data.game_id}`);
+            }
+          }
+        } catch (err) {
+          console.error('Failed to get game:', err);
+        }
+      }
+    };
+    
+    redirectToGame();
   }, [room?.room.status, code, router]);
 
   /**
