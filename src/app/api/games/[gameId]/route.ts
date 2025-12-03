@@ -9,7 +9,8 @@ import { findPlayerByPlayerId } from '@/lib/supabase/players';
 import { getGameById } from '@/lib/supabase/games';
 import { getCurrentProposal, getActiveProposalForQuest } from '@/lib/supabase/proposals';
 import { getPlayerVote, getVotedPlayerIds } from '@/lib/supabase/votes';
-import { getActionCount, hasPlayerSubmittedAction, getSubmittedPlayerIds } from '@/lib/supabase/quest-actions';
+import { getActionCount, hasPlayerSubmittedAction } from '@/lib/supabase/quest-actions';
+import { getPlayerRole } from '@/lib/supabase/roles';
 import { getQuestRequirementsMap } from '@/lib/domain/quest-config';
 import { errors, handleError } from '@/lib/utils/errors';
 import type { GameState, GamePlayer } from '@/types/game';
@@ -127,6 +128,11 @@ export async function GET(request: Request, { params }: RouteParams) {
     const questRequirements = getQuestRequirementsMap(game.player_count);
     const questRequirement = questRequirements[game.current_quest];
 
+    // Get current player's role (for UI like fail button)
+    const playerRoleData = await getPlayerRole(supabase, game.room_id, player.id);
+    const playerRole = playerRoleData?.role || 'good';
+    const specialRole = playerRoleData?.special_role || null;
+
     const gameState: GameState = {
       game,
       players,
@@ -142,10 +148,12 @@ export async function GET(request: Request, { params }: RouteParams) {
       total_team_members: totalTeamMembers,
     };
 
-    // Include current player's database ID for proper identification
+    // Include current player's database ID and role for proper identification
     return NextResponse.json({ 
       data: gameState,
       current_player_id: player.id,
+      player_role: playerRole,
+      special_role: specialRole,
     });
   } catch (error) {
     return handleError(error);

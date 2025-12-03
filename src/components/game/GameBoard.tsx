@@ -20,16 +20,10 @@ import { getQuestRequirement } from '@/lib/domain/quest-config';
 
 interface GameBoardProps {
   gameId: string;
-  playerRole?: 'good' | 'evil';
-  specialRole?: string;
 }
 
-export function GameBoard({
-  gameId,
-  playerRole,
-  specialRole,
-}: GameBoardProps) {
-  const { gameState, currentPlayerId, loading, error, refetch } = useGameState(gameId);
+export function GameBoard({ gameId }: GameBoardProps) {
+  const { gameState, currentPlayerId, playerRole, specialRole, loading, error, refetch } = useGameState(gameId);
   const [showRoleModal, setShowRoleModal] = useState(false);
 
   const handleAction = useCallback(() => {
