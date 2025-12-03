@@ -1,0 +1,82 @@
+'use client';
+
+import type { RoomPlayerInfo } from '@/types/room';
+
+interface PlayerCardProps {
+  player: RoomPlayerInfo;
+  isCurrentPlayer?: boolean;
+}
+
+/**
+ * Single player display card for lobby
+ */
+export function PlayerCard({ player, isCurrentPlayer = false }: PlayerCardProps) {
+  return (
+    <div
+      className={`
+        flex items-center gap-3 p-3 rounded-lg transition-all
+        ${isCurrentPlayer
+          ? 'bg-avalon-gold/10 border border-avalon-gold/30'
+          : 'bg-avalon-midnight/50 border border-avalon-silver/10'
+        }
+        ${!player.is_connected ? 'opacity-60' : ''}
+      `}
+    >
+      {/* Avatar placeholder */}
+      <div
+        className={`
+          w-10 h-10 rounded-full flex items-center justify-center
+          font-display text-lg
+          ${player.is_manager
+            ? 'bg-avalon-gold text-avalon-midnight'
+            : 'bg-avalon-navy text-avalon-silver'
+          }
+        `}
+      >
+        {player.nickname.charAt(0).toUpperCase()}
+      </div>
+
+      {/* Player info */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span
+            className={`
+              font-medium truncate
+              ${isCurrentPlayer ? 'text-avalon-gold' : 'text-avalon-parchment'}
+            `}
+          >
+            {player.nickname}
+          </span>
+
+          {isCurrentPlayer && (
+            <span className="text-xs text-avalon-silver">(You)</span>
+          )}
+        </div>
+
+        {/* Badges */}
+        <div className="flex items-center gap-2 mt-0.5">
+          {player.is_manager && (
+            <span className="badge badge-manager text-xs">
+              👑 Manager
+            </span>
+          )}
+
+          {!player.is_connected && (
+            <span className="badge bg-avalon-silver/20 text-avalon-silver text-xs">
+              Disconnected
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Connection indicator */}
+      <div
+        className={`
+          w-2 h-2 rounded-full
+          ${player.is_connected ? 'bg-good' : 'bg-avalon-silver/50'}
+        `}
+        title={player.is_connected ? 'Connected' : 'Disconnected'}
+      />
+    </div>
+  );
+}

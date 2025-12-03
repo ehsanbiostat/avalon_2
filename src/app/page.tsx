@@ -1,0 +1,291 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { CreateRoomModal } from '@/components/CreateRoomModal';
+import { usePlayer } from '@/hooks/usePlayer';
+import { validateNickname, validateRoomCode } from '@/lib/domain/validation';
+
+export default function Home() {
+  const router = useRouter();
+  const { playerId, nickname, isRegistered, isLoading: playerLoading, register } = usePlayer();
+
+  // Form states
+  const [nicknameInput, setNicknameInput] = useState('');
+  const [roomCodeInput, setRoomCodeInput] = useState('');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  // Loading states
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [isCreatingRoom, setIsCreatingRoom] = useState(false);
+  const [isJoiningRoom, setIsJoiningRoom] = useState(false);
+
+  // Error states
+  const [nicknameError, setNicknameError] = useState<string | null>(null);
+  const [roomCodeError, setRoomCodeError] = useState<string | null>(null);
+  const [generalError, setGeneralError] = useState<string | null>(null);
+
+  // Pre-fill nickname if already registered
+  useEffect(() => {
+    if (nickname) {
+      setNicknameInput(nickname);
+    }
+  }, [nickname]);
+
+  /**
+   * Handle nickname registration
+   */
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setNicknameError(null);
+    setGeneralError(null);
+
+    const validation = validateNickname(nicknameInput);
+    if (!validation.valid) {
+      setNicknameError(validation.error || 'Invalid nickname');
+      return;
+    }
+
+    setIsRegistering(true);
+    try {
+      const result = await register(nicknameInput);
+      if (!result) {
+        setNicknameError('Failed to register. Please try again.');
+      }
+    } catch {
+      setNicknameError('Failed to register. Please try again.');
+    } finally {
+      setIsRegistering(false);
+    }
+  };
+
+  /**
+   * Handle room creation
+   */
+  const handleCreateRoom = async (expectedPlayers: number) => {
+    if (!playerId) return;
+
+    setGeneralError(null);
+    setIsCreatingRoom(true);
+
+    try {
+      const response = await fetch('/api/rooms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Player-ID': playerId,
+        },
+        body: JSON.stringify({ expected_players: expectedPlayers }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'Failed to create room');
+      }
+
+      // Redirect to the room lobby
+      router.push(`/rooms/${data.data.code}`);
+    } catch (err) {
+      setGeneralError(err instanceof Error ? err.message : 'Failed to create room');
+      setIsCreateModalOpen(false);
+    } finally {
+      setIsCreatingRoom(false);
+    }
+  };
+
+  /**
+   * Handle joining room by code
+   */
+  const handleJoinRoom = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRoomCodeError(null);
+    setGeneralError(null);
+
+    const validation = validateRoomCode(roomCodeInput);
+    if (!validation.valid) {
+      setRoomCodeError(validation.error || 'Invalid room code');
+      return;
+    }
+
+    if (!playerId) {
+      setRoomCodeError('Please enter your nickname first');
+      return;
+    }
+
+    setIsJoiningRoom(true);
+    try {
+      const response = await fetch(`/api/rooms/${roomCodeInput.toUpperCase()}/join`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Player-ID': playerId,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'Failed to join room');
+      }
+
+      // Redirect to the room lobby
+      router.push(`/rooms/${roomCodeInput.toUpperCase()}`);
+    } catch (err) {
+      setRoomCodeError(err instanceof Error ? err.message : 'Failed to join room');
+    } finally {
+      setIsJoiningRoom(false);
+    }
+  };
+
+  // Show loading state during initial player initialization
+  if (playerLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-avalon-gold/30 border-t-avalon-gold rounded-full animate-spin mx-auto" />
+          <p className="text-avalon-silver">Preparing the Round Table...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-8">
+      <div className="w-full max-w-md space-y-8 animate-fade-in">
+        {/* Logo / Title */}
+        <div className="text-center space-y-3">
+          <h1 className="text-5xl md:text-6xl font-display font-bold text-avalon-gold text-shadow">
+            AVALON
+          </h1>
+          <p className="text-lg md:text-xl text-avalon-silver font-body italic">
+            The Resistance: Social Deduction
+          </p>
+        </div>
+
+        {/* General Error Display */}
+        {generalError && (
+          <div className="p-4 bg-evil/20 border border-evil/50 rounded-lg animate-slide-up">
+            <p className="text-evil-light text-sm text-center">{generalError}</p>
+          </div>
+        )}
+
+        {/* Main Card */}
+        <div className="card animate-slide-up">
+          {!isRegistered ? (
+            /* Step 1: Enter Nickname */
+            <div className="space-y-6">
+              <div className="text-center space-y-2">
+                <h2 className="text-xl font-display text-avalon-gold">
+                  Welcome, Knight
+                </h2>
+                <p className="text-avalon-parchment/70 text-sm">
+                  Enter your name to join the Round Table
+                </p>
+              </div>
+
+              <form onSubmit={handleRegister} className="space-y-4">
+                <Input
+                  label="Your Nickname"
+                  placeholder="Enter 3-20 characters"
+                  value={nicknameInput}
+                  onChange={(e) => setNicknameInput(e.target.value)}
+                  error={nicknameError || undefined}
+                  maxLength={20}
+                  disabled={isRegistering}
+                />
+
+                <Button
+                  type="submit"
+                  variant="primary"
+                  fullWidth
+                  isLoading={isRegistering}
+                >
+                  Continue
+                </Button>
+              </form>
+            </div>
+          ) : (
+            /* Step 2: Create or Join Room */
+            <div className="space-y-6">
+              <div className="text-center space-y-2">
+                <p className="text-avalon-silver text-sm">Welcome back,</p>
+                <h2 className="text-xl font-display text-avalon-gold">
+                  {nickname}
+                </h2>
+              </div>
+
+              {/* Create Room */}
+              <div className="space-y-3">
+                <Button
+                  variant="primary"
+                  fullWidth
+                  onClick={() => setIsCreateModalOpen(true)}
+                  size="lg"
+                >
+                  ⚔️ Create a Room
+                </Button>
+              </div>
+
+              {/* Divider */}
+              <div className="flex items-center gap-4">
+                <div className="flex-1 h-px bg-avalon-silver/20" />
+                <span className="text-avalon-silver/50 text-sm">or</span>
+                <div className="flex-1 h-px bg-avalon-silver/20" />
+              </div>
+
+              {/* Join by Code */}
+              <form onSubmit={handleJoinRoom} className="space-y-3">
+                <Input
+                  label="Join by Room Code"
+                  placeholder="Enter 6-character code"
+                  value={roomCodeInput}
+                  onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())}
+                  error={roomCodeError || undefined}
+                  maxLength={6}
+                  disabled={isJoiningRoom}
+                  className="text-center tracking-widest font-mono text-lg"
+                />
+
+                <Button
+                  type="submit"
+                  variant="secondary"
+                  fullWidth
+                  isLoading={isJoiningRoom}
+                  disabled={roomCodeInput.length < 6}
+                >
+                  Join Room
+                </Button>
+              </form>
+
+              {/* Browse Rooms Link */}
+              <div className="pt-4 border-t border-avalon-silver/10">
+                <button
+                  onClick={() => router.push('/rooms')}
+                  className="w-full text-center text-avalon-silver hover:text-avalon-gold transition-colors text-sm"
+                >
+                  Browse active rooms →
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer Info */}
+        <p className="text-center text-sm text-avalon-silver/50">
+          For 5-10 players • Real-time multiplayer
+        </p>
+      </div>
+
+      {/* Create Room Modal */}
+      <CreateRoomModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onCreateRoom={handleCreateRoom}
+        isLoading={isCreatingRoom}
+      />
+    </div>
+  );
+}

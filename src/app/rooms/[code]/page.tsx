@@ -1,0 +1,274 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { Lobby } from '@/components/Lobby';
+import { RoleRevealModal } from '@/components/RoleRevealModal';
+import { useRoom } from '@/hooks/useRoom';
+import { usePlayer } from '@/hooks/usePlayer';
+import { getPlayerId } from '@/lib/utils/player-id';
+
+export default function RoomPage() {
+  const params = useParams();
+  const code = params.code as string;
+  const router = useRouter();
+  const { isRegistered, isLoading: playerLoading } = usePlayer();
+  const { room, isLoading: roomLoading, error, leave, refresh } = useRoom(code);
+
+  const [isDistributing, setIsDistributing] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [roleData, setRoleData] = useState<{
+    role: 'good' | 'evil';
+    role_name: string;
+    role_description: string;
+    is_confirmed: boolean;
+    evil_teammates?: string[];
+  } | null>(null);
+  const [roleError, setRoleError] = useState<string | null>(null);
+
+  // Redirect to home if not registered
+  useEffect(() => {
+    if (!playerLoading && !isRegistered) {
+      router.push('/');
+    }
+  }, [playerLoading, isRegistered, router]);
+
+  // Fetch role when roles are distributed
+  useEffect(() => {
+    const loadRole = async () => {
+      try {
+        const playerId = getPlayerId();
+        const response = await fetch(`/api/rooms/${code}/role`, {
+          headers: {
+            'X-Player-ID': playerId,
+          },
+        });
+
+        if (response.ok) {
+          const { data } = await response.json();
+          setRoleData(data);
+          // Show modal if not confirmed yet
+          if (!data.is_confirmed) {
+            setShowRoleModal(true);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch role:', err);
+      }
+    };
+
+    if (room?.room.status === 'roles_distributed' || room?.room.status === 'started') {
+      loadRole();
+    }
+  }, [room?.room.status, code]);
+
+  // Redirect to game page when game starts
+  useEffect(() => {
+    if (room?.room.status === 'started') {
+      router.push(`/game/${code}`);
+    }
+  }, [room?.room.status, code, router]);
+
+  /**
+   * Handle role distribution (manager only)
+   */
+  const handleDistributeRoles = async () => {
+    setIsDistributing(true);
+    setRoleError(null);
+
+    try {
+      const playerId = getPlayerId();
+      const response = await fetch(`/api/rooms/${code}/distribute`, {
+        method: 'POST',
+        headers: {
+          'X-Player-ID': playerId,
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error?.message || 'Failed to distribute roles');
+      }
+
+      // Refresh room data
+      await refresh();
+    } catch (err) {
+      setRoleError(err instanceof Error ? err.message : 'Failed to distribute roles');
+    } finally {
+      setIsDistributing(false);
+    }
+  };
+
+  /**
+   * Handle role confirmation
+   */
+  const handleConfirmRole = async () => {
+    try {
+      const playerId = getPlayerId();
+      const response = await fetch(`/api/rooms/${code}/confirm`, {
+        method: 'POST',
+        headers: {
+          'X-Player-ID': playerId,
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error?.message || 'Failed to confirm role');
+      }
+
+      // Update local state
+      if (roleData) {
+        setRoleData({ ...roleData, is_confirmed: true });
+      }
+      setShowRoleModal(false);
+
+      // Refresh room data
+      await refresh();
+    } catch (err) {
+      setRoleError(err instanceof Error ? err.message : 'Failed to confirm role');
+    }
+  };
+
+  /**
+   * Handle starting the game (manager only)
+   */
+  const handleStartGame = async () => {
+    setIsStarting(true);
+    setRoleError(null);
+
+    try {
+      const playerId = getPlayerId();
+      const response = await fetch(`/api/rooms/${code}/start`, {
+        method: 'POST',
+        headers: {
+          'X-Player-ID': playerId,
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error?.message || 'Failed to start game');
+      }
+
+      // Redirect will happen via useEffect when room status changes
+    } catch (err) {
+      setRoleError(err instanceof Error ? err.message : 'Failed to start game');
+    } finally {
+      setIsStarting(false);
+    }
+  };
+
+  /**
+   * Handle leaving the room
+   */
+  const handleLeave = async () => {
+    const success = await leave();
+    if (success) {
+      router.push('/');
+    }
+  };
+
+  // Loading state
+  if (playerLoading || roomLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-avalon-gold/30 border-t-avalon-gold rounded-full animate-spin mx-auto" />
+          <p className="text-avalon-silver">Entering the chamber...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="card max-w-md w-full text-center space-y-4">
+          <div className="text-4xl">⚠️</div>
+          <h2 className="font-display text-xl text-avalon-gold">Room Not Found</h2>
+          <p className="text-avalon-silver">{error}</p>
+          <button
+            onClick={() => router.push('/')}
+            className="text-avalon-gold hover:underline"
+          >
+            Return to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // No room data
+  if (!room) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="card max-w-md w-full text-center space-y-4">
+          <div className="text-4xl">🔍</div>
+          <h2 className="font-display text-xl text-avalon-gold">Room Not Found</h2>
+          <p className="text-avalon-silver">
+            This room doesn&apos;t exist or you&apos;re not a member.
+          </p>
+          <button
+            onClick={() => router.push('/')}
+            className="text-avalon-gold hover:underline"
+          >
+            Return to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 flex flex-col items-center justify-start p-6 md:p-8">
+      <div className="w-full max-w-lg animate-fade-in">
+        {/* Error Display */}
+        {roleError && (
+          <div className="mb-6 p-4 bg-evil/20 border border-evil/50 rounded-lg animate-slide-up">
+            <p className="text-evil-light text-sm text-center">{roleError}</p>
+          </div>
+        )}
+
+        {/* Main Lobby */}
+        <Lobby
+          room={room}
+          onLeave={handleLeave}
+          onDistributeRoles={handleDistributeRoles}
+          onStartGame={handleStartGame}
+          isDistributing={isDistributing}
+          isStarting={isStarting}
+        />
+
+        {/* Role Reveal Modal */}
+        {roleData && (
+          <RoleRevealModal
+            isOpen={showRoleModal}
+            onClose={() => setShowRoleModal(false)}
+            role={roleData.role}
+            roleName={roleData.role_name}
+            roleDescription={roleData.role_description}
+            evilTeammates={roleData.evil_teammates}
+            isConfirmed={roleData.is_confirmed}
+            onConfirm={handleConfirmRole}
+          />
+        )}
+
+        {/* Show Role Button (if already confirmed) */}
+        {roleData?.is_confirmed && (
+          <div className="mt-4">
+            <button
+              onClick={() => setShowRoleModal(true)}
+              className="w-full text-center text-avalon-silver hover:text-avalon-gold transition-colors text-sm"
+            >
+              View my role →
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,29 @@
+# avalon_2 Development Guidelines
+
+Auto-generated from all feature plans. Last updated: 2025-12-02
+
+## Active Technologies
+
+- TypeScript 5.x, Node.js 20.x + Next.js 14+ (App Router), React 18+, Supabase JS Client v2, Tailwind CSS 3.x (001-avalon-mvp-lobby)
+
+## Project Structure
+
+```text
+src/
+tests/
+```
+
+## Commands
+
+npm test && npm run lint
+
+## Code Style
+
+TypeScript 5.x, Node.js 20.x: Follow standard conventions
+
+## Recent Changes
+
+- 001-avalon-mvp-lobby: Added TypeScript 5.x, Node.js 20.x + Next.js 14+ (App Router), React 18+, Supabase JS Client v2, Tailwind CSS 3.x
+
+<!-- MANUAL ADDITIONS START -->
+<!-- MANUAL ADDITIONS END -->
