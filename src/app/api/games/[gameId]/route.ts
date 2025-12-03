@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server';
 import { createServerClient, getPlayerIdFromRequest } from '@/lib/supabase/server';
 import { findPlayerByPlayerId } from '@/lib/supabase/players';
 import { getGameById } from '@/lib/supabase/games';
-import { getCurrentProposal } from '@/lib/supabase/proposals';
+import { getCurrentProposal, getActiveProposalForQuest } from '@/lib/supabase/proposals';
 import { getPlayerVote, getVotedPlayerIds } from '@/lib/supabase/votes';
 import { getActionCount, hasPlayerSubmittedAction, getSubmittedPlayerIds } from '@/lib/supabase/quest-actions';
 import { getQuestRequirementsMap } from '@/lib/domain/quest-config';
@@ -57,8 +57,13 @@ export async function GET(request: Request, { params }: RouteParams) {
       );
     }
 
-    // Get current proposal if any
-    const currentProposal = await getCurrentProposal(supabase, gameId);
+    // Get current proposal - use active proposal for quest phases
+    let currentProposal = null;
+    if (game.phase === 'quest' || game.phase === 'quest_result') {
+      currentProposal = await getActiveProposalForQuest(supabase, gameId, game.current_quest);
+    } else {
+      currentProposal = await getCurrentProposal(supabase, gameId);
+    }
 
     // Get player nicknames for seating display
     const { data: playersData } = await supabase

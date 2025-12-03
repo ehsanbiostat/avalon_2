@@ -53,6 +53,48 @@ export async function getCurrentProposal(
 }
 
 /**
+ * Get the active proposal for a quest (approved or pending)
+ * Used during quest phase to get the approved team
+ */
+export async function getActiveProposalForQuest(
+  client: SupabaseClient,
+  gameId: string,
+  questNumber: number
+): Promise<TeamProposal | null> {
+  // First try to get approved proposal (for quest phase)
+  const { data: approvedData, error: approvedError } = await client
+    .from('team_proposals')
+    .select('*')
+    .eq('game_id', gameId)
+    .eq('quest_number', questNumber)
+    .eq('status', 'approved')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (!approvedError && approvedData) {
+    return approvedData as TeamProposal;
+  }
+
+  // Fall back to pending proposal (for voting phase)
+  const { data: pendingData, error: pendingError } = await client
+    .from('team_proposals')
+    .select('*')
+    .eq('game_id', gameId)
+    .eq('quest_number', questNumber)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (pendingError && pendingError.code !== 'PGRST116') {
+    throw pendingError;
+  }
+
+  return pendingData as TeamProposal | null;
+}
+
+/**
  * Get proposal by ID
  */
 export async function getProposalById(
