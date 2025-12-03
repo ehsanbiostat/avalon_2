@@ -58,10 +58,31 @@ export async function GET(request: Request, { params }: RouteParams) {
       return errors.notRoomMember();
     }
 
-    // Get game for room
-    const game = await getGameByRoomId(supabase, room.id);
-    
-    if (!game) {
+    // Get game for room (handle case where games table might not exist yet)
+    try {
+      const game = await getGameByRoomId(supabase, room.id);
+      
+      if (!game) {
+        return NextResponse.json({
+          data: {
+            has_game: false,
+            game_id: null,
+            phase: null,
+          },
+        });
+      }
+
+      return NextResponse.json({
+        data: {
+          has_game: true,
+          game_id: game.id,
+          phase: game.phase,
+          current_quest: game.current_quest,
+          current_leader_id: game.current_leader_id,
+        },
+      });
+    } catch {
+      // If games table doesn't exist or query fails, return no game
       return NextResponse.json({
         data: {
           has_game: false,
@@ -70,16 +91,6 @@ export async function GET(request: Request, { params }: RouteParams) {
         },
       });
     }
-
-    return NextResponse.json({
-      data: {
-        has_game: true,
-        game_id: game.id,
-        phase: game.phase,
-        current_quest: game.current_quest,
-        current_leader_id: game.current_leader_id,
-      },
-    });
   } catch (error) {
     return handleError(error);
   }
