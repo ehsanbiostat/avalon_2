@@ -1,16 +1,16 @@
 'use client';
 
 /**
- * Room data hook with Supabase Realtime subscriptions
- * Provides centralized real-time state synchronization for all players in a room
+ * Room data hook with polling-based state synchronization
+ * Provides centralized state sync for all players in a room
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { createBrowserClient } from '@/lib/supabase/client';
 import { getPlayerId } from '@/lib/utils/player-id';
 import type { RoomDetails, RoomPlayerInfo } from '@/types/room';
-import type { Room } from '@/types/database';
-import type { RealtimeChannel } from '@supabase/supabase-js';
+
+// Polling interval in milliseconds (3 seconds for near-real-time feel)
+const POLL_INTERVAL_MS = 3000;
 
 interface UseRoomReturn {
   /** Room details including players */
@@ -19,7 +19,7 @@ interface UseRoomReturn {
   isLoading: boolean;
   /** Error message if any */
   error: string | null;
-  /** Whether real-time is connected */
+  /** Whether polling is active */
   isConnected: boolean;
   /** Refresh room data */
   refresh: () => Promise<void>;
@@ -28,7 +28,7 @@ interface UseRoomReturn {
 }
 
 /**
- * Hook for managing room data with real-time updates
+ * Hook for managing room data with fast polling
  * Centralizes state synchronization for all room events:
  * - Player joins/leaves
  * - Role distribution
@@ -39,21 +39,34 @@ export function useRoom(roomCode: string): UseRoomReturn {
   const [room, setRoom] = useState<RoomDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const channelRef = useRef<RealtimeChannel | null>(null);
-  const roomIdRef = useRef<string | null>(null);
+  const [isConnected, setIsConnected] = useState(true);
+  const lastFetchRef = useRef<number>(0);
+  const isFetchingRef = useRef<boolean>(false);
 
   /**
-   * Fetch room data from API
+   * Fetch room data from API (with deduplication)
    */
-  const fetchRoom = useCallback(async () => {
+  const fetchRoom = useCallback(async (force = false) => {
+    // Prevent concurrent fetches
+    if (isFetchingRef.current && !force) {
+      return null;
+    }
+    
+    // Throttle fetches (min 1 second apart unless forced)
+    const now = Date.now();
+    if (!force && now - lastFetchRef.current < 1000) {
+      return null;
+    }
+    
+    isFetchingRef.current = true;
+    lastFetchRef.current = now;
+    
     try {
       const playerId = getPlayerId();
       const response = await fetch(`/api/rooms/${roomCode}`, {
         headers: {
           'X-Player-ID': playerId,
         },
-        // Prevent caching to always get fresh data
         cache: 'no-store',
       });
 
@@ -65,18 +78,16 @@ export function useRoom(roomCode: string): UseRoomReturn {
       const { data } = await response.json();
       setRoom(data);
       setError(null);
-      
-      // Store room ID for subscription filtering
-      if (data?.room?.id) {
-        roomIdRef.current = data.room.id;
-      }
+      setIsConnected(true);
       
       return data;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch room');
+      setIsConnected(false);
       return null;
     } finally {
       setIsLoading(false);
+      isFetchingRef.current = false;
     }
   }, [roomCode]);
 
@@ -105,140 +116,48 @@ export function useRoom(roomCode: string): UseRoomReturn {
     }
   }, [roomCode]);
 
-  // Initial fetch and real-time subscription
+  // Initial fetch
   useEffect(() => {
-    let isMounted = true;
-    
-    const setupRealtimeSubscription = async () => {
-      // First fetch room data to get the room ID
-      const roomData = await fetchRoom();
-      if (!isMounted || !roomData?.room?.id) return;
-      
-      const roomId = roomData.room.id;
-      const supabase = createBrowserClient();
+    fetchRoom(true);
+  }, [fetchRoom]);
 
-      // Clean up any existing channel
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-      }
-
-      // Create a unique channel name for this room
-      const channelName = `room-sync:${roomCode}:${Date.now()}`;
-      
-      console.log('[Realtime] Setting up subscription for room:', roomId);
-      
-      const channel = supabase
-        .channel(channelName)
-        // Listen for room_players changes (joins/leaves) - filtered by room_id
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'room_players',
-            filter: `room_id=eq.${roomId}`,
-          },
-          (payload) => {
-            console.log('[Realtime] room_players change:', payload.eventType, payload);
-            // Always refetch to get complete player data with nicknames
-            if (isMounted) {
-              console.log('[Realtime] Fetching room data after room_players change');
-              fetchRoom();
-            }
-          }
-        )
-        // Listen for room updates (status changes) - filtered by id
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'rooms',
-            filter: `id=eq.${roomId}`,
-          },
-          (payload) => {
-            console.log('[Realtime] room update:', payload.eventType, payload);
-            if (!isMounted) return;
-            
-            // Update room status in place for faster UI update
-            const newRoom = payload.new as Room;
-            setRoom((prev) => {
-              if (!prev) return prev;
-              return {
-                ...prev,
-                room: newRoom,
-              };
-            });
-            
-            // Also fetch full data for any related changes
-            fetchRoom();
-          }
-        )
-        // Listen for player_roles changes (distribution, confirmation) - filtered by room_id
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'player_roles',
-            filter: `room_id=eq.${roomId}`,
-          },
-          (payload) => {
-            console.log('[Realtime] player_roles change:', payload.eventType, payload);
-            // Refresh to get updated confirmation status
-            if (isMounted) {
-              console.log('[Realtime] Fetching room data after player_roles change');
-              fetchRoom();
-            }
-          }
-        )
-        .subscribe((status, err) => {
-          console.log('[Realtime] Subscription status:', status, err ? `Error: ${err.message}` : '');
-          if (isMounted) {
-            setIsConnected(status === 'SUBSCRIBED');
-            if (status === 'SUBSCRIBED') {
-              console.log('[Realtime] ✅ Successfully subscribed to room changes');
-            } else if (status === 'CHANNEL_ERROR') {
-              console.error('[Realtime] ❌ Channel error - check Supabase Realtime settings');
-            }
-          }
-        });
-
-      channelRef.current = channel;
-    };
-
-    setupRealtimeSubscription();
-
-    // Cleanup function
-    return () => {
-      isMounted = false;
-      if (channelRef.current) {
-        const supabase = createBrowserClient();
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
-    };
-  }, [roomCode, fetchRoom]);
-
-  // Periodic polling as fallback (every 5 seconds if not connected, 15 seconds if connected)
-  // This ensures state stays in sync even if realtime has issues
+  // Fast polling for near-real-time updates (every 3 seconds)
   useEffect(() => {
-    const pollIntervalMs = isConnected ? 15000 : 5000;
-    
     const pollInterval = setInterval(() => {
-      console.log(`[Polling] Fallback refresh (connected: ${isConnected})`);
       fetchRoom();
-    }, pollIntervalMs);
+    }, POLL_INTERVAL_MS);
 
     return () => clearInterval(pollInterval);
-  }, [isConnected, fetchRoom]);
+  }, [fetchRoom]);
+
+  // Visibility change handler - fetch when tab becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchRoom(true);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [fetchRoom]);
+
+  // Focus handler - fetch when window regains focus
+  useEffect(() => {
+    const handleFocus = () => {
+      fetchRoom(true);
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [fetchRoom]);
 
   return {
     room,
     isLoading,
     error,
     isConnected,
-    refresh: fetchRoom,
+    refresh: () => fetchRoom(true),
     leave,
   };
 }
