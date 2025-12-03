@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { CreateRoomModal } from '@/components/CreateRoomModal';
 import { usePlayer } from '@/hooks/usePlayer';
 import { validateNickname, validateRoomCode } from '@/lib/domain/validation';
+import type { RoleConfig } from '@/types/role-config';
 
 export default function Home() {
   const router = useRouter();
@@ -62,9 +63,9 @@ export default function Home() {
   };
 
   /**
-   * Handle room creation
+   * T030: Handle room creation with role configuration
    */
-  const handleCreateRoom = async (expectedPlayers: number) => {
+  const handleCreateRoom = async (expectedPlayers: number, roleConfig: RoleConfig) => {
     if (!playerId) return;
 
     setGeneralError(null);
@@ -77,7 +78,10 @@ export default function Home() {
           'Content-Type': 'application/json',
           'X-Player-ID': playerId,
         },
-        body: JSON.stringify({ expected_players: expectedPlayers }),
+        body: JSON.stringify({ 
+          expected_players: expectedPlayers,
+          role_config: roleConfig,
+        }),
       });
 
       const data = await response.json();

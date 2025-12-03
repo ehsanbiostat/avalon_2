@@ -1,8 +1,13 @@
 /**
  * Room-related types for application use
+ * Updated for Phase 2: Special Roles & Configurations
  */
 
 import type { Room, RoomStatus } from './database';
+import type { RoleConfig } from './role-config';
+
+// Re-export for convenience
+export type { RoleConfig } from './role-config';
 
 /**
  * Room with computed properties for display
@@ -27,7 +32,7 @@ export interface RoomListItem {
 }
 
 /**
- * Room details with players for lobby view
+ * Room details with players for lobby view (extended for Phase 2)
  */
 export interface RoomDetails {
   room: Room;
@@ -41,6 +46,12 @@ export interface RoomDetails {
     total: number;
     confirmed: number;
   };
+  // Phase 2 additions
+  roles_in_play?: string[];
+  lady_of_lake_holder?: {
+    id: string;
+    nickname: string;
+  } | null;
 }
 
 /**
@@ -55,14 +66,16 @@ export interface RoomPlayerInfo {
 }
 
 /**
- * Room creation payload
+ * Room creation payload (extended for Phase 2)
  */
 export interface CreateRoomPayload {
   expected_players: number;
+  // Phase 2: Optional role configuration
+  role_config?: RoleConfig;
 }
 
 /**
- * Room creation response
+ * Room creation response (extended for Phase 2)
  */
 export interface CreateRoomResponse {
   id: string;
@@ -71,6 +84,10 @@ export interface CreateRoomResponse {
   expected_players: number;
   status: RoomStatus;
   created_at: string;
+  // Phase 2 additions
+  role_config: RoleConfig;
+  lady_of_lake_enabled: boolean;
+  roles_in_play: string[];
 }
 
 /**

@@ -85,21 +85,21 @@
 
 ### API Updates for US1
 
-- [ ] T021 [US1] Update POST /api/rooms to accept role_config in src/app/api/rooms/route.ts
-- [ ] T022 [US1] Add role config validation in POST /api/rooms in src/app/api/rooms/route.ts
-- [ ] T023 [US1] Store role_config in database when creating room in src/lib/supabase/rooms.ts
-- [ ] T024 [US1] Create POST /api/rooms/validate-config endpoint in src/app/api/rooms/validate-config/route.ts
+- [X] T021 [US1] Update POST /api/rooms to accept role_config in src/app/api/rooms/route.ts
+- [X] T022 [US1] Add role config validation in POST /api/rooms in src/app/api/rooms/route.ts
+- [X] T023 [US1] Store role_config in database when creating room in src/lib/supabase/rooms.ts
+- [X] T024 [US1] Create POST /api/rooms/validate-config endpoint in src/app/api/rooms/validate-config/route.ts
 
 ### UI Components for US1
 
-- [ ] T025 [P] [US1] Create RoleConfigPanel component in src/components/RoleConfigPanel.tsx
-- [ ] T026 [P] [US1] Create RoleConfigSummary component in src/components/RoleConfigSummary.tsx
-- [ ] T027 [US1] Update CreateRoomModal to include role configuration in src/components/CreateRoomModal.tsx
-- [ ] T028 [US1] Add Oberon mode toggle (Standard/Chaos) to RoleConfigPanel in src/components/RoleConfigPanel.tsx
-- [ ] T029 [US1] Add validation warnings display to RoleConfigPanel in src/components/RoleConfigPanel.tsx
-- [ ] T029a [US1] Add balance recommendations (e.g., "Percival works best with Morgana") to RoleConfigPanel in src/components/RoleConfigPanel.tsx
-- [ ] T029b [US1] Re-validate role_config when expected_players changes in src/components/RoleConfigPanel.tsx
-- [ ] T030 [US1] Update landing page to pass role_config to API in src/app/page.tsx
+- [X] T025 [P] [US1] Create RoleConfigPanel component in src/components/RoleConfigPanel.tsx
+- [X] T026 [P] [US1] Create RoleConfigSummary component in src/components/RoleConfigSummary.tsx
+- [X] T027 [US1] Update CreateRoomModal to include role configuration in src/components/CreateRoomModal.tsx
+- [X] T028 [US1] Add Oberon mode toggle (Standard/Chaos) to RoleConfigPanel in src/components/RoleConfigPanel.tsx
+- [X] T029 [US1] Add validation warnings display to RoleConfigPanel in src/components/RoleConfigPanel.tsx
+- [X] T029a [US1] Add balance recommendations (e.g., "Percival works best with Morgana") to RoleConfigPanel in src/components/RoleConfigPanel.tsx
+- [X] T029b [US1] Re-validate role_config when expected_players changes in src/components/RoleConfigPanel.tsx
+- [X] T030 [US1] Update landing page to pass role_config to API in src/app/page.tsx
 
 **Checkpoint**: Manager can configure and create room with custom roles
 
