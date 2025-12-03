@@ -1,13 +1,18 @@
 /**
  * API Route: GET /api/rooms/[code]/role
- * Get current player's role
+ * Get current player's role with special character information
  */
 
 import { NextResponse } from 'next/server';
 import { createServerClient, getPlayerIdFromRequest } from '@/lib/supabase/server';
 import { findPlayerByPlayerId } from '@/lib/supabase/players';
 import { findRoomByCode, isPlayerInRoom } from '@/lib/supabase/rooms';
-import { getPlayerRole, getEvilTeammates } from '@/lib/supabase/roles';
+import { 
+  getPlayerRole, 
+  getEvilTeammates,
+  getPlayersVisibleToMerlin,
+  getPlayersVisibleToPercival 
+} from '@/lib/supabase/roles';
 import { getRoleInfo } from '@/lib/domain/roles';
 import { validateRoomCode } from '@/lib/domain/validation';
 import { errors, handleError } from '@/lib/utils/errors';
@@ -18,7 +23,7 @@ interface RouteParams {
 
 /**
  * GET /api/rooms/[code]/role
- * Get current player's role
+ * Get current player's role with special character info
  */
 export async function GET(request: Request, { params }: RouteParams) {
   try {
@@ -70,22 +75,40 @@ export async function GET(request: Request, { params }: RouteParams) {
       return errors.rolesNotDistributed();
     }
 
-    // Get role info
-    const roleInfo = getRoleInfo(playerRole.role);
+    // Get role info with special character details
+    const roleInfo = getRoleInfo(playerRole.role, playerRole.special_role);
 
-    // Get evil teammates if player is evil
-    let evilTeammates: string[] | undefined;
-    if (playerRole.role === 'evil') {
-      evilTeammates = await getEvilTeammates(supabase, room.id, player.id);
+    // Get visibility information based on special role
+    let knownPlayers: string[] | undefined;
+    let knownPlayersLabel: string | undefined;
+
+    // Evil players see their teammates (except Oberon)
+    if (playerRole.role === 'evil' && playerRole.special_role !== 'oberon') {
+      knownPlayers = await getEvilTeammates(supabase, room.id, player.id);
+      knownPlayersLabel = 'Your Fellow Minions';
+    }
+
+    // Merlin sees evil players (except Mordred)
+    if (playerRole.special_role === 'merlin') {
+      knownPlayers = await getPlayersVisibleToMerlin(supabase, room.id);
+      knownPlayersLabel = 'The Evil Among You';
+    }
+
+    // Percival sees Merlin candidates (Merlin + Morgana)
+    if (playerRole.special_role === 'percival') {
+      knownPlayers = await getPlayersVisibleToPercival(supabase, room.id);
+      knownPlayersLabel = 'Merlin (or Morgana?)';
     }
 
     return NextResponse.json({
       data: {
         role: playerRole.role,
+        special_role: playerRole.special_role,
         role_name: roleInfo.role_name,
         role_description: roleInfo.role_description,
         is_confirmed: playerRole.is_confirmed,
-        evil_teammates: evilTeammates,
+        known_players: knownPlayers,
+        known_players_label: knownPlayersLabel,
       },
     });
   } catch (error) {

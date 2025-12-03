@@ -3,16 +3,33 @@
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 
+// Special role type
+type SpecialRole = 'merlin' | 'percival' | 'servant' | 'assassin' | 'morgana' | 'mordred' | 'oberon' | 'minion';
+
 interface RoleRevealModalProps {
   isOpen: boolean;
   onClose: () => void;
   role: 'good' | 'evil';
+  specialRole?: SpecialRole;
   roleName: string;
   roleDescription: string;
-  evilTeammates?: string[];
+  knownPlayers?: string[];
+  knownPlayersLabel?: string;
   isConfirmed: boolean;
   onConfirm: () => Promise<void>;
 }
+
+// Role-specific icons
+const ROLE_ICONS: Record<SpecialRole, string> = {
+  merlin: '🧙',
+  percival: '⚔️',
+  servant: '🛡️',
+  assassin: '🗡️',
+  morgana: '🔮',
+  mordred: '👑',
+  oberon: '👤',
+  minion: '⚫',
+};
 
 /**
  * Modal for revealing player's assigned role
@@ -21,13 +38,16 @@ export function RoleRevealModal({
   isOpen,
   onClose,
   role,
+  specialRole,
   roleName,
   roleDescription,
-  evilTeammates,
+  knownPlayers,
+  knownPlayersLabel,
   isConfirmed,
   onConfirm,
 }: RoleRevealModalProps) {
   const isEvil = role === 'evil';
+  const icon = specialRole ? ROLE_ICONS[specialRole] : (isEvil ? '🗡️' : '🛡️');
 
   return (
     <Modal
@@ -49,7 +69,7 @@ export function RoleRevealModal({
         >
           {/* Role Icon */}
           <div className="text-5xl mb-4">
-            {isEvil ? '🗡️' : '🛡️'}
+            {icon}
           </div>
 
           {/* Role Name */}
@@ -62,6 +82,21 @@ export function RoleRevealModal({
             {roleName}
           </h2>
 
+          {/* Alignment Badge */}
+          <div className="mb-3">
+            <span
+              className={`
+                px-3 py-1 rounded-full text-xs uppercase tracking-wider font-bold
+                ${isEvil 
+                  ? 'bg-evil/30 text-evil-light border border-evil/50' 
+                  : 'bg-good/30 text-good-light border border-good/50'
+                }
+              `}
+            >
+              {isEvil ? '⚫ Evil' : '⚪ Good'}
+            </span>
+          </div>
+
           {/* Role Description */}
           <p
             className={`
@@ -73,17 +108,43 @@ export function RoleRevealModal({
           </p>
         </div>
 
-        {/* Evil Teammates (only for Evil players) */}
-        {isEvil && evilTeammates && evilTeammates.length > 0 && (
-          <div className="p-4 bg-avalon-midnight/50 rounded-lg border border-evil/30">
-            <h3 className="font-display text-evil-light text-sm uppercase tracking-wider mb-3">
-              Your Fellow Minions
+        {/* Known Players Section (for Merlin, Percival, Evil) */}
+        {knownPlayers && knownPlayers.length > 0 && knownPlayersLabel && (
+          <div 
+            className={`
+              p-4 rounded-lg border
+              ${specialRole === 'merlin' || specialRole === 'percival'
+                ? 'bg-avalon-midnight/50 border-good/30'
+                : 'bg-avalon-midnight/50 border-evil/30'
+              }
+            `}
+          >
+            <h3 
+              className={`
+                font-display text-sm uppercase tracking-wider mb-3
+                ${specialRole === 'merlin' 
+                  ? 'text-evil-light' 
+                  : specialRole === 'percival'
+                    ? 'text-good-light'
+                    : 'text-evil-light'
+                }
+              `}
+            >
+              {knownPlayersLabel}
             </h3>
             <div className="flex flex-wrap gap-2">
-              {evilTeammates.map((name) => (
+              {knownPlayers.map((name) => (
                 <span
                   key={name}
-                  className="px-3 py-1 bg-evil/20 text-evil-light rounded-full text-sm"
+                  className={`
+                    px-3 py-1 rounded-full text-sm
+                    ${specialRole === 'merlin'
+                      ? 'bg-evil/20 text-evil-light'
+                      : specialRole === 'percival'
+                        ? 'bg-good/20 text-good-light'
+                        : 'bg-evil/20 text-evil-light'
+                    }
+                  `}
                 >
                   {name}
                 </span>
@@ -95,7 +156,37 @@ export function RoleRevealModal({
         {/* Instructions */}
         <div className="p-4 bg-avalon-midnight/50 rounded-lg border border-avalon-silver/20">
           <p className="text-avalon-parchment/70 text-sm text-center">
-            {isEvil ? (
+            {specialRole === 'merlin' ? (
+              <>
+                🧙 <strong>Use your knowledge wisely!</strong> Guide your team
+                but beware — if the Assassin discovers you, all is lost!
+              </>
+            ) : specialRole === 'assassin' ? (
+              <>
+                🗡️ <strong>Find Merlin!</strong> If the good team wins, you have
+                one chance to assassinate Merlin and steal victory!
+              </>
+            ) : specialRole === 'percival' ? (
+              <>
+                ⚔️ <strong>Protect Merlin!</strong> One of the players shown
+                is Merlin — but Morgana may be deceiving you!
+              </>
+            ) : specialRole === 'morgana' ? (
+              <>
+                🔮 <strong>Deceive Percival!</strong> Appear as Merlin to confuse
+                the good team. Sow chaos and sabotage!
+              </>
+            ) : specialRole === 'mordred' ? (
+              <>
+                👑 <strong>Hidden from Merlin!</strong> Even the wizard cannot
+                see your evil nature. Lead from the shadows!
+              </>
+            ) : specialRole === 'oberon' ? (
+              <>
+                👤 <strong>Work alone!</strong> You don't know the other evil
+                players. Sabotage carefully without coordination.
+              </>
+            ) : isEvil ? (
               <>
                 🤫 <strong>Keep your identity secret!</strong> Work with your
                 fellow minions to sabotage the quests without being discovered.

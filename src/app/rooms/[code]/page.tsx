@@ -21,10 +21,12 @@ export default function RoomPage() {
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [roleData, setRoleData] = useState<{
     role: 'good' | 'evil';
+    special_role?: 'merlin' | 'percival' | 'servant' | 'assassin' | 'morgana' | 'mordred' | 'oberon' | 'minion';
     role_name: string;
     role_description: string;
     is_confirmed: boolean;
-    evil_teammates?: string[];
+    known_players?: string[];
+    known_players_label?: string;
   } | null>(null);
   const [roleError, setRoleError] = useState<string | null>(null);
 
@@ -250,9 +252,11 @@ export default function RoomPage() {
             isOpen={showRoleModal}
             onClose={() => setShowRoleModal(false)}
             role={roleData.role}
+            specialRole={roleData.special_role}
             roleName={roleData.role_name}
             roleDescription={roleData.role_description}
-            evilTeammates={roleData.evil_teammates}
+            knownPlayers={roleData.known_players}
+            knownPlayersLabel={roleData.known_players_label}
             isConfirmed={roleData.is_confirmed}
             onConfirm={handleConfirmRole}
           />

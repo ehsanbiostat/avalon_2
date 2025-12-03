@@ -18,6 +18,7 @@ export async function insertRoleAssignments(
     room_id: roomId,
     player_id: a.playerId,
     role: a.role,
+    special_role: a.specialRole,
     is_confirmed: false,
   }));
 
@@ -114,6 +115,7 @@ export async function allPlayersConfirmed(
 
 /**
  * Get evil teammates for a player
+ * Excludes Oberon (who doesn't know other evil players)
  */
 export async function getEvilTeammates(
   client: SupabaseClient,
@@ -126,25 +128,90 @@ export async function getEvilTeammates(
     return [];
   }
 
-  // Get all evil players in the room (except self)
+  // Oberon doesn't know other evil players
+  if (playerRole.special_role === 'oberon') {
+    return [];
+  }
+
+  // Get all evil players in the room (except self and Oberon)
   const { data, error } = await client
     .from('player_roles')
     .select(`
       player_id,
+      special_role,
       players!inner (
         nickname
       )
     `)
     .eq('room_id', roomId)
     .eq('role', 'evil')
-    .neq('player_id', playerId);
+    .neq('player_id', playerId)
+    .neq('special_role', 'oberon');
+
+  if (error) {
+    throw error;
+  }
+
+  // Supabase join returns a single object, not an array
+  return (data || []).map(
+    (r: { players: { nickname: string } | null }) => r.players?.nickname || 'Unknown'
+  );
+}
+
+/**
+ * Get players visible to Merlin (all evil except Mordred)
+ */
+export async function getPlayersVisibleToMerlin(
+  client: SupabaseClient,
+  roomId: string
+): Promise<string[]> {
+  const { data, error } = await client
+    .from('player_roles')
+    .select(`
+      player_id,
+      special_role,
+      players!inner (
+        nickname
+      )
+    `)
+    .eq('room_id', roomId)
+    .eq('role', 'evil')
+    .neq('special_role', 'mordred');  // Mordred is hidden from Merlin
 
   if (error) {
     throw error;
   }
 
   return (data || []).map(
-    (r: { players: { nickname: string }[] }) => r.players[0]?.nickname || 'Unknown'
+    (r: { players: { nickname: string } | null }) => r.players?.nickname || 'Unknown'
+  );
+}
+
+/**
+ * Get players visible to Percival (Merlin + Morgana, but can't tell which)
+ */
+export async function getPlayersVisibleToPercival(
+  client: SupabaseClient,
+  roomId: string
+): Promise<string[]> {
+  const { data, error } = await client
+    .from('player_roles')
+    .select(`
+      player_id,
+      special_role,
+      players!inner (
+        nickname
+      )
+    `)
+    .eq('room_id', roomId)
+    .in('special_role', ['merlin', 'morgana']);
+
+  if (error) {
+    throw error;
+  }
+
+  return (data || []).map(
+    (r: { players: { nickname: string } | null }) => r.players?.nickname || 'Unknown'
   );
 }
 

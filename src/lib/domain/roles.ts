@@ -1,22 +1,44 @@
 /**
  * Role distribution logic (pure functions)
  * Assigns roles based on Avalon standard ratios
+ * Includes special characters: Merlin, Assassin, Percival, Morgana, etc.
  */
 
 import { ROLE_RATIOS } from '@/lib/utils/constants';
 import type { RoleDistribution } from '@/types/role';
 
+// Base alignment
+export type Alignment = 'good' | 'evil';
+
+// Specific character roles
+export type SpecialRole = 
+  | 'merlin'     // Good - knows evil players (except Mordred)
+  | 'percival'   // Good - knows Merlin (but Morgana looks the same)
+  | 'assassin'   // Evil - can assassinate Merlin at end
+  | 'morgana'    // Evil - appears as Merlin to Percival
+  | 'mordred'    // Evil - hidden from Merlin
+  | 'oberon'     // Evil - doesn't know other evil, they don't know him
+  | 'servant'    // Good - basic loyal servant
+  | 'minion';    // Evil - basic minion
+
+// For database storage, we still use 'good' | 'evil' as the base role
 export type Role = 'good' | 'evil';
 
 export interface RoleAssignment {
   playerId: string;
-  role: Role;
+  role: Role;  // Base alignment for DB storage
+  specialRole: SpecialRole;  // Specific character
 }
 
 export interface RoleInfo {
   role: Role;
+  specialRole: SpecialRole;
   role_name: string;
   role_description: string;
+  knows_evil: boolean;  // Can see evil players (Merlin)
+  known_to_merlin: boolean;  // Visible to Merlin (not Mordred)
+  knows_merlin: boolean;  // Can see Merlin candidates (Percival)
+  appears_as_merlin: boolean;  // Appears as Merlin to Percival (Morgana)
 }
 
 /**
@@ -44,21 +66,44 @@ export function shuffleArray<T>(array: T[]): T[] {
 }
 
 /**
+ * Get special roles for a given player count
+ * MVP uses: Merlin, Assassin, and basic servants/minions
+ */
+function getSpecialRolesForCount(playerCount: number): { good: SpecialRole[]; evil: SpecialRole[] } {
+  const ratio = getRoleRatio(playerCount);
+  
+  // Always include Merlin and Assassin
+  const goodRoles: SpecialRole[] = ['merlin'];
+  const evilRoles: SpecialRole[] = ['assassin'];
+  
+  // Fill remaining slots with basic roles
+  while (goodRoles.length < ratio.good) {
+    goodRoles.push('servant');
+  }
+  while (evilRoles.length < ratio.evil) {
+    evilRoles.push('minion');
+  }
+  
+  return { good: goodRoles, evil: evilRoles };
+}
+
+/**
  * Distribute roles to players based on Avalon ratios
+ * Includes special characters (Merlin, Assassin)
  * Returns array of role assignments
  */
 export function distributeRoles(playerIds: string[]): RoleAssignment[] {
   const playerCount = playerIds.length;
-  const ratio = getRoleRatio(playerCount);
+  const specialRoles = getSpecialRolesForCount(playerCount);
 
-  // Create role pool
-  const roles: Role[] = [
-    ...Array(ratio.good).fill('good' as Role),
-    ...Array(ratio.evil).fill('evil' as Role),
+  // Create role pool with special roles
+  const allRoles: { role: Role; specialRole: SpecialRole }[] = [
+    ...specialRoles.good.map(sr => ({ role: 'good' as Role, specialRole: sr })),
+    ...specialRoles.evil.map(sr => ({ role: 'evil' as Role, specialRole: sr })),
   ];
 
   // Shuffle roles
-  const shuffledRoles = shuffleArray(roles);
+  const shuffledRoles = shuffleArray(allRoles);
 
   // Shuffle players (for extra randomness)
   const shuffledPlayers = shuffleArray(playerIds);
@@ -66,29 +111,108 @@ export function distributeRoles(playerIds: string[]): RoleAssignment[] {
   // Assign roles
   return shuffledPlayers.map((playerId, index) => ({
     playerId,
-    role: shuffledRoles[index],
+    role: shuffledRoles[index].role,
+    specialRole: shuffledRoles[index].specialRole,
   }));
 }
 
 /**
- * Get human-readable role info
+ * Role information database
  */
-export function getRoleInfo(role: Role): RoleInfo {
-  if (role === 'good') {
-    return {
-      role: 'good',
-      role_name: 'Loyal Servant of Arthur',
-      role_description:
-        'You are a loyal servant of King Arthur. Work with your fellow knights to complete quests and identify the traitors among you.',
-    };
-  }
-
-  return {
-    role: 'evil',
+const ROLE_INFO: Record<SpecialRole, Omit<RoleInfo, 'role'>> = {
+  merlin: {
+    specialRole: 'merlin',
+    role_name: 'Merlin',
+    role_description: 'You are Merlin, the wise wizard. You know the identities of the evil players (except Mordred). Guide your team to victory, but beware - if the Assassin discovers you, all is lost!',
+    knows_evil: true,
+    known_to_merlin: false,  // Merlin doesn't see himself
+    knows_merlin: false,
+    appears_as_merlin: false,
+  },
+  percival: {
+    specialRole: 'percival',
+    role_name: 'Percival',
+    role_description: 'You are Percival, the loyal knight. You know who Merlin is (but Morgana may appear as Merlin too). Protect Merlin at all costs!',
+    knows_evil: false,
+    known_to_merlin: false,
+    knows_merlin: true,
+    appears_as_merlin: false,
+  },
+  servant: {
+    specialRole: 'servant',
+    role_name: 'Loyal Servant of Arthur',
+    role_description: 'You are a loyal servant of King Arthur. Work with your fellow knights to complete quests and identify the traitors among you.',
+    knows_evil: false,
+    known_to_merlin: false,
+    knows_merlin: false,
+    appears_as_merlin: false,
+  },
+  assassin: {
+    specialRole: 'assassin',
+    role_name: 'The Assassin',
+    role_description: 'You are the Assassin, deadliest of Mordred\'s minions. If the good team wins, you have one chance to assassinate Merlin and steal victory!',
+    knows_evil: false,  // Knows evil via being evil, not special ability
+    known_to_merlin: true,
+    knows_merlin: false,
+    appears_as_merlin: false,
+  },
+  morgana: {
+    specialRole: 'morgana',
+    role_name: 'Morgana',
+    role_description: 'You are Morgana, the dark enchantress. You appear as Merlin to Percival. Use this to sow confusion and protect the real evil team!',
+    knows_evil: false,
+    known_to_merlin: true,
+    knows_merlin: false,
+    appears_as_merlin: true,
+  },
+  mordred: {
+    specialRole: 'mordred',
+    role_name: 'Mordred',
+    role_description: 'You are Mordred, the dark lord himself. Even Merlin cannot see your evil nature. Lead your minions to victory from the shadows!',
+    knows_evil: false,
+    known_to_merlin: false,  // Hidden from Merlin!
+    knows_merlin: false,
+    appears_as_merlin: false,
+  },
+  oberon: {
+    specialRole: 'oberon',
+    role_name: 'Oberon',
+    role_description: 'You are Oberon, the mysterious evil. You do not know the other evil players, and they do not know you. Work alone to sabotage the quests!',
+    knows_evil: false,
+    known_to_merlin: true,
+    knows_merlin: false,
+    appears_as_merlin: false,
+  },
+  minion: {
+    specialRole: 'minion',
     role_name: 'Minion of Mordred',
-    role_description:
-      'You serve the dark lord Mordred. Sabotage the quests and avoid detection. You know who your fellow minions are.',
+    role_description: 'You serve the dark lord Mordred. Sabotage the quests and avoid detection. You know who your fellow minions are.',
+    knows_evil: false,
+    known_to_merlin: true,
+    knows_merlin: false,
+    appears_as_merlin: false,
+  },
+};
+
+/**
+ * Get human-readable role info for a special role
+ */
+export function getRoleInfo(role: Role, specialRole?: SpecialRole): RoleInfo {
+  // Default to basic roles if no special role specified
+  const sr = specialRole || (role === 'good' ? 'servant' : 'minion');
+  const info = ROLE_INFO[sr];
+  
+  return {
+    role,
+    ...info,
   };
+}
+
+/**
+ * Legacy function for backward compatibility
+ */
+export function getBasicRoleInfo(role: Role): RoleInfo {
+  return getRoleInfo(role);
 }
 
 /**
@@ -125,4 +249,49 @@ export function validateRoleDistribution(
   }
 
   return { valid: true };
+}
+
+/**
+ * Get players visible to Merlin (all evil except Mordred)
+ */
+export function getPlayersVisibleToMerlin(assignments: RoleAssignment[]): string[] {
+  return assignments
+    .filter(a => a.role === 'evil' && a.specialRole !== 'mordred')
+    .map(a => a.playerId);
+}
+
+/**
+ * Get players visible to Percival (Merlin + Morgana)
+ */
+export function getPlayersVisibleToPercival(assignments: RoleAssignment[]): string[] {
+  return assignments
+    .filter(a => a.specialRole === 'merlin' || a.specialRole === 'morgana')
+    .map(a => a.playerId);
+}
+
+/**
+ * Get evil teammates (excluding Oberon who doesn't know others)
+ */
+export function getEvilTeammatesForPlayer(
+  assignments: RoleAssignment[],
+  playerId: string
+): string[] {
+  const playerAssignment = assignments.find(a => a.playerId === playerId);
+  if (!playerAssignment || playerAssignment.role !== 'evil') {
+    return [];
+  }
+  
+  // Oberon doesn't know other evil players
+  if (playerAssignment.specialRole === 'oberon') {
+    return [];
+  }
+  
+  // Other evil players see all evil except Oberon
+  return assignments
+    .filter(a => 
+      a.role === 'evil' && 
+      a.playerId !== playerId && 
+      a.specialRole !== 'oberon'
+    )
+    .map(a => a.playerId);
 }

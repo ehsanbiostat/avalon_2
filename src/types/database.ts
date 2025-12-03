@@ -90,6 +90,7 @@ export interface Database {
           room_id: string;
           player_id: string;
           role: Role;
+          special_role: SpecialRole;
           is_confirmed: boolean;
           assigned_at: string;
         };
@@ -98,6 +99,7 @@ export interface Database {
           room_id: string;
           player_id: string;
           role: Role;
+          special_role: SpecialRole;
           is_confirmed?: boolean;
           assigned_at?: string;
         };
@@ -106,6 +108,7 @@ export interface Database {
           room_id?: string;
           player_id?: string;
           role?: Role;
+          special_role?: SpecialRole;
           is_confirmed?: boolean;
           assigned_at?: string;
         };
@@ -127,8 +130,19 @@ export interface Database {
 // Room status enum
 export type RoomStatus = 'waiting' | 'roles_distributed' | 'started';
 
-// Role enum
+// Role enum (base alignment)
 export type Role = 'good' | 'evil';
+
+// Special role enum (specific characters)
+export type SpecialRole = 
+  | 'merlin'     // Good - knows evil players (except Mordred)
+  | 'percival'   // Good - knows Merlin (but Morgana looks the same)
+  | 'servant'    // Good - basic loyal servant
+  | 'assassin'   // Evil - can assassinate Merlin at end
+  | 'morgana'    // Evil - appears as Merlin to Percival
+  | 'mordred'    // Evil - hidden from Merlin
+  | 'oberon'     // Evil - doesn't know other evil, they don't know him
+  | 'minion';    // Evil - basic minion
 
 // Convenience types from row types
 export type Player = Database['public']['Tables']['players']['Row'];
