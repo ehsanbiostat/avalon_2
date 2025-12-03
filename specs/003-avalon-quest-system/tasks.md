@@ -1,7 +1,7 @@
 # Implementation Tasks: Phase 3 – Quest System
 
 **Feature**: 003-avalon-quest-system
-**Total Tasks**: 85
+**Total Tasks**: 200
 **Created**: 2025-12-03
 
 ---
@@ -115,14 +115,14 @@
 
 ## Phase 3.3: API Endpoints
 
-### Game Start
-- [ ] T070 Create POST /api/games/[roomId]/start endpoint in src/app/api/games/[roomId]/start/route.ts
-- [ ] T071 Implement manager-only authorization
-- [ ] T072 Implement seating randomization on game start
-- [ ] T073 Implement random leader selection
-- [ ] T074 Create initial game record in database
-- [ ] T075 Log game_started event
-- [ ] T076 Return game state with seating order
+### Game Auto-Start (Triggered by Last Role Confirmation)
+- [ ] T070 Create createGameForRoom(roomId) internal function in src/lib/domain/game-start.ts
+- [ ] T071 Update POST /api/rooms/[code]/confirm to trigger game creation when all confirmed
+- [ ] T072 Implement seating randomization (Fisher-Yates shuffle)
+- [ ] T073 Implement random leader selection from seating order
+- [ ] T074 Create initial game record in database with player_count
+- [ ] T075 Log game_started event with seating order and first leader
+- [ ] T076 Update room status to 'started' when game created
 
 ### Team Proposal
 - [ ] T077 Create POST /api/games/[gameId]/propose endpoint in src/app/api/games/[gameId]/propose/route.ts
@@ -159,11 +159,11 @@
 - [ ] T104 Log quest events
 
 ### Quest Result & Progression
-- [ ] T105 Create POST /api/games/[gameId]/continue endpoint
+- [ ] T105 Create POST /api/games/[gameId]/continue endpoint in src/app/api/games/[gameId]/continue/route.ts
 - [ ] T106 Check win conditions (3 successes or 3 failures)
-- [ ] T107 If game over: set winner, update phase
-- [ ] T108 If continuing: increment quest number, rotate leader, reset to team_building
-- [ ] T109 Reset vote_track after quest completes
+- [ ] T107 If game over: set winner, update phase to 'game_over'
+- [ ] T108 If continuing: increment quest number, rotate leader, reset phase to 'team_building'
+- [ ] T109 Reset vote_track to 0 when team is approved (not after quest)
 - [ ] T110 Log game progression events
 
 ### Game State
@@ -186,6 +186,7 @@
 - [ ] T119 Create src/components/game/GameBoard.tsx main container
 - [ ] T120 Implement responsive layout (desktop: side panels, mobile: stacked)
 - [ ] T121 Create game state polling hook src/hooks/useGame.ts
+- [ ] T121b Add "View My Role" button to GameBoard that opens RoleRevealModal
 
 ### Quest Track
 - [ ] T122 Create src/components/game/QuestTrack.tsx
@@ -296,7 +297,7 @@
 - [ ] T183 Update src/app/game/[code]/page.tsx with GameBoard
 - [ ] T184 Implement game state loading
 - [ ] T185 Handle game not found / not started errors
-- [ ] T186 Add "Start Game" button to Lobby for manager
+- [ ] T186 Update Lobby to auto-redirect when game starts (after all roles confirmed)
 
 ### Real-time Updates
 - [ ] T187 Implement game state polling in useGame hook

@@ -66,12 +66,13 @@ CREATE TYPE quest_action_type AS ENUM ('success', 'fail');
 
 ### `games`
 
-Primary game state table. One game per room.
+Primary game state table. One game per room. Created automatically when all players confirm roles.
 
 | Column | Type | Constraints | Description |
 |--------|------|-------------|-------------|
 | `id` | UUID | PK, DEFAULT gen_random_uuid() | Unique game identifier |
 | `room_id` | UUID | FK rooms(id), UNIQUE, NOT NULL | Associated room |
+| `player_count` | INT | NOT NULL | Number of players (5-10), for quest requirements |
 | `phase` | game_phase | NOT NULL, DEFAULT 'team_building' | Current game phase |
 | `current_quest` | INT | NOT NULL, DEFAULT 1 | Quest number (1-5) |
 | `current_leader_id` | UUID | FK players(id), NOT NULL | Current team leader |
@@ -365,6 +366,7 @@ export type GameWinner = 'good' | 'evil';
 export interface Game {
   id: string;
   room_id: string;
+  player_count: number;  // 5-10, for quest requirements lookup
   phase: GamePhase;
   current_quest: number;
   current_leader_id: string;

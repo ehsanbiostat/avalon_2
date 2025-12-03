@@ -102,9 +102,14 @@ Without the quest system, there's no actual game to play after roles are distrib
 
 † = **Two fails required** for quest to fail (7+ player games, Quest 4 only)
 
+### Game Start (Auto-Trigger)
+
+1. Game **automatically starts** when all players have confirmed their roles
+2. No manual "Start Game" button needed - confirmation triggers transition
+
 ### Seating Order & Leader Rotation
 
-1. **When game starts** (all roles confirmed), player positions are **randomized** into a "seating order"
+1. **When game auto-starts** (all roles confirmed), player positions are **randomized** into a "seating order"
 2. First leader is **randomly selected** from the seating order
 3. After each team vote (pass or fail), leadership passes **clockwise** through the seating order
 4. Leadership continues to rotate even if same player proposes again after rejection
@@ -396,7 +401,7 @@ _Note: Assassin phase (Merlin guess after Good wins) deferred to Phase 4._
 - FR-323: System MUST calculate approval (majority approve = pass)
 - FR-324: System MUST handle tie as rejection
 - FR-325: System MUST increment rejection count on rejected vote
-- FR-326: System MUST reset rejection count after approved team goes on quest
+- FR-326: System MUST reset rejection count to 0 when a team proposal is approved (before quest execution)
 - FR-327: System MUST trigger Evil win if rejection count reaches 5
 
 ### Quest Phase
@@ -418,9 +423,11 @@ _Note: Assassin phase (Merlin guess after Good wins) deferred to Phase 4._
 - FR-344: System MUST trigger Evil win when rejection count reaches 5
 - FR-345: System MUST reveal all player roles at game end
 
-### Seating Order & Leader Rotation
+### Game Auto-Start & Seating
 
-- FR-350: System MUST randomize player seating order when game starts (after all roles confirmed)
+- FR-348: System MUST automatically start game when all players have confirmed their roles
+- FR-349: System MUST NOT require manual "Start Game" button (auto-triggered by last confirmation)
+- FR-350: System MUST randomize player seating order when game starts
 - FR-351: System MUST select first leader randomly from seating order
 - FR-352: System MUST rotate leader clockwise (through seating order) after each vote
 - FR-353: System MUST persist leader through quest execution

@@ -63,6 +63,9 @@ CREATE TABLE games (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   room_id UUID NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
   
+  -- Game config (denormalized for efficiency)
+  player_count INT NOT NULL,  -- 5-10, stored for quest requirements lookup
+  
   -- Game state
   phase game_phase NOT NULL DEFAULT 'team_building',
   current_quest INT NOT NULL DEFAULT 1,  -- 1-5
@@ -173,27 +176,35 @@ CREATE INDEX idx_game_events_game_id ON game_events(game_id);
 
 ## API Contracts
 
-### Game Initialization
+### Game Initialization (Auto-Triggered)
 
-#### POST `/api/games/[roomId]/start`
-Start the game (called when transitioning from `roles_distributed` to gameplay).
+Game starts **automatically** when all players confirm their roles. The role confirmation endpoint (`POST /api/rooms/[code]/confirm`) triggers game creation when the last player confirms.
 
-**Request**: Empty body (manager must be authenticated)
+#### Internal: `createGameForRoom(roomId)`
+Called internally when last role confirmation received.
 
-**Response** (201):
+**Logic**:
+1. Verify all players confirmed
+2. Get player list and count
+3. Randomize seating order (Fisher-Yates)
+4. Select random first leader
+5. Create game record
+6. Update room status to 'started'
+7. Log `game_started` event
+
+**Game State Created**:
 ```typescript
 {
-  data: {
-    game_id: string;
-    phase: 'team_building';
-    current_quest: 1;
-    current_leader_id: string;
-    seating_order: string[];  // Player IDs in order
-    quest_requirements: {
-      1: { team_size: 2, fails_required: 1 },
-      2: { team_size: 3, fails_required: 1 },
-      // ...
-    }
+  game_id: string;
+  phase: 'team_building';
+  current_quest: 1;
+  current_leader_id: string;
+  player_count: number;
+  seating_order: string[];  // Player IDs in randomized order
+  quest_requirements: {
+    1: { team_size: 2, fails_required: 1 },
+    2: { team_size: 3, fails_required: 1 },
+    // ...
   }
 }
 ```
@@ -332,6 +343,32 @@ Submit quest action (team members only).
 
 ---
 
+### Quest Result & Progression
+
+#### POST `/api/games/[gameId]/continue`
+Advance from quest_result phase to next quest or game_over.
+
+**Request**: Empty body
+
+**Response** (200):
+```typescript
+{
+  data: {
+    phase: GamePhase;           // 'team_building' or 'game_over'
+    current_quest: number;      // Next quest number (if continuing)
+    current_leader_id: string;  // Next leader (if continuing)
+    winner?: 'good' | 'evil';   // Set if game_over
+    win_reason?: string;        // '3_quest_successes', '3_quest_failures'
+  }
+}
+```
+
+**Errors**:
+- `INVALID_PHASE`: Not in quest_result phase
+- `GAME_ALREADY_OVER`: Game has already ended
+
+---
+
 ### Game State
 
 #### GET `/api/games/[gameId]`
@@ -427,8 +464,8 @@ src/components/
 
 ```
 src/components/
-├── Lobby.tsx                   # Add "Start Game" transition
-└── RoleRevealModal.tsx         # Keep role reference during game
+├── Lobby.tsx                   # Auto-redirect to game page when game starts
+└── RoleRevealModal.tsx         # Keep role reference during game (via "View My Role" button)
 ```
 
 ### New Pages
