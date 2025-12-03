@@ -145,18 +145,20 @@ function RoleBadge({ name, team, small }: RoleBadgeProps) {
  * Normalize role name to match SPECIAL_ROLES keys
  */
 function normalizeRoleName(name: string): keyof typeof SPECIAL_ROLES {
+  // First normalize the string without casting
   const normalized = name
     .toLowerCase()
     .replace(' (chaos)', '_chaos')
-    .replace(/\s+/g, '_') as keyof typeof SPECIAL_ROLES;
+    .replace(/\s+/g, '_');
   
-  // Handle special cases
+  // Handle special cases for display name -> key mapping
   if (normalized === 'oberon') return 'oberon_standard';
   if (normalized === 'loyal_servant_of_arthur') return 'servant';
   if (normalized === 'loyal_servant') return 'servant';
   if (normalized === 'the_assassin') return 'assassin';
   if (normalized === 'minion_of_mordred') return 'minion';
   
-  return normalized;
+  // Cast to SpecialRole key after special case handling
+  return normalized as keyof typeof SPECIAL_ROLES;
 }
 
