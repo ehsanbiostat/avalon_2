@@ -2,19 +2,34 @@
 
 /**
  * GameOver Component
- * Shows final game result
+ * Shows final game result with all player roles revealed
  */
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import type { GameWinner, QuestResult } from '@/types/game';
+import type { GameWinner, QuestResult, GamePlayer } from '@/types/game';
 import { getWinnerAnnouncement, getWinReasonText, countQuestResults } from '@/lib/domain/win-conditions';
+
+// Role display config
+const ROLE_DISPLAY: Record<string, { emoji: string; label: string; color: string }> = {
+  merlin: { emoji: '🧙', label: 'Merlin', color: 'text-blue-400' },
+  percival: { emoji: '🛡️', label: 'Percival', color: 'text-sky-400' },
+  servant: { emoji: '⚔️', label: 'Loyal Servant', color: 'text-emerald-400' },
+  assassin: { emoji: '🗡️', label: 'Assassin', color: 'text-red-400' },
+  morgana: { emoji: '🦹‍♀️', label: 'Morgana', color: 'text-purple-400' },
+  mordred: { emoji: '👿', label: 'Mordred', color: 'text-red-500' },
+  oberon_standard: { emoji: '👤', label: 'Oberon', color: 'text-gray-400' },
+  oberon_chaos: { emoji: '🎭', label: 'Oberon (Chaos)', color: 'text-gray-500' },
+  minion: { emoji: '😈', label: 'Minion of Mordred', color: 'text-red-300' },
+};
 
 interface GameOverProps {
   winner: GameWinner;
   winReason: string;
   questResults: QuestResult[];
   playerRole?: 'good' | 'evil';
+  players: GamePlayer[];
+  currentPlayerId?: string;
 }
 
 export function GameOver({
@@ -22,13 +37,33 @@ export function GameOver({
   winReason,
   questResults,
   playerRole,
+  players,
+  currentPlayerId,
 }: GameOverProps) {
   const router = useRouter();
   
   const isWinner = playerRole === winner;
   const score = countQuestResults(questResults);
-  const announcement = getWinnerAnnouncement(winner, winReason as '3_quest_successes' | '3_quest_failures' | '5_rejections');
-  const reasonText = getWinReasonText(winReason as '3_quest_successes' | '3_quest_failures' | '5_rejections');
+  const announcement = getWinnerAnnouncement(winner, winReason as '3_quest_successes' | '3_quest_failures' | '5_rejections' | 'assassin_found_merlin');
+  const reasonText = getWinReasonText(winReason as '3_quest_successes' | '3_quest_failures' | '5_rejections' | 'assassin_found_merlin');
+  
+  // Get role display info
+  const getRoleDisplay = (specialRole?: string, role?: 'good' | 'evil') => {
+    if (specialRole && ROLE_DISPLAY[specialRole]) {
+      return ROLE_DISPLAY[specialRole];
+    }
+    if (role === 'evil') {
+      return ROLE_DISPLAY.minion;
+    }
+    return ROLE_DISPLAY.servant;
+  };
+  
+  // Sort players: Good first, then Evil
+  const sortedPlayers = [...players].sort((a, b) => {
+    if (a.revealed_role === 'good' && b.revealed_role === 'evil') return -1;
+    if (a.revealed_role === 'evil' && b.revealed_role === 'good') return 1;
+    return 0;
+  });
 
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-8">
@@ -122,6 +157,83 @@ export function GameOver({
           </div>
         ))}
       </div>
+
+      {/* Role Reveal Section */}
+      {players.length > 0 && players[0].revealed_role && (
+        <div className="w-full max-w-2xl bg-avalon-dark-blue/50 rounded-xl p-6 border border-avalon-silver/20">
+          <h3 className="text-lg font-bold text-avalon-silver text-center mb-4">
+            🎭 Role Reveal
+          </h3>
+          
+          <div className="grid grid-cols-2 gap-3">
+            {/* Good Team */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-semibold text-emerald-400 text-center mb-2">
+                ⚔️ Loyal Servants of Arthur
+              </h4>
+              {sortedPlayers
+                .filter(p => p.revealed_role === 'good')
+                .map((player) => {
+                  const roleDisplay = getRoleDisplay(player.revealed_special_role, player.revealed_role);
+                  const isCurrentPlayer = player.id === currentPlayerId;
+                  return (
+                    <div
+                      key={player.id}
+                      className={`
+                        flex items-center gap-2 p-2 rounded-lg bg-slate-800/50
+                        ${isCurrentPlayer ? 'ring-2 ring-avalon-gold' : ''}
+                      `}
+                    >
+                      <span className="text-xl">{roleDisplay.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className={`font-medium truncate ${isCurrentPlayer ? 'text-avalon-gold' : 'text-slate-200'}`}>
+                          {player.nickname}
+                          {isCurrentPlayer && ' (You)'}
+                        </div>
+                        <div className={`text-xs ${roleDisplay.color}`}>
+                          {roleDisplay.label}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+
+            {/* Evil Team */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-semibold text-red-400 text-center mb-2">
+                😈 Minions of Mordred
+              </h4>
+              {sortedPlayers
+                .filter(p => p.revealed_role === 'evil')
+                .map((player) => {
+                  const roleDisplay = getRoleDisplay(player.revealed_special_role, player.revealed_role);
+                  const isCurrentPlayer = player.id === currentPlayerId;
+                  return (
+                    <div
+                      key={player.id}
+                      className={`
+                        flex items-center gap-2 p-2 rounded-lg bg-slate-800/50
+                        ${isCurrentPlayer ? 'ring-2 ring-avalon-gold' : ''}
+                      `}
+                    >
+                      <span className="text-xl">{roleDisplay.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className={`font-medium truncate ${isCurrentPlayer ? 'text-avalon-gold' : 'text-slate-200'}`}>
+                          {player.nickname}
+                          {isCurrentPlayer && ' (You)'}
+                        </div>
+                        <div className={`text-xs ${roleDisplay.color}`}>
+                          {roleDisplay.label}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex gap-4">

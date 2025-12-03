@@ -13,6 +13,7 @@ import { VotingPanel } from './VotingPanel';
 import { QuestExecution } from './QuestExecution';
 import { QuestResultDisplay } from './QuestResultDisplay';
 import { VoteResultReveal } from './VoteResultReveal';
+import { AssassinPhase } from './AssassinPhase';
 import { GameOver } from './GameOver';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -87,6 +88,33 @@ export function GameBoard({ gameId }: GameBoardProps) {
           winReason={game.win_reason || ''}
           questResults={game.quest_results}
           playerRole={playerRole}
+          players={players}
+          currentPlayerId={currentPlayerId ?? undefined}
+        />
+      </div>
+    );
+  }
+  
+  // Assassin Phase
+  if (game.phase === 'assassin' && gameState.assassin_phase) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        {/* Quest Tracker - still show progress */}
+        <QuestTracker
+          playerCount={game.player_count}
+          currentQuest={game.current_quest}
+          questResults={game.quest_results}
+          voteTrack={game.vote_track}
+        />
+        
+        {/* Assassin Phase UI */}
+        <AssassinPhase
+          gameId={gameId}
+          players={players}
+          assassinPhase={gameState.assassin_phase}
+          isAssassin={gameState.is_assassin}
+          currentPlayerId={currentPlayerId ?? ''}
+          onGuessSubmitted={handleAction}
         />
       </div>
     );

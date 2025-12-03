@@ -169,9 +169,25 @@ export async function POST(request: Request, { params }: RouteParams) {
 
       // Add quest result and check win conditions
       const updatedResults = [...game.quest_results, questResult];
-      const winCheck = checkWinConditions(updatedResults, 0); // vote_track is 0 here
+      
+      // Check if Merlin is in the game (for assassin phase)
+      const { data: merlinCheck } = await supabase
+        .from('player_roles')
+        .select('id')
+        .eq('room_id', game.room_id)
+        .eq('special_role', 'merlin')
+        .single();
+      
+      const hasMerlin = !!merlinCheck;
+      const winCheck = checkWinConditions(updatedResults, 0, hasMerlin);
 
-      if (winCheck.gameOver) {
+      if (winCheck.assassinPhase) {
+        // Good won 3 quests but Assassin gets a chance to find Merlin
+        await updateGame(supabase, gameId, {
+          quest_results: updatedResults,
+          phase: 'assassin',
+        });
+      } else if (winCheck.gameOver) {
         // Game over!
         await updateGame(supabase, gameId, {
           quest_results: updatedResults,

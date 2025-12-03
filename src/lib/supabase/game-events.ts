@@ -122,6 +122,23 @@ export async function logGameEnded(
 }
 
 /**
+ * Log game over (convenience wrapper)
+ */
+export async function logGameOver(
+  client: SupabaseClient,
+  gameId: string,
+  winner: 'good' | 'evil',
+  reason: string,
+  assassinFoundMerlin: boolean = false
+): Promise<GameEvent> {
+  return logGameEnded(client, gameId, {
+    winner,
+    reason,
+    assassin_found_merlin: assassinFoundMerlin,
+  } as GameEndedEventData);
+}
+
+/**
  * Get all events for a game (chronological)
  */
 export async function getGameEvents(

@@ -12,6 +12,7 @@ export type GamePhase =
   | 'voting'          // All players voting on team
   | 'quest'           // Team executing quest
   | 'quest_result'    // Showing quest result
+  | 'assassin'        // Assassin guessing Merlin (Good won 3 quests)
   | 'game_over';      // Game ended
 
 export type ProposalStatus = 'pending' | 'approved' | 'rejected';
@@ -194,6 +195,9 @@ export interface GameState {
   total_team_members: number;
   // Last vote result (for reveal animation)
   last_vote_result: LastVoteResult | null;
+  // Assassin phase (when Good wins 3 quests)
+  assassin_phase: AssassinPhaseState | null;
+  is_assassin: boolean;
 }
 
 /**
@@ -218,6 +222,19 @@ export interface GamePlayer {
   is_on_team: boolean;      // On current proposal's team
   has_voted: boolean;       // Has voted on current proposal
   is_connected: boolean;
+  // Only populated during game_over phase
+  revealed_role?: 'good' | 'evil';
+  revealed_special_role?: string;
+}
+
+/**
+ * Assassin phase state
+ */
+export interface AssassinPhaseState {
+  assassin_id: string;
+  assassin_nickname: string;
+  merlin_id: string; // Only known to server
+  can_guess: boolean; // True if current player is assassin
 }
 
 /**
@@ -335,9 +352,10 @@ export interface GameEndedEventData {
 // ============================================
 
 export type WinReason =
-  | '3_quest_successes'   // Good won 3 quests
-  | '3_quest_failures'    // Evil won 3 quests
-  | '5_rejections';       // 5 consecutive team rejections
+  | '3_quest_successes'      // Good won 3 quests (Assassin failed to find Merlin)
+  | '3_quest_failures'       // Evil won 3 quests
+  | '5_rejections'           // 5 consecutive team rejections
+  | 'assassin_found_merlin'; // Assassin correctly identified Merlin
 
 export interface GameScore {
   good: number;  // Successful quests

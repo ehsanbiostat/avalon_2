@@ -10,6 +10,7 @@ import type { QuestResult, GameWinner, WinReason, GameScore } from '@/types/game
  */
 export interface WinConditionResult {
   gameOver: boolean;
+  assassinPhase: boolean; // True if Good won 3 quests and Assassin gets a chance
   winner: GameWinner | null;
   reason: WinReason | null;
 }
@@ -31,15 +32,18 @@ export function countQuestResults(
  * 
  * @param questResults Array of completed quest results
  * @param voteTrack Current consecutive rejection count
+ * @param hasMerlin Whether the game has a Merlin role (enables assassin phase)
  */
 export function checkWinConditions(
   questResults: QuestResult[],
-  voteTrack: number
+  voteTrack: number,
+  hasMerlin: boolean = true
 ): WinConditionResult {
   // Check 5 rejections first (immediate Evil win)
   if (voteTrack >= 5) {
     return {
       gameOver: true,
+      assassinPhase: false,
       winner: 'evil',
       reason: '5_rejections',
     };
@@ -48,10 +52,21 @@ export function checkWinConditions(
   const score = countQuestResults(questResults);
   
   // Good wins with 3 successful quests
-  // Note: In Phase 3, this is final win (Assassin phase in Phase 4)
+  // If Merlin exists, trigger assassin phase instead of immediate win
   if (score.good >= 3) {
+    if (hasMerlin) {
+      // Assassin gets a chance to find Merlin
+      return {
+        gameOver: false,
+        assassinPhase: true,
+        winner: null,
+        reason: null,
+      };
+    }
+    // No Merlin = immediate Good win
     return {
       gameOver: true,
+      assassinPhase: false,
       winner: 'good',
       reason: '3_quest_successes',
     };
@@ -61,6 +76,7 @@ export function checkWinConditions(
   if (score.evil >= 3) {
     return {
       gameOver: true,
+      assassinPhase: false,
       winner: 'evil',
       reason: '3_quest_failures',
     };
@@ -69,6 +85,7 @@ export function checkWinConditions(
   // Game continues
   return {
     gameOver: false,
+    assassinPhase: false,
     winner: null,
     reason: null,
   };
@@ -103,11 +120,13 @@ export function checkEvilWins(questResults: QuestResult[]): boolean {
 export function getWinReasonText(reason: WinReason): string {
   switch (reason) {
     case '3_quest_successes':
-      return 'Good completed 3 successful quests!';
+      return 'Good completed 3 successful quests! The Assassin failed to find Merlin.';
     case '3_quest_failures':
       return 'Evil sabotaged 3 quests!';
     case '5_rejections':
       return '5 consecutive team rejections - chaos reigns!';
+    case 'assassin_found_merlin':
+      return 'The Assassin found Merlin! Evil snatches victory from defeat!';
     default:
       return 'Game over';
   }
@@ -128,7 +147,28 @@ export function getWinnerAnnouncement(
     return '😈 Evil wins through chaos and indecision!';
   }
   
+  if (reason === 'assassin_found_merlin') {
+    return '🗡️ The Assassin found Merlin! Evil wins!';
+  }
+  
   return '😈 The Minions of Mordred have corrupted Camelot!';
+}
+
+/**
+ * Determine final winner after Assassin's guess
+ */
+export function checkAssassinGuess(
+  guessedPlayerId: string,
+  merlinPlayerId: string
+): WinConditionResult {
+  const assassinFoundMerlin = guessedPlayerId === merlinPlayerId;
+  
+  return {
+    gameOver: true,
+    assassinPhase: false,
+    winner: assassinFoundMerlin ? 'evil' : 'good',
+    reason: assassinFoundMerlin ? 'assassin_found_merlin' : '3_quest_successes',
+  };
 }
 
 /**

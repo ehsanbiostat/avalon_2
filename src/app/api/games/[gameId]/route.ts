@@ -139,16 +139,39 @@ export async function GET(request: Request, { params }: RouteParams) {
       }
     }
 
+    // Get all player roles (for revealing at game end or assassin phase)
+    let playerRolesMap = new Map<string, { role: string; special_role: string | null }>();
+    if (game.phase === 'game_over' || game.phase === 'assassin') {
+      const { data: allRoles } = await supabase
+        .from('player_roles')
+        .select('player_id, role, special_role')
+        .eq('room_id', game.room_id);
+      
+      if (allRoles) {
+        playerRolesMap = new Map(
+          allRoles.map((pr: { player_id: string; role: string; special_role: string | null }) => 
+            [pr.player_id, { role: pr.role, special_role: pr.special_role }]
+          )
+        );
+      }
+    }
+
     // Build game players list
-    const players: GamePlayer[] = game.seating_order.map((pid, index) => ({
-      id: pid,
-      nickname: nicknameMap.get(pid) || 'Unknown',
-      seat_position: index,
-      is_leader: pid === game.current_leader_id,
-      is_on_team: currentProposal?.team_member_ids.includes(pid) || false,
-      has_voted: votedPlayerIds.includes(pid),
-      is_connected: true, // TODO: Track connection status
-    }));
+    const players: GamePlayer[] = game.seating_order.map((pid, index) => {
+      const roleInfo = playerRolesMap.get(pid);
+      return {
+        id: pid,
+        nickname: nicknameMap.get(pid) || 'Unknown',
+        seat_position: index,
+        is_leader: pid === game.current_leader_id,
+        is_on_team: currentProposal?.team_member_ids.includes(pid) || false,
+        has_voted: votedPlayerIds.includes(pid),
+        is_connected: true, // TODO: Track connection status
+        // Reveal roles only at game_over
+        revealed_role: game.phase === 'game_over' ? (roleInfo?.role as 'good' | 'evil') : undefined,
+        revealed_special_role: game.phase === 'game_over' ? roleInfo?.special_role ?? undefined : undefined,
+      };
+    });
 
     // Get quest requirement for current quest
     const questRequirements = getQuestRequirementsMap(game.player_count);
@@ -158,6 +181,37 @@ export async function GET(request: Request, { params }: RouteParams) {
     const playerRoleData = await getPlayerRole(supabase, game.room_id, player.id);
     const playerRole = playerRoleData?.role || 'good';
     const specialRole = playerRoleData?.special_role || null;
+
+    // Build assassin phase state if in assassin phase
+    let assassinPhase = null;
+    let isAssassin = false;
+    if (game.phase === 'assassin') {
+      // Find assassin and merlin
+      const { data: assassinData } = await supabase
+        .from('player_roles')
+        .select('player_id')
+        .eq('room_id', game.room_id)
+        .eq('special_role', 'assassin')
+        .single();
+      
+      const { data: merlinData } = await supabase
+        .from('player_roles')
+        .select('player_id')
+        .eq('room_id', game.room_id)
+        .eq('special_role', 'merlin')
+        .single();
+      
+      if (assassinData && merlinData) {
+        const assassinNickname = nicknameMap.get(assassinData.player_id) || 'Unknown';
+        assassinPhase = {
+          assassin_id: assassinData.player_id,
+          assassin_nickname: assassinNickname,
+          merlin_id: merlinData.player_id, // Only used server-side
+          can_guess: player.id === assassinData.player_id,
+        };
+        isAssassin = player.id === assassinData.player_id;
+      }
+    }
 
     const gameState: GameState = {
       game,
@@ -173,6 +227,8 @@ export async function GET(request: Request, { params }: RouteParams) {
       actions_submitted: actionsSubmitted,
       total_team_members: totalTeamMembers,
       last_vote_result: lastVoteResult,
+      assassin_phase: assassinPhase,
+      is_assassin: isAssassin,
     };
 
     // Include current player's database ID and role for proper identification

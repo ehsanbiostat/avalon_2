@@ -12,8 +12,9 @@ import type { GamePhase } from '@/types/game';
 export const VALID_TRANSITIONS: Record<GamePhase, GamePhase[]> = {
   team_building: ['voting'],
   voting: ['team_building', 'quest', 'game_over'], // rejected -> team_building, approved -> quest, 5 rejections -> game_over
-  quest: ['quest_result'],
-  quest_result: ['team_building', 'game_over'], // next quest or game ends
+  quest: ['quest_result', 'assassin'], // quest -> result OR assassin (if Good wins 3)
+  quest_result: ['team_building', 'assassin', 'game_over'], // next quest, assassin phase, or game ends
+  assassin: ['game_over'], // Assassin phase always leads to game_over
   game_over: [], // Terminal state
 };
 
@@ -121,6 +122,8 @@ export function getPhaseName(phase: GamePhase): string {
       return 'Quest';
     case 'quest_result':
       return 'Quest Result';
+    case 'assassin':
+      return 'Assassin\'s Gambit';
     case 'game_over':
       return 'Game Over';
     default:
@@ -141,6 +144,8 @@ export function getPhaseDescription(phase: GamePhase): string {
       return 'The team is on a quest';
     case 'quest_result':
       return 'Reviewing the quest results';
+    case 'assassin':
+      return 'The Assassin has one chance to find Merlin';
     case 'game_over':
       return 'The game has ended';
     default:
