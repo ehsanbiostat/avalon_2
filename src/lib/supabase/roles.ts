@@ -152,10 +152,15 @@ export async function getEvilTeammates(
     throw error;
   }
 
-  // Supabase join returns a single object, not an array
-  return (data || []).map(
-    (r: { players: { nickname: string } | null }) => r.players?.nickname || 'Unknown'
-  );
+  // Extract nicknames from joined data
+  return (data || []).map((r) => {
+    // Handle both array and object return types from Supabase
+    const players = r.players as { nickname: string } | { nickname: string }[] | null;
+    if (Array.isArray(players)) {
+      return players[0]?.nickname || 'Unknown';
+    }
+    return players?.nickname || 'Unknown';
+  });
 }
 
 /**
@@ -182,9 +187,14 @@ export async function getPlayersVisibleToMerlin(
     throw error;
   }
 
-  return (data || []).map(
-    (r: { players: { nickname: string } | null }) => r.players?.nickname || 'Unknown'
-  );
+  // Extract nicknames from joined data
+  return (data || []).map((r) => {
+    const players = r.players as { nickname: string } | { nickname: string }[] | null;
+    if (Array.isArray(players)) {
+      return players[0]?.nickname || 'Unknown';
+    }
+    return players?.nickname || 'Unknown';
+  });
 }
 
 /**
@@ -210,9 +220,14 @@ export async function getPlayersVisibleToPercival(
     throw error;
   }
 
-  return (data || []).map(
-    (r: { players: { nickname: string } | null }) => r.players?.nickname || 'Unknown'
-  );
+  // Extract nicknames from joined data
+  return (data || []).map((r) => {
+    const players = r.players as { nickname: string } | { nickname: string }[] | null;
+    if (Array.isArray(players)) {
+      return players[0]?.nickname || 'Unknown';
+    }
+    return players?.nickname || 'Unknown';
+  });
 }
 
 /**
