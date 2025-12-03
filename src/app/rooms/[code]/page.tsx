@@ -21,12 +21,15 @@ export default function RoomPage() {
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [roleData, setRoleData] = useState<{
     role: 'good' | 'evil';
-    special_role?: 'merlin' | 'percival' | 'servant' | 'assassin' | 'morgana' | 'mordred' | 'oberon' | 'minion';
+    special_role?: 'merlin' | 'percival' | 'servant' | 'assassin' | 'morgana' | 'mordred' | 'oberon_standard' | 'oberon_chaos' | 'minion';
     role_name: string;
     role_description: string;
     is_confirmed: boolean;
+    has_lady_of_lake?: boolean;
     known_players?: string[];
     known_players_label?: string;
+    hidden_evil_count?: number;
+    ability_note?: string;
   } | null>(null);
   const [roleError, setRoleError] = useState<string | null>(null);
 
@@ -258,6 +261,8 @@ export default function RoomPage() {
             roleDescription={roleData.role_description}
             knownPlayers={roleData.known_players}
             knownPlayersLabel={roleData.known_players_label}
+            hiddenEvilCount={roleData.hidden_evil_count}
+            hasLadyOfLake={roleData.has_lady_of_lake}
             isConfirmed={roleData.is_confirmed}
             onConfirm={handleConfirmRole}
           />

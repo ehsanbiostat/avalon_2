@@ -164,14 +164,14 @@
 
 ### API Updates for US4
 
-- [ ] T047 [US4] Update GET /api/rooms/[code]/role for Percival in src/app/api/rooms/[code]/role/route.ts
-- [ ] T048 [US4] Add getMerlinCandidates to role queries in src/lib/supabase/roles.ts
+- [X] T047 [US4] Update GET /api/rooms/[code]/role for Percival in src/app/api/rooms/[code]/role/route.ts
+- [X] T048 [US4] Add getMerlinCandidates to role queries in src/lib/supabase/roles.ts
 
 ### UI Updates for US4
 
-- [ ] T049 [US4] Add Percival-specific role reveal content in src/components/RoleRevealModal.tsx
-- [ ] T050 [US4] Show "One of these is Merlin" label for Percival in src/components/RoleRevealModal.tsx
-- [ ] T051 [US4] Handle edge case: Percival without Morgana (sees only Merlin) in src/components/RoleRevealModal.tsx
+- [X] T049 [US4] Add Percival-specific role reveal content in src/components/RoleRevealModal.tsx
+- [X] T050 [US4] Show "One of these is Merlin" label for Percival in src/components/RoleRevealModal.tsx
+- [X] T051 [US4] Handle edge case: Percival without Morgana (sees only Merlin) in src/components/RoleRevealModal.tsx
 
 **Checkpoint**: Percival sees correct Merlin candidates with proper messaging
 
@@ -185,13 +185,13 @@
 
 ### API Updates for US5
 
-- [ ] T052 [US5] Update GET /api/rooms/[code]/role for Morgana in src/app/api/rooms/[code]/role/route.ts
+- [X] T052 [US5] Update GET /api/rooms/[code]/role for Morgana in src/app/api/rooms/[code]/role/route.ts
 
 ### UI Updates for US5
 
-- [ ] T053 [US5] Add Morgana-specific role reveal content in src/components/RoleRevealModal.tsx
-- [ ] T054 [US5] Show "You appear as Merlin to Percival" ability note in src/components/RoleRevealModal.tsx
-- [ ] T055 [US5] Handle edge case: Morgana without Percival (note about no effect) in src/components/RoleRevealModal.tsx
+- [X] T053 [US5] Add Morgana-specific role reveal content in src/components/RoleRevealModal.tsx
+- [X] T054 [US5] Show "You appear as Merlin to Percival" ability note in src/components/RoleRevealModal.tsx
+- [X] T055 [US5] Handle edge case: Morgana without Percival (note about no effect) in src/components/RoleRevealModal.tsx
 
 **Checkpoint**: Morgana sees correct information with disguise note
 
@@ -205,12 +205,12 @@
 
 ### API Updates for US6
 
-- [ ] T056 [US6] Update GET /api/rooms/[code]/role for Mordred in src/app/api/rooms/[code]/role/route.ts
+- [X] T056 [US6] Update GET /api/rooms/[code]/role for Mordred in src/app/api/rooms/[code]/role/route.ts
 
 ### UI Updates for US6
 
-- [ ] T057 [US6] Add Mordred-specific role reveal content in src/components/RoleRevealModal.tsx
-- [ ] T058 [US6] Show "Merlin does not know you are evil" ability note in src/components/RoleRevealModal.tsx
+- [X] T057 [US6] Add Mordred-specific role reveal content in src/components/RoleRevealModal.tsx
+- [X] T058 [US6] Show "Merlin does not know you are evil" ability note in src/components/RoleRevealModal.tsx
 
 **Checkpoint**: Mordred sees correct information with hidden status note
 
@@ -224,14 +224,14 @@
 
 ### API Updates for US7
 
-- [ ] T059 [US7] Update GET /api/rooms/[code]/role for Oberon Standard in src/app/api/rooms/[code]/role/route.ts
-- [ ] T060 [US7] Update GET /api/rooms/[code]/role for Oberon Chaos in src/app/api/rooms/[code]/role/route.ts
+- [X] T059 [US7] Update GET /api/rooms/[code]/role for Oberon Standard in src/app/api/rooms/[code]/role/route.ts
+- [X] T060 [US7] Update GET /api/rooms/[code]/role for Oberon Chaos in src/app/api/rooms/[code]/role/route.ts
 
 ### UI Updates for US7
 
-- [ ] T061 [US7] Add Oberon Standard role reveal content in src/components/RoleRevealModal.tsx
-- [ ] T062 [US7] Add Oberon Chaos role reveal content in src/components/RoleRevealModal.tsx
-- [ ] T063 [US7] Show mode-specific messaging (Merlin visibility warning) in src/components/RoleRevealModal.tsx
+- [X] T061 [US7] Add Oberon Standard role reveal content in src/components/RoleRevealModal.tsx
+- [X] T062 [US7] Add Oberon Chaos role reveal content in src/components/RoleRevealModal.tsx
+- [X] T063 [US7] Show mode-specific messaging (Merlin visibility warning) in src/components/RoleRevealModal.tsx
 
 **Checkpoint**: Oberon sees correct mode-specific information
 
@@ -245,14 +245,14 @@
 
 ### API Updates for US8
 
-- [ ] T064 [US8] Update GET /api/rooms/[code]/role to use visibility matrix for Merlin in src/app/api/rooms/[code]/role/route.ts
-- [ ] T065 [US8] Add hidden_evil_count to Merlin response in src/app/api/rooms/[code]/role/route.ts
-- [ ] T066 [US8] Update getPlayersVisibleToMerlin in src/lib/supabase/roles.ts
+- [X] T064 [US8] Update GET /api/rooms/[code]/role to use visibility matrix for Merlin in src/app/api/rooms/[code]/role/route.ts
+- [X] T065 [US8] Add hidden_evil_count to Merlin response in src/app/api/rooms/[code]/role/route.ts
+- [X] T066 [US8] Update getPlayersVisibleToMerlin in src/lib/supabase/roles.ts
 
 ### UI Updates for US8
 
-- [ ] T067 [US8] Update Merlin role reveal to show hidden count warning in src/components/RoleRevealModal.tsx
-- [ ] T068 [US8] Show "X evil players are hidden from you!" when applicable in src/components/RoleRevealModal.tsx
+- [X] T067 [US8] Update Merlin role reveal to show hidden count warning in src/components/RoleRevealModal.tsx
+- [X] T068 [US8] Show "X evil players are hidden from you!" when applicable in src/components/RoleRevealModal.tsx
 
 **Checkpoint**: Merlin sees correct evil players with hidden count warning
 
