@@ -125,13 +125,10 @@ export function useRoom(roomCode: string): UseRoomReturn {
       // Create a unique channel name for this room
       const channelName = `room-sync:${roomCode}:${Date.now()}`;
       
+      console.log('[Realtime] Setting up subscription for room:', roomId);
+      
       const channel = supabase
-        .channel(channelName, {
-          config: {
-            broadcast: { self: true },
-            presence: { key: getPlayerId() },
-          },
-        })
+        .channel(channelName)
         // Listen for room_players changes (joins/leaves) - filtered by room_id
         .on(
           'postgres_changes',
@@ -142,9 +139,12 @@ export function useRoom(roomCode: string): UseRoomReturn {
             filter: `room_id=eq.${roomId}`,
           },
           (payload) => {
-            console.log('[Realtime] room_players change:', payload.eventType);
+            console.log('[Realtime] room_players change:', payload.eventType, payload);
             // Always refetch to get complete player data with nicknames
-            if (isMounted) fetchRoom();
+            if (isMounted) {
+              console.log('[Realtime] Fetching room data after room_players change');
+              fetchRoom();
+            }
           }
         )
         // Listen for room updates (status changes) - filtered by id
@@ -157,7 +157,7 @@ export function useRoom(roomCode: string): UseRoomReturn {
             filter: `id=eq.${roomId}`,
           },
           (payload) => {
-            console.log('[Realtime] room update:', payload.eventType);
+            console.log('[Realtime] room update:', payload.eventType, payload);
             if (!isMounted) return;
             
             // Update room status in place for faster UI update
@@ -184,15 +184,23 @@ export function useRoom(roomCode: string): UseRoomReturn {
             filter: `room_id=eq.${roomId}`,
           },
           (payload) => {
-            console.log('[Realtime] player_roles change:', payload.eventType);
+            console.log('[Realtime] player_roles change:', payload.eventType, payload);
             // Refresh to get updated confirmation status
-            if (isMounted) fetchRoom();
+            if (isMounted) {
+              console.log('[Realtime] Fetching room data after player_roles change');
+              fetchRoom();
+            }
           }
         )
-        .subscribe((status) => {
-          console.log('[Realtime] Subscription status:', status);
+        .subscribe((status, err) => {
+          console.log('[Realtime] Subscription status:', status, err ? `Error: ${err.message}` : '');
           if (isMounted) {
             setIsConnected(status === 'SUBSCRIBED');
+            if (status === 'SUBSCRIBED') {
+              console.log('[Realtime] ✅ Successfully subscribed to room changes');
+            } else if (status === 'CHANNEL_ERROR') {
+              console.error('[Realtime] ❌ Channel error - check Supabase Realtime settings');
+            }
           }
         });
 
@@ -212,18 +220,18 @@ export function useRoom(roomCode: string): UseRoomReturn {
     };
   }, [roomCode, fetchRoom]);
 
-  // Periodic polling as fallback (every 10 seconds)
+  // Periodic polling as fallback (every 5 seconds if not connected, 15 seconds if connected)
   // This ensures state stays in sync even if realtime has issues
   useEffect(() => {
+    const pollIntervalMs = isConnected ? 15000 : 5000;
+    
     const pollInterval = setInterval(() => {
-      if (!isConnected && room) {
-        console.log('[Polling] Fallback refresh due to disconnected state');
-        fetchRoom();
-      }
-    }, 10000);
+      console.log(`[Polling] Fallback refresh (connected: ${isConnected})`);
+      fetchRoom();
+    }, pollIntervalMs);
 
     return () => clearInterval(pollInterval);
-  }, [isConnected, room, fetchRoom]);
+  }, [isConnected, fetchRoom]);
 
   return {
     room,
