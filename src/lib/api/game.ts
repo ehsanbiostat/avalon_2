@@ -2,7 +2,7 @@
  * Game API client functions
  */
 
-import { getPlayerIdHeader } from '@/lib/auth/identity';
+import { getPlayerId } from '@/lib/utils/player-id';
 import type {
   ProposeTeamRequest,
   ProposeTeamResponse,
@@ -22,8 +22,9 @@ export async function proposeTeam(
   gameId: string,
   teamMemberIds: string[]
 ): Promise<ProposeTeamResponse> {
+  const playerId = getPlayerId();
   const headers = {
-    ...getPlayerIdHeader(),
+    'X-Player-ID': playerId,
     'Content-Type': 'application/json',
   };
 
@@ -53,8 +54,9 @@ export async function submitVote(
   gameId: string,
   vote: VoteChoice
 ): Promise<VoteResponse> {
+  const playerId = getPlayerId();
   const headers = {
-    ...getPlayerIdHeader(),
+    'X-Player-ID': playerId,
     'Content-Type': 'application/json',
   };
 
@@ -82,8 +84,9 @@ export async function submitQuestAction(
   gameId: string,
   action: QuestActionType
 ): Promise<QuestActionResponse> {
+  const playerId = getPlayerId();
   const headers = {
-    ...getPlayerIdHeader(),
+    'X-Player-ID': playerId,
     'Content-Type': 'application/json',
   };
 
@@ -108,8 +111,9 @@ export async function submitQuestAction(
  * Continue to next quest (after viewing results)
  */
 export async function continueGame(gameId: string): Promise<ContinueGameResponse> {
+  const playerId = getPlayerId();
   const headers = {
-    ...getPlayerIdHeader(),
+    'X-Player-ID': playerId,
     'Content-Type': 'application/json',
   };
 
@@ -133,7 +137,8 @@ export async function continueGame(gameId: string): Promise<ContinueGameResponse
 export async function getGameForRoom(
   roomCode: string
 ): Promise<{ has_game: boolean; game_id: string | null; phase: string | null }> {
-  const headers = getPlayerIdHeader();
+  const playerId = getPlayerId();
+  const headers = { 'X-Player-ID': playerId };
 
   const response = await fetch(`/api/rooms/${roomCode}/game`, { headers });
 

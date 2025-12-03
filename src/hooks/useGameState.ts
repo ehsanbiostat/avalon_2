@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { GameState } from '@/types/game';
-import { getPlayerIdHeader } from '@/lib/auth/identity';
+import { getPlayerId } from '@/lib/utils/player-id';
 
 const POLL_INTERVAL = 3000; // 3 seconds
 
@@ -29,8 +29,10 @@ export function useGameState(gameId: string | null): UseGameStateResult {
     }
 
     try {
-      const headers = getPlayerIdHeader();
-      const response = await fetch(`/api/games/${gameId}`, { headers });
+      const playerId = getPlayerId();
+      const response = await fetch(`/api/games/${gameId}`, {
+        headers: { 'X-Player-ID': playerId },
+      });
       
       if (!response.ok) {
         const data = await response.json();

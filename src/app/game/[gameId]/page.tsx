@@ -8,7 +8,7 @@
 import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GameBoard } from '@/components/game/GameBoard';
-import { getPlayerId, getPlayerIdHeader } from '@/lib/auth/identity';
+import { getPlayerId } from '@/lib/utils/player-id';
 
 interface GamePageProps {
   params: Promise<{ gameId: string }>;
@@ -42,7 +42,7 @@ export default function GamePage({ params }: GamePageProps) {
       try {
         // First, get the game to find the room_id
         const gameResponse = await fetch(`/api/games/${gameId}`, {
-          headers: getPlayerIdHeader(),
+          headers: { 'X-Player-ID': id },
         });
         
         if (!gameResponse.ok) {
