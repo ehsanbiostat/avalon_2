@@ -90,16 +90,29 @@ export async function GET(request: Request, { params }: RouteParams) {
     }
 
     // Get last vote result (for reveal animation after voting)
+    // This needs to work for both approved (quest phase) and rejected (team_building phase) teams
     let lastVoteResult = null;
-    if ((game.phase === 'quest' || game.phase === 'team_building') && currentProposal && currentProposal.status !== 'pending') {
-      const voteInfos = await getVotesForProposal(supabase, currentProposal.id);
-      lastVoteResult = {
-        proposal_id: currentProposal.id,
-        is_approved: currentProposal.status === 'approved',
-        approve_count: currentProposal.approve_count,
-        reject_count: currentProposal.reject_count,
-        votes: voteInfos,
-      };
+    if (game.phase === 'quest' || game.phase === 'team_building') {
+      // Get the most recently resolved proposal for this game
+      const { data: recentProposal } = await supabase
+        .from('team_proposals')
+        .select('*')
+        .eq('game_id', gameId)
+        .neq('status', 'pending')
+        .order('resolved_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (recentProposal) {
+        const voteInfos = await getVotesForProposal(supabase, recentProposal.id);
+        lastVoteResult = {
+          proposal_id: recentProposal.id,
+          is_approved: recentProposal.status === 'approved',
+          approve_count: recentProposal.approve_count,
+          reject_count: recentProposal.reject_count,
+          votes: voteInfos,
+        };
+      }
     }
 
     // Check if player is on quest team
