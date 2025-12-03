@@ -53,14 +53,38 @@ export function CreateRoomModal({
 
   const validation = validateRoleConfig(roleConfig, expectedPlayers);
 
+  const footerButtons = (
+    <>
+      <Button
+        type="button"
+        variant="secondary"
+        onClick={onClose}
+        disabled={isLoading}
+      >
+        Cancel
+      </Button>
+      <Button
+        type="submit"
+        form="create-room-form"
+        variant="primary"
+        isLoading={isLoading}
+        disabled={!validation.valid}
+      >
+        Create Room
+      </Button>
+    </>
+  );
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title="Create a New Room"
       size="lg"
+      scrollable
+      footer={footerButtons}
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form id="create-room-form" onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-avalon-parchment mb-2">
             Number of Players
@@ -141,27 +165,6 @@ export function CreateRoomModal({
             />
           </div>
         )}
-
-        <div className="flex gap-3 pt-4">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={onClose}
-            disabled={isLoading}
-            fullWidth
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            isLoading={isLoading}
-            disabled={!validation.valid}
-            fullWidth
-          >
-            Create Room
-          </Button>
-        </div>
       </form>
     </Modal>
   );

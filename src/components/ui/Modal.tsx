@@ -22,6 +22,8 @@ export interface ModalProps {
   closeOnEsc?: boolean;
   /** Show close button */
   showCloseButton?: boolean;
+  /** Whether content should scroll */
+  scrollable?: boolean;
 }
 
 /**
@@ -37,6 +39,7 @@ export function Modal({
   closeOnOverlayClick = true,
   closeOnEsc = true,
   showCloseButton = true,
+  scrollable = true,
 }: ModalProps) {
   // Handle escape key
   useEffect(() => {
@@ -81,14 +84,14 @@ export function Modal({
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby={title ? 'modal-title' : undefined}
     >
       {/* Overlay */}
       <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in"
+        className="fixed inset-0 bg-black/70 backdrop-blur-sm animate-fade-in"
         onClick={handleOverlayClick}
       />
 
@@ -99,12 +102,14 @@ export function Modal({
           bg-avalon-navy border border-avalon-silver/30
           rounded-xl shadow-2xl
           animate-slide-up
+          my-auto
+          ${scrollable ? 'max-h-[90vh] flex flex-col' : ''}
         `}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-center justify-between p-6 border-b border-avalon-silver/20">
+          <div className="flex items-center justify-between p-6 border-b border-avalon-silver/20 flex-shrink-0">
             {title && (
               <h2
                 id="modal-title"
@@ -126,11 +131,13 @@ export function Modal({
         )}
 
         {/* Body */}
-        <div className="p-6">{children}</div>
+        <div className={`p-6 ${scrollable ? 'overflow-y-auto flex-grow' : ''}`}>
+          {children}
+        </div>
 
         {/* Footer */}
         {footer && (
-          <div className="flex items-center justify-end gap-3 p-6 border-t border-avalon-silver/20">
+          <div className="flex items-center justify-end gap-3 p-6 border-t border-avalon-silver/20 flex-shrink-0">
             {footer}
           </div>
         )}
