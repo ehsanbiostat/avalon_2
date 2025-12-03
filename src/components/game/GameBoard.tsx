@@ -68,10 +68,9 @@ export function GameBoard({
   const isLeader = currentPlayer?.is_leader || false;
 
   // Find current player's internal ID (database ID vs localStorage ID)
-  const currentPlayerId = playerId ? players.find(p => {
-    // Need to match by some identifier - for now assume it matches
-    return p.id === playerId;
-  })?.id : null;
+  const currentPlayerId = playerId 
+    ? (players.find(p => p.id === playerId)?.id ?? null)
+    : null;
 
   // Game Over
   if (game.phase === 'game_over' && game.winner) {
