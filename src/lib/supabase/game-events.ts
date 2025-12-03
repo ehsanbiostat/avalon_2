@@ -129,11 +129,13 @@ export async function logGameOver(
   gameId: string,
   winner: 'good' | 'evil',
   reason: string,
-  assassinFoundMerlin: boolean = false
+  assassinFoundMerlin: boolean = false,
+  finalScore: { good: number; evil: number } = { good: 0, evil: 0 }
 ): Promise<GameEvent> {
   return logGameEnded(client, gameId, {
     winner,
-    reason,
+    win_reason: reason,
+    final_score: finalScore,
     assassin_found_merlin: assassinFoundMerlin,
   } as GameEndedEventData);
 }

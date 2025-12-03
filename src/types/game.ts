@@ -347,6 +347,7 @@ export interface GameEndedEventData {
   winner: GameWinner;
   win_reason: string;
   final_score: { good: number; evil: number };
+  assassin_found_merlin?: boolean;
 }
 
 // ============================================
