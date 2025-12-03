@@ -157,12 +157,13 @@ export async function getPlayersByIds(
 }
 
 /**
- * Check if a player is currently in any room
+ * Check if a player is currently in any active room (waiting or roles_distributed)
+ * Does NOT block if player is in a 'started' room (game already ended for MVP purposes)
  */
 export async function getPlayerCurrentRoom(
   client: SupabaseClient,
   playerId: string
-): Promise<{ room_id: string; room_code: string } | null> {
+): Promise<{ room_id: string; room_code: string; status: string } | null> {
   // First get the internal player ID
   const player = await findPlayerByPlayerId(client, playerId);
   if (!player) return null;
@@ -172,22 +173,84 @@ export async function getPlayerCurrentRoom(
     .select(`
       room_id,
       rooms!inner (
-        code
+        code,
+        status
       )
     `)
-    .eq('player_id', player.id)
-    .single();
+    .eq('player_id', player.id);
 
   if (error && error.code !== 'PGRST116') {
     throw error;
   }
 
-  if (!data) return null;
+  if (!data || data.length === 0) return null;
 
-  // Type assertion for the joined data (rooms is an array due to join)
-  const roomData = data as unknown as { room_id: string; rooms: { code: string }[] };
-  return {
-    room_id: roomData.room_id,
-    room_code: roomData.rooms[0]?.code ?? '',
-  };
+  // Type assertion for the joined data
+  type RoomPlayerData = { room_id: string; rooms: { code: string; status: string } | { code: string; status: string }[] };
+  
+  // Find first active room (not started)
+  for (const entry of data as unknown as RoomPlayerData[]) {
+    const rooms = Array.isArray(entry.rooms) ? entry.rooms[0] : entry.rooms;
+    if (rooms && rooms.status !== 'started') {
+      return {
+        room_id: entry.room_id,
+        room_code: rooms.code,
+        status: rooms.status,
+      };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Remove player from all 'started' rooms (cleanup stale memberships)
+ */
+export async function cleanupPlayerStartedRooms(
+  client: SupabaseClient,
+  playerId: string
+): Promise<number> {
+  const player = await findPlayerByPlayerId(client, playerId);
+  if (!player) return 0;
+
+  // Get all room_players entries for this player in 'started' rooms
+  const { data: roomEntries, error: selectError } = await client
+    .from('room_players')
+    .select(`
+      id,
+      room_id,
+      rooms!inner (
+        status
+      )
+    `)
+    .eq('player_id', player.id);
+
+  if (selectError) {
+    throw selectError;
+  }
+
+  if (!roomEntries || roomEntries.length === 0) return 0;
+
+  // Filter to only started rooms
+  type EntryWithRoom = { id: string; room_id: string; rooms: { status: string } | { status: string }[] };
+  const startedEntryIds = (roomEntries as unknown as EntryWithRoom[])
+    .filter((entry) => {
+      const rooms = Array.isArray(entry.rooms) ? entry.rooms[0] : entry.rooms;
+      return rooms?.status === 'started';
+    })
+    .map((entry) => entry.id);
+
+  if (startedEntryIds.length === 0) return 0;
+
+  // Delete these entries
+  const { error: deleteError } = await client
+    .from('room_players')
+    .delete()
+    .in('id', startedEntryIds);
+
+  if (deleteError) {
+    throw deleteError;
+  }
+
+  return startedEntryIds.length;
 }

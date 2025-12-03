@@ -6,7 +6,7 @@
 
 import { NextResponse } from 'next/server';
 import { createServerClient, getPlayerIdFromRequest } from '@/lib/supabase/server';
-import { findPlayerByPlayerId, getPlayerCurrentRoom } from '@/lib/supabase/players';
+import { findPlayerByPlayerId, getPlayerCurrentRoom, cleanupPlayerStartedRooms } from '@/lib/supabase/players';
 import { createRoom, addPlayerToRoom, getWaitingRooms } from '@/lib/supabase/rooms';
 import { validatePlayerCount } from '@/lib/domain/validation';
 import { generateSecureRoomCode } from '@/lib/utils/room-code';
@@ -41,7 +41,10 @@ export async function POST(request: Request) {
       return errors.playerNotFound();
     }
 
-    // Check if player is already in a room
+    // Cleanup any stale room memberships (from 'started' games)
+    await cleanupPlayerStartedRooms(supabase, playerId);
+
+    // Check if player is already in an active room (waiting or roles_distributed)
     const currentRoom = await getPlayerCurrentRoom(supabase, playerId);
     if (currentRoom) {
       return errors.playerAlreadyInRoom();
