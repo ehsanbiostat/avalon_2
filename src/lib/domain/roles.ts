@@ -11,15 +11,17 @@ import type { RoleDistribution } from '@/types/role';
 export type Alignment = 'good' | 'evil';
 
 // Specific character roles
+// Phase 2: Split oberon into oberon_standard and oberon_chaos
 export type SpecialRole = 
-  | 'merlin'     // Good - knows evil players (except Mordred)
-  | 'percival'   // Good - knows Merlin (but Morgana looks the same)
-  | 'assassin'   // Evil - can assassinate Merlin at end
-  | 'morgana'    // Evil - appears as Merlin to Percival
-  | 'mordred'    // Evil - hidden from Merlin
-  | 'oberon'     // Evil - doesn't know other evil, they don't know him
-  | 'servant'    // Good - basic loyal servant
-  | 'minion';    // Evil - basic minion
+  | 'merlin'          // Good - knows evil players (except Mordred, Oberon Chaos)
+  | 'percival'        // Good - knows Merlin (but Morgana looks the same)
+  | 'assassin'        // Evil - can assassinate Merlin at end
+  | 'morgana'         // Evil - appears as Merlin to Percival
+  | 'mordred'         // Evil - hidden from Merlin
+  | 'oberon_standard' // Evil - visible to Merlin, hidden from evil team
+  | 'oberon_chaos'    // Evil - hidden from everyone including Merlin
+  | 'servant'         // Good - basic loyal servant
+  | 'minion';         // Evil - basic minion
 
 // For database storage, we still use 'good' | 'evil' as the base role
 export type Role = 'good' | 'evil';
@@ -65,9 +67,10 @@ export function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
+import type { RoleConfig } from '@/types/role-config';
+
 /**
- * Get special roles for a given player count
- * MVP uses: Merlin, Assassin, and basic servants/minions
+ * Get special roles for a given player count (MVP default - no config)
  */
 function getSpecialRolesForCount(playerCount: number): { good: SpecialRole[]; evil: SpecialRole[] } {
   const ratio = getRoleRatio(playerCount);
@@ -88,13 +91,54 @@ function getSpecialRolesForCount(playerCount: number): { good: SpecialRole[]; ev
 }
 
 /**
- * Distribute roles to players based on Avalon ratios
- * Includes special characters (Merlin, Assassin)
- * Returns array of role assignments
+ * T019: Generate role pool based on configuration
+ * Uses roleConfig to determine which special roles to include
  */
-export function distributeRoles(playerIds: string[]): RoleAssignment[] {
+export function generateRolePool(
+  roleConfig: RoleConfig,
+  playerCount: number
+): { good: SpecialRole[]; evil: SpecialRole[] } {
+  const ratio = getRoleRatio(playerCount);
+  
+  // Build good team roles
+  const goodRoles: SpecialRole[] = ['merlin']; // Always included
+  if (roleConfig.percival) goodRoles.push('percival');
+  
+  // Fill remaining good slots with servants
+  while (goodRoles.length < ratio.good) {
+    goodRoles.push('servant');
+  }
+  
+  // Build evil team roles
+  const evilRoles: SpecialRole[] = ['assassin']; // Always included
+  if (roleConfig.morgana) evilRoles.push('morgana');
+  if (roleConfig.mordred) evilRoles.push('mordred');
+  if (roleConfig.oberon === 'standard') evilRoles.push('oberon_standard');
+  if (roleConfig.oberon === 'chaos') evilRoles.push('oberon_chaos');
+  
+  // Fill remaining evil slots with minions
+  while (evilRoles.length < ratio.evil) {
+    evilRoles.push('minion');
+  }
+  
+  return { good: goodRoles, evil: evilRoles };
+}
+
+/**
+ * T018: Distribute roles to players based on configuration
+ * Supports optional roleConfig parameter for Phase 2 special roles
+ * Falls back to MVP behavior (Merlin + Assassin) if no config provided
+ */
+export function distributeRoles(
+  playerIds: string[],
+  roleConfig?: RoleConfig
+): RoleAssignment[] {
   const playerCount = playerIds.length;
-  const specialRoles = getSpecialRolesForCount(playerCount);
+  
+  // Use config-based role pool if provided, otherwise use MVP default
+  const specialRoles = roleConfig 
+    ? generateRolePool(roleConfig, playerCount)
+    : getSpecialRolesForCount(playerCount);
 
   // Create role pool with special roles
   const allRoles: { role: Role; specialRole: SpecialRole }[] = [
@@ -174,12 +218,21 @@ const ROLE_INFO: Record<SpecialRole, Omit<RoleInfo, 'role'>> = {
     knows_merlin: false,
     appears_as_merlin: false,
   },
-  oberon: {
-    specialRole: 'oberon',
+  oberon_standard: {
+    specialRole: 'oberon_standard',
     role_name: 'Oberon',
-    role_description: 'You are Oberon, the mysterious evil. You do not know the other evil players, and they do not know you. Work alone to sabotage the quests!',
+    role_description: 'You are Oberon, the mysterious evil. You do not know the other evil players, and they do not know you. Merlin can see you. Work alone to sabotage the quests!',
     knows_evil: false,
-    known_to_merlin: true,
+    known_to_merlin: true,  // Merlin CAN see Oberon Standard
+    knows_merlin: false,
+    appears_as_merlin: false,
+  },
+  oberon_chaos: {
+    specialRole: 'oberon_chaos',
+    role_name: 'Oberon (Chaos)',
+    role_description: 'You are Oberon in Chaos mode! No one knows you are evil - not even Merlin! You work completely alone.',
+    knows_evil: false,
+    known_to_merlin: false, // KEY: Hidden even from Merlin!
     knows_merlin: false,
     appears_as_merlin: false,
   },
@@ -252,11 +305,15 @@ export function validateRoleDistribution(
 }
 
 /**
- * Get players visible to Merlin (all evil except Mordred)
+ * Get players visible to Merlin (all evil except Mordred and Oberon Chaos)
  */
 export function getPlayersVisibleToMerlin(assignments: RoleAssignment[]): string[] {
   return assignments
-    .filter(a => a.role === 'evil' && a.specialRole !== 'mordred')
+    .filter(a => 
+      a.role === 'evil' && 
+      a.specialRole !== 'mordred' && 
+      a.specialRole !== 'oberon_chaos'
+    )
     .map(a => a.playerId);
 }
 
@@ -270,7 +327,7 @@ export function getPlayersVisibleToPercival(assignments: RoleAssignment[]): stri
 }
 
 /**
- * Get evil teammates (excluding Oberon who doesn't know others)
+ * Get evil teammates (excluding Oberon variants who don't know others)
  */
 export function getEvilTeammatesForPlayer(
   assignments: RoleAssignment[],
@@ -281,17 +338,19 @@ export function getEvilTeammatesForPlayer(
     return [];
   }
   
-  // Oberon doesn't know other evil players
-  if (playerAssignment.specialRole === 'oberon') {
+  // Oberon (both variants) doesn't know other evil players
+  if (playerAssignment.specialRole === 'oberon_standard' || 
+      playerAssignment.specialRole === 'oberon_chaos') {
     return [];
   }
   
-  // Other evil players see all evil except Oberon
+  // Other evil players see all evil except Oberon (both variants)
   return assignments
     .filter(a => 
       a.role === 'evil' && 
       a.playerId !== playerId && 
-      a.specialRole !== 'oberon'
+      a.specialRole !== 'oberon_standard' &&
+      a.specialRole !== 'oberon_chaos'
     )
     .map(a => a.playerId);
 }

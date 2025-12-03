@@ -1,9 +1,10 @@
 /**
  * Application constants
  * Centralized configuration values
+ * Updated for Phase 2: Special Roles & Configurations
  */
 
-import type { RoleRatios } from '@/types/role';
+import type { RoleRatios, SpecialRole } from '@/types/role';
 
 /**
  * Player count limits
@@ -31,6 +32,11 @@ export const STARTED_ROOM_TIMEOUT = 48 * 60 * 60 * 1000; // 48 hours
 export const REALTIME_UPDATE_DELAY = 2000; // 2 seconds max
 
 /**
+ * Lady of the Lake recommended player count
+ */
+export const LADY_OF_LAKE_MIN_RECOMMENDED = 7;
+
+/**
  * Role distribution ratios by player count
  * Standard Avalon ratios:
  * 5p = 3G/2E, 6p = 4G/2E, 7p = 4G/3E, 8p = 5G/3E, 9p = 6G/3E, 10p = 6G/4E
@@ -43,6 +49,165 @@ export const ROLE_RATIOS: RoleRatios = {
   9: { good: 6, evil: 3 },
   10: { good: 6, evil: 4 },
 };
+
+/**
+ * Special role metadata
+ */
+export interface SpecialRoleInfo {
+  name: string;
+  team: 'good' | 'evil';
+  description: string;
+  emoji: string;
+  // Visibility rules
+  knowsEvil: boolean;        // Can see evil players (Merlin)
+  knownToMerlin: boolean;    // Visible to Merlin (not Mordred, not Oberon Chaos)
+  knowsMerlin: boolean;      // Can see Merlin candidates (Percival)
+  appearsAsMerlin: boolean;  // Appears as Merlin to Percival (Morgana)
+  knowsTeammates: boolean;   // Can see evil teammates (not Oberon)
+  // Constraints
+  required: boolean;         // Always included (Merlin, Assassin)
+  maxPerGame: number;        // Max instances (always 1 for special roles)
+}
+
+export const SPECIAL_ROLES: Record<SpecialRole, SpecialRoleInfo> = {
+  merlin: {
+    name: 'Merlin',
+    team: 'good',
+    description: 'Knows evil players (except Mordred and Oberon Chaos)',
+    emoji: '🔮',
+    knowsEvil: true,
+    knownToMerlin: false,
+    knowsMerlin: false,
+    appearsAsMerlin: false,
+    knowsTeammates: false,
+    required: true,
+    maxPerGame: 1,
+  },
+  percival: {
+    name: 'Percival',
+    team: 'good',
+    description: 'Knows Merlin (but Morgana appears the same)',
+    emoji: '🛡️',
+    knowsEvil: false,
+    knownToMerlin: false,
+    knowsMerlin: true,
+    appearsAsMerlin: false,
+    knowsTeammates: false,
+    required: false,
+    maxPerGame: 1,
+  },
+  servant: {
+    name: 'Loyal Servant',
+    team: 'good',
+    description: 'Basic good team member',
+    emoji: '⚔️',
+    knowsEvil: false,
+    knownToMerlin: false,
+    knowsMerlin: false,
+    appearsAsMerlin: false,
+    knowsTeammates: false,
+    required: false,
+    maxPerGame: 10,
+  },
+  assassin: {
+    name: 'Assassin',
+    team: 'evil',
+    description: 'Can assassinate Merlin at end of game',
+    emoji: '🗡️',
+    knowsEvil: false,
+    knownToMerlin: true,
+    knowsMerlin: false,
+    appearsAsMerlin: false,
+    knowsTeammates: true,
+    required: true,
+    maxPerGame: 1,
+  },
+  morgana: {
+    name: 'Morgana',
+    team: 'evil',
+    description: 'Appears as Merlin to Percival',
+    emoji: '🎭',
+    knowsEvil: false,
+    knownToMerlin: true,
+    knowsMerlin: false,
+    appearsAsMerlin: true,
+    knowsTeammates: true,
+    required: false,
+    maxPerGame: 1,
+  },
+  mordred: {
+    name: 'Mordred',
+    team: 'evil',
+    description: 'Hidden from Merlin',
+    emoji: '👑',
+    knowsEvil: false,
+    knownToMerlin: false,  // KEY: Hidden from Merlin
+    knowsMerlin: false,
+    appearsAsMerlin: false,
+    knowsTeammates: true,
+    required: false,
+    maxPerGame: 1,
+  },
+  oberon_standard: {
+    name: 'Oberon',
+    team: 'evil',
+    description: 'Works alone, visible to Merlin, hidden from evil team',
+    emoji: '👤',
+    knowsEvil: false,
+    knownToMerlin: true,   // Merlin CAN see Oberon Standard
+    knowsMerlin: false,
+    appearsAsMerlin: false,
+    knowsTeammates: false, // KEY: Doesn't know evil teammates
+    required: false,
+    maxPerGame: 1,
+  },
+  oberon_chaos: {
+    name: 'Oberon (Chaos)',
+    team: 'evil',
+    description: 'Completely hidden, even from Merlin!',
+    emoji: '👻',
+    knowsEvil: false,
+    knownToMerlin: false,  // KEY: Hidden even from Merlin!
+    knowsMerlin: false,
+    appearsAsMerlin: false,
+    knowsTeammates: false, // Doesn't know evil teammates
+    required: false,
+    maxPerGame: 1,
+  },
+  minion: {
+    name: 'Minion',
+    team: 'evil',
+    description: 'Basic evil team member',
+    emoji: '🤫',
+    knowsEvil: false,
+    knownToMerlin: true,
+    knowsMerlin: false,
+    appearsAsMerlin: false,
+    knowsTeammates: true,
+    required: false,
+    maxPerGame: 10,
+  },
+};
+
+/**
+ * Good team special roles (for UI grouping)
+ */
+export const GOOD_SPECIAL_ROLES: SpecialRole[] = ['merlin', 'percival', 'servant'];
+
+/**
+ * Evil team special roles (for UI grouping)
+ */
+export const EVIL_SPECIAL_ROLES: SpecialRole[] = ['assassin', 'morgana', 'mordred', 'oberon_standard', 'oberon_chaos', 'minion'];
+
+/**
+ * Optional good roles that can be configured
+ */
+export const OPTIONAL_GOOD_ROLES: SpecialRole[] = ['percival'];
+
+/**
+ * Optional evil roles that can be configured
+ */
+export const OPTIONAL_EVIL_ROLES: SpecialRole[] = ['morgana', 'mordred', 'oberon_standard', 'oberon_chaos'];
 
 /**
  * Get role distribution for a player count

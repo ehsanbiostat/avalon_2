@@ -33,12 +33,12 @@
 
 **Purpose**: Schema ready, types defined for Phase 2
 
-- [ ] T001 Create database migration in supabase/migrations/006_special_roles_config.sql
+- [X] T001 Create database migration in supabase/migrations/006_special_roles_config.sql
 - [ ] T002 Run migration on Supabase via SQL Editor (verify enum extension works)
-- [ ] T003 [P] Create role configuration types in src/types/role-config.ts
-- [ ] T004 [P] Update database types to include new fields in src/types/database.ts
-- [ ] T005 [P] Update role types with new special roles in src/types/role.ts
-- [ ] T006 [P] Add role definitions to constants in src/lib/utils/constants.ts
+- [X] T003 [P] Create role configuration types in src/types/role-config.ts
+- [X] T004 [P] Update database types to include new fields in src/types/database.ts
+- [X] T005 [P] Update role types with new special roles in src/types/role.ts
+- [X] T006 [P] Add role definitions to constants in src/lib/utils/constants.ts
 
 **Checkpoint**: Database accepts new columns, TypeScript compiles
 
@@ -52,25 +52,25 @@
 
 ### Role Configuration Validation
 
-- [ ] T007 Create validateRoleConfig function in src/lib/domain/role-config.ts
-- [ ] T008 Create getRolesForConfig function in src/lib/domain/role-config.ts
-- [ ] T009 Create getDefaultConfig function in src/lib/domain/role-config.ts
-- [ ] T010 Create computeRolesInPlay helper in src/lib/domain/role-config.ts
-- [ ] T011 [P] Create unit tests for role-config in tests/unit/domain/role-config.test.ts
+- [X] T007 Create validateRoleConfig function in src/lib/domain/role-config.ts
+- [X] T008 Create getRolesForConfig function in src/lib/domain/role-config.ts
+- [X] T009 Create getDefaultConfig function in src/lib/domain/role-config.ts
+- [X] T010 Create computeRolesInPlay helper in src/lib/domain/role-config.ts
+- [X] T011 [P] Create unit tests for role-config in tests/unit/domain/role-config.test.ts
 
 ### Visibility Matrix Logic
 
-- [ ] T012 Create getVisibilityForRole function in src/lib/domain/visibility.ts
-- [ ] T013 Create getMerlinVisibility (sees evil except Mordred/Oberon Chaos) in src/lib/domain/visibility.ts
-- [ ] T014 Create getPercivalVisibility (Merlin candidates) in src/lib/domain/visibility.ts
-- [ ] T015 Create getEvilVisibility (teammates except Oberon) in src/lib/domain/visibility.ts
-- [ ] T016 Create getOberonVisibility (Standard vs Chaos modes) in src/lib/domain/visibility.ts
-- [ ] T017 [P] Create unit tests for basic visibility functions (individual role visibility) in tests/unit/domain/visibility.test.ts
+- [X] T012 Create getVisibilityForRole function in src/lib/domain/visibility.ts
+- [X] T013 Create getMerlinVisibility (sees evil except Mordred/Oberon Chaos) in src/lib/domain/visibility.ts
+- [X] T014 Create getPercivalVisibility (Merlin candidates) in src/lib/domain/visibility.ts
+- [X] T015 Create getEvilVisibility (teammates except Oberon) in src/lib/domain/visibility.ts
+- [X] T016 Create getOberonVisibility (Standard vs Chaos modes) in src/lib/domain/visibility.ts
+- [X] T017 [P] Create unit tests for basic visibility functions (individual role visibility) in tests/unit/domain/visibility.test.ts
 
 ### Role Distribution Updates
 
-- [ ] T018 Update distributeRoles to accept roleConfig parameter in src/lib/domain/roles.ts
-- [ ] T019 Create generateRolePool function for config-based distribution in src/lib/domain/roles.ts
+- [X] T018 Update distributeRoles to accept roleConfig parameter in src/lib/domain/roles.ts
+- [X] T019 Create generateRolePool function for config-based distribution in src/lib/domain/roles.ts
 - [ ] T020 [P] Update existing role distribution tests in tests/unit/domain/roles.test.ts
 
 **Checkpoint**: Domain logic validated with tests, visibility matrix correct for all combinations

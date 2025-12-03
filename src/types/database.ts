@@ -1,7 +1,10 @@
 /**
  * Database types for Supabase tables
  * Auto-generated from data-model.md schema
+ * Updated for Phase 2: Special Roles & Configurations
  */
+
+import type { RoleConfig } from './role-config';
 
 export interface Database {
   public: {
@@ -38,6 +41,10 @@ export interface Database {
           status: RoomStatus;
           created_at: string;
           last_activity_at: string;
+          // Phase 2 additions
+          role_config: RoleConfig;
+          lady_of_lake_enabled: boolean;
+          lady_of_lake_holder_id: string | null;
         };
         Insert: {
           id?: string;
@@ -47,6 +54,10 @@ export interface Database {
           status?: RoomStatus;
           created_at?: string;
           last_activity_at?: string;
+          // Phase 2 additions
+          role_config?: RoleConfig;
+          lady_of_lake_enabled?: boolean;
+          lady_of_lake_holder_id?: string | null;
         };
         Update: {
           id?: string;
@@ -56,6 +67,10 @@ export interface Database {
           status?: RoomStatus;
           created_at?: string;
           last_activity_at?: string;
+          // Phase 2 additions
+          role_config?: RoleConfig;
+          lady_of_lake_enabled?: boolean;
+          lady_of_lake_holder_id?: string | null;
         };
       };
       room_players: {
@@ -93,6 +108,8 @@ export interface Database {
           special_role: SpecialRole;
           is_confirmed: boolean;
           assigned_at: string;
+          // Phase 2 addition
+          has_lady_of_lake: boolean;
         };
         Insert: {
           id?: string;
@@ -102,6 +119,8 @@ export interface Database {
           special_role: SpecialRole;
           is_confirmed?: boolean;
           assigned_at?: string;
+          // Phase 2 addition
+          has_lady_of_lake?: boolean;
         };
         Update: {
           id?: string;
@@ -111,6 +130,8 @@ export interface Database {
           special_role?: SpecialRole;
           is_confirmed?: boolean;
           assigned_at?: string;
+          // Phase 2 addition
+          has_lady_of_lake?: boolean;
         };
       };
     };
@@ -134,15 +155,17 @@ export type RoomStatus = 'waiting' | 'roles_distributed' | 'started';
 export type Role = 'good' | 'evil';
 
 // Special role enum (specific characters)
+// Phase 2: Split oberon into oberon_standard and oberon_chaos
 export type SpecialRole = 
-  | 'merlin'     // Good - knows evil players (except Mordred)
-  | 'percival'   // Good - knows Merlin (but Morgana looks the same)
-  | 'servant'    // Good - basic loyal servant
-  | 'assassin'   // Evil - can assassinate Merlin at end
-  | 'morgana'    // Evil - appears as Merlin to Percival
-  | 'mordred'    // Evil - hidden from Merlin
-  | 'oberon'     // Evil - doesn't know other evil, they don't know him
-  | 'minion';    // Evil - basic minion
+  | 'merlin'          // Good - knows evil players (except Mordred, Oberon Chaos)
+  | 'percival'        // Good - knows Merlin (but Morgana looks the same)
+  | 'servant'         // Good - basic loyal servant
+  | 'assassin'        // Evil - can assassinate Merlin at end
+  | 'morgana'         // Evil - appears as Merlin to Percival
+  | 'mordred'         // Evil - hidden from Merlin
+  | 'oberon_standard' // Evil - visible to Merlin, hidden from evil team
+  | 'oberon_chaos'    // Evil - hidden from everyone including Merlin
+  | 'minion';         // Evil - basic minion
 
 // Convenience types from row types
 export type Player = Database['public']['Tables']['players']['Row'];
