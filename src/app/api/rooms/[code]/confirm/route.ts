@@ -1,6 +1,7 @@
 /**
  * API Route: POST /api/rooms/[code]/confirm
  * Confirm that player has seen their role
+ * Phase 3: Auto-starts game when all players confirm
  */
 
 import { NextResponse } from 'next/server';
@@ -9,6 +10,7 @@ import { findPlayerByPlayerId } from '@/lib/supabase/players';
 import { findRoomByCode, isPlayerInRoom, updateRoomActivity } from '@/lib/supabase/rooms';
 import { getPlayerRole, confirmPlayerRole, getRoomConfirmations } from '@/lib/supabase/roles';
 import { validateRoomCode } from '@/lib/domain/validation';
+import { tryAutoStartGame } from '@/lib/domain/game-start';
 import { errors, handleError } from '@/lib/utils/errors';
 
 interface RouteParams {
@@ -84,11 +86,37 @@ export async function POST(request: Request, { params }: RouteParams) {
     const confirmations = await getRoomConfirmations(supabase, room.id);
     const allConfirmed = confirmations.total === confirmations.confirmed;
 
+    // Phase 3: Auto-start game when all players confirm
+    let gameStarted = false;
+    let gameData = null;
+    
+    if (allConfirmed) {
+      const gameResult = await tryAutoStartGame(
+        supabase,
+        room.id,
+        confirmations.total,
+        confirmations.confirmed
+      );
+      
+      if (gameResult) {
+        gameStarted = true;
+        gameData = {
+          game_id: gameResult.game.id,
+          phase: gameResult.game.phase,
+          current_quest: gameResult.game.current_quest,
+          current_leader_id: gameResult.firstLeaderId,
+          seating_order: gameResult.seatingOrder,
+        };
+      }
+    }
+
     return NextResponse.json({
       data: {
         confirmed: true,
         confirmations,
         all_confirmed: allConfirmed,
+        game_started: gameStarted,
+        game: gameData,
       },
     });
   } catch (error) {
