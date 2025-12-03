@@ -3,10 +3,13 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { PlayerList } from './PlayerList';
+import { RolesInPlay } from './RolesInPlay';
+import { LadyOfLakeBadge } from './LadyOfLakeBadge';
 import type { RoomDetails } from '@/types/room';
 
 interface LobbyProps {
   room: RoomDetails;
+  rolesInPlay?: string[];
   onLeave: () => void;
   onDistributeRoles?: () => Promise<void>;
   onStartGame?: () => Promise<void>;
@@ -16,10 +19,12 @@ interface LobbyProps {
 }
 
 /**
- * Main lobby view container
+ * T034: Main lobby view container
+ * Updated for Phase 2 to include RolesInPlay section
  */
 export function Lobby({
   room,
+  rolesInPlay = [],
   onLeave,
   onDistributeRoles,
   onStartGame,
@@ -122,6 +127,22 @@ export function Lobby({
           expectedPlayers={room.room.expected_players}
         />
       </div>
+
+      {/* T034: Roles In Play Section */}
+      {rolesInPlay.length > 0 && (
+        <RolesInPlay
+          rolesInPlay={rolesInPlay}
+          roleConfig={room.room.role_config}
+        />
+      )}
+
+      {/* Lady of the Lake indicator (after distribution) */}
+      {room.lady_of_lake_holder && room.room.status !== 'waiting' && (
+        <LadyOfLakeBadge
+          holderName={room.lady_of_lake_holder.nickname}
+          isCurrentPlayer={room.lady_of_lake_holder.id === room.current_player.id}
+        />
+      )}
 
       {/* Confirmation Progress (when roles distributed) */}
       {room.room.status === 'roles_distributed' && room.confirmations && (

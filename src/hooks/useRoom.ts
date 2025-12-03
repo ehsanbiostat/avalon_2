@@ -21,6 +21,10 @@ interface UseRoomReturn {
   error: string | null;
   /** Whether polling is active */
   isConnected: boolean;
+  /** T036: Roles in play for this game */
+  rolesInPlay: string[];
+  /** T036: Lady of the Lake holder info */
+  ladyOfLakeHolder: { id: string; nickname: string } | null;
   /** Refresh room data */
   refresh: () => Promise<void>;
   /** Leave the room */
@@ -37,6 +41,8 @@ interface UseRoomReturn {
  */
 export function useRoom(roomCode: string): UseRoomReturn {
   const [room, setRoom] = useState<RoomDetails | null>(null);
+  const [rolesInPlay, setRolesInPlay] = useState<string[]>([]);
+  const [ladyOfLakeHolder, setLadyOfLakeHolder] = useState<{ id: string; nickname: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(true);
@@ -77,6 +83,9 @@ export function useRoom(roomCode: string): UseRoomReturn {
 
       const { data } = await response.json();
       setRoom(data);
+      // T036: Extract roles in play and Lady of Lake holder from response
+      setRolesInPlay(data.roles_in_play || []);
+      setLadyOfLakeHolder(data.lady_of_lake_holder || null);
       setError(null);
       setIsConnected(true);
       
@@ -157,6 +166,8 @@ export function useRoom(roomCode: string): UseRoomReturn {
     isLoading,
     error,
     isConnected,
+    rolesInPlay,
+    ladyOfLakeHolder,
     refresh: () => fetchRoom(true),
     leave,
   };

@@ -113,15 +113,15 @@
 
 ### API Updates for US3
 
-- [ ] T031 [US3] Update GET /api/rooms/[code] to include roles_in_play in src/app/api/rooms/[code]/route.ts
-- [ ] T032 [US3] Add role_config to room details response in src/lib/supabase/rooms.ts
+- [X] T031 [US3] Update GET /api/rooms/[code] to include roles_in_play in src/app/api/rooms/[code]/route.ts
+- [X] T032 [US3] Add role_config to room details response in src/lib/supabase/rooms.ts
 
 ### UI Components for US3
 
-- [ ] T033 [P] [US3] Create RolesInPlay component in src/components/RolesInPlay.tsx
-- [ ] T034 [US3] Update Lobby to display RolesInPlay section in src/components/Lobby.tsx
-- [ ] T035 [US3] Show Oberon mode indicator (Standard/Chaos) in RolesInPlay in src/components/RolesInPlay.tsx
-- [ ] T036 [US3] Update useRoom hook to include role_config in src/hooks/useRoom.ts
+- [X] T033 [P] [US3] Create RolesInPlay component in src/components/RolesInPlay.tsx
+- [X] T034 [US3] Update Lobby to display RolesInPlay section in src/components/Lobby.tsx
+- [X] T035 [US3] Show Oberon mode indicator (Standard/Chaos) in RolesInPlay in src/components/RolesInPlay.tsx
+- [X] T036 [US3] Update useRoom hook to include role_config in src/hooks/useRoom.ts
 
 **Checkpoint**: All players see roles in play before and after distribution
 
@@ -146,7 +146,7 @@
 
 ### UI Components for US2
 
-- [ ] T042 [P] [US2] Create LadyOfLakeBadge component in src/components/LadyOfLakeBadge.tsx
+- [X] T042 [P] [US2] Create LadyOfLakeBadge component in src/components/LadyOfLakeBadge.tsx
 - [ ] T043 [US2] Add Lady of Lake toggle to RoleConfigPanel in src/components/RoleConfigPanel.tsx
 - [ ] T044 [US2] Add player count warning (<7 players) for Lady in src/components/RoleConfigPanel.tsx
 - [ ] T045 [US2] Display Lady of Lake holder badge in Lobby in src/components/Lobby.tsx

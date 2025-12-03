@@ -14,7 +14,7 @@ export default function RoomPage() {
   const code = params.code as string;
   const router = useRouter();
   const { isRegistered, isLoading: playerLoading } = usePlayer();
-  const { room, isLoading: roomLoading, error, isConnected, leave, refresh } = useRoom(code);
+  const { room, isLoading: roomLoading, error, isConnected, rolesInPlay, leave, refresh } = useRoom(code);
 
   const [isDistributing, setIsDistributing] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
@@ -238,6 +238,7 @@ export default function RoomPage() {
         {/* Main Lobby */}
         <Lobby
           room={room}
+          rolesInPlay={rolesInPlay}
           onLeave={handleLeave}
           onDistributeRoles={handleDistributeRoles}
           onStartGame={handleStartGame}
