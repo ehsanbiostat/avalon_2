@@ -40,6 +40,7 @@ export interface Game {
   leader_index: number;
   winner: GameWinner | null;
   win_reason: string | null;
+  assassin_guess_id: string | null;
   created_at: string;
   updated_at: string;
   ended_at: string | null;
@@ -72,6 +73,7 @@ export interface GameUpdate {
   leader_index?: number;
   winner?: GameWinner | null;
   win_reason?: string | null;
+  assassin_guess_id?: string | null;
   ended_at?: string | null;
 }
 
