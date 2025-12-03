@@ -5,14 +5,10 @@
  * Main game play screen
  */
 
-import { use, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { GameBoard } from '@/components/game/GameBoard';
 import { getPlayerId } from '@/lib/utils/player-id';
-
-interface GamePageProps {
-  params: Promise<{ gameId: string }>;
-}
 
 interface PlayerRoleInfo {
   role: 'good' | 'evil';
@@ -20,9 +16,10 @@ interface PlayerRoleInfo {
   player_db_id: string;
 }
 
-export default function GamePage({ params }: GamePageProps) {
+export default function GamePage() {
   const router = useRouter();
-  const { gameId } = use(params);
+  const params = useParams();
+  const gameId = params.gameId as string;
   
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [playerRole, setPlayerRole] = useState<PlayerRoleInfo | null>(null);
