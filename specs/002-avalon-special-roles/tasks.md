@@ -71,7 +71,7 @@
 
 - [X] T018 Update distributeRoles to accept roleConfig parameter in src/lib/domain/roles.ts
 - [X] T019 Create generateRolePool function for config-based distribution in src/lib/domain/roles.ts
-- [ ] T020 [P] Update existing role distribution tests in tests/unit/domain/roles.test.ts
+- [X] T020 [P] Update existing role distribution tests in tests/unit/domain/roles.test.ts
 
 **Checkpoint**: Domain logic validated with tests, visibility matrix correct for all combinations
 
@@ -264,22 +264,22 @@
 
 ### Error Handling & UX
 
-- [ ] T069 Add error handling for invalid role configs in: POST /api/rooms, POST /api/rooms/[code]/distribute, POST /api/rooms/validate-config
-- [ ] T070 [P] Add loading states for role configuration in src/components/RoleConfigPanel.tsx
-- [ ] T071 [P] Add form validation feedback for role config in src/components/RoleConfigPanel.tsx
+- [X] T069 Add error handling for invalid role configs in: POST /api/rooms, POST /api/rooms/[code]/distribute, POST /api/rooms/validate-config
+- [X] T070 [P] Add loading states for role configuration in src/components/RoleConfigPanel.tsx
+- [X] T071 [P] Add form validation feedback for role config in src/components/RoleConfigPanel.tsx
 
 ### Mobile & Responsive
 
-- [ ] T072 [P] Mobile responsiveness pass for RoleConfigPanel in src/components/RoleConfigPanel.tsx
-- [ ] T073 [P] Mobile responsiveness pass for RolesInPlay in src/components/RolesInPlay.tsx
-- [ ] T074 [P] Mobile responsiveness pass for updated RoleRevealModal in src/components/RoleRevealModal.tsx
+- [X] T072 [P] Mobile responsiveness pass for RoleConfigPanel in src/components/RoleConfigPanel.tsx
+- [X] T073 [P] Mobile responsiveness pass for RolesInPlay in src/components/RolesInPlay.tsx
+- [X] T074 [P] Mobile responsiveness pass for updated RoleRevealModal in src/components/RoleRevealModal.tsx
 
 ### Final Testing
 
-- [ ] T075 E2E smoke test: role configuration flow in tests/e2e/role-config.spec.ts
-- [ ] T076 [P] Comprehensive test: all 20+ visibility combinations (Merlin+Mordred, Merlin+Oberon, etc.) in tests/unit/domain/visibility.test.ts
-- [ ] T077 [P] Integration test: Lady of Lake designation in tests/unit/domain/role-config.test.ts
-- [ ] T078 Verify backward compatibility with default (MVP) config
+- [X] T075 E2E smoke test: role configuration flow in tests/e2e/role-config.spec.ts
+- [X] T076 [P] Comprehensive test: all 20+ visibility combinations (Merlin+Mordred, Merlin+Oberon, etc.) in tests/unit/domain/visibility.test.ts
+- [X] T077 [P] Integration test: Lady of Lake designation in tests/unit/domain/role-config.test.ts
+- [X] T078 Verify backward compatibility with default (MVP) config
 
 **Checkpoint**: Phase 2 feature complete
 
