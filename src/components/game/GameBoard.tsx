@@ -20,18 +20,16 @@ import { getQuestRequirement } from '@/lib/domain/quest-config';
 
 interface GameBoardProps {
   gameId: string;
-  playerId: string | null;
   playerRole?: 'good' | 'evil';
   specialRole?: string;
 }
 
 export function GameBoard({
   gameId,
-  playerId,
   playerRole,
   specialRole,
 }: GameBoardProps) {
-  const { gameState, loading, error, refetch } = useGameState(gameId);
+  const { gameState, currentPlayerId, loading, error, refetch } = useGameState(gameId);
   const [showRoleModal, setShowRoleModal] = useState(false);
 
   const handleAction = useCallback(() => {
@@ -64,13 +62,8 @@ export function GameBoard({
   }
 
   const { game, players, current_proposal, quest_requirement } = gameState;
-  const currentPlayer = players.find((p) => p.id === playerId);
+  const currentPlayer = players.find((p) => p.id === currentPlayerId);
   const isLeader = currentPlayer?.is_leader || false;
-
-  // Find current player's internal ID (database ID vs localStorage ID)
-  const currentPlayerId = playerId 
-    ? (players.find(p => p.id === playerId)?.id ?? null)
-    : null;
 
   // Game Over
   if (game.phase === 'game_over' && game.winner) {

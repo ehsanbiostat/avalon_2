@@ -11,6 +11,7 @@ const POLL_INTERVAL = 3000; // 3 seconds
 
 interface UseGameStateResult {
   gameState: GameState | null;
+  currentPlayerId: string | null;
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -18,12 +19,14 @@ interface UseGameStateResult {
 
 export function useGameState(gameId: string | null): UseGameStateResult {
   const [gameState, setGameState] = useState<GameState | null>(null);
+  const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchGameState = useCallback(async () => {
     if (!gameId) {
       setGameState(null);
+      setCurrentPlayerId(null);
       setLoading(false);
       return;
     }
@@ -39,8 +42,9 @@ export function useGameState(gameId: string | null): UseGameStateResult {
         throw new Error(data.error?.message || 'Failed to fetch game state');
       }
 
-      const { data } = await response.json();
-      setGameState(data);
+      const responseData = await response.json();
+      setGameState(responseData.data);
+      setCurrentPlayerId(responseData.current_player_id);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -59,6 +63,7 @@ export function useGameState(gameId: string | null): UseGameStateResult {
 
   return {
     gameState,
+    currentPlayerId,
     loading,
     error,
     refetch: fetchGameState,

@@ -137,7 +137,11 @@ export async function GET(request: Request, { params }: RouteParams) {
       total_team_members: totalTeamMembers,
     };
 
-    return NextResponse.json({ data: gameState });
+    // Include current player's database ID for proper identification
+    return NextResponse.json({ 
+      data: gameState,
+      current_player_id: player.id,
+    });
   } catch (error) {
     return handleError(error);
   }

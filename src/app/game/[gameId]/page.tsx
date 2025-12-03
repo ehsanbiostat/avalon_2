@@ -37,7 +37,6 @@ export default function GamePage() {
     // Fetch player's role info
     const fetchRoleInfo = async () => {
       try {
-        // First, get the game to find the room_id
         const gameResponse = await fetch(`/api/games/${gameId}`, {
           headers: { 'X-Player-ID': id },
         });
@@ -46,21 +45,13 @@ export default function GamePage() {
           throw new Error('Failed to fetch game');
         }
         
-        const { data: gameData } = await gameResponse.json();
-        
-        // Find current player
-        const currentPlayer = gameData.players.find((p: { id: string }) => {
-          // The game state includes players array
-          return true; // We'll use the first match
-        });
+        const responseData = await gameResponse.json();
+        const { current_player_id } = responseData;
 
-        // For now, we'll get role from the game state
-        // The role info should come from the room's player_roles
-        // This is a simplified approach - in a full implementation,
-        // we'd have an endpoint to get the current player's role
+        // Use the current_player_id from the API response
         setPlayerRole({
           role: 'good', // Default - will be updated with actual role
-          player_db_id: gameData.players[0]?.id || '',
+          player_db_id: current_player_id,
         });
         
         setLoading(false);
@@ -104,7 +95,6 @@ export default function GamePage() {
     <main className="min-h-screen bg-avalon-navy py-8 px-4">
       <GameBoard
         gameId={gameId}
-        playerId={playerRole?.player_db_id || null}
         playerRole={playerRole?.role}
         specialRole={playerRole?.special_role}
       />
