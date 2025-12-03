@@ -115,7 +115,8 @@ export async function allPlayersConfirmed(
 
 /**
  * Get evil teammates for a player
- * Excludes Oberon (who doesn't know other evil players)
+ * Excludes Oberon (both variants - who don't know other evil players)
+ * Phase 2: Updated to handle oberon_standard and oberon_chaos
  */
 export async function getEvilTeammates(
   client: SupabaseClient,
@@ -128,12 +129,12 @@ export async function getEvilTeammates(
     return [];
   }
 
-  // Oberon doesn't know other evil players
-  if (playerRole.special_role === 'oberon') {
+  // Oberon (both variants) doesn't know other evil players
+  if (playerRole.special_role === 'oberon_standard' || playerRole.special_role === 'oberon_chaos') {
     return [];
   }
 
-  // Get all evil players in the room (except self and Oberon)
+  // Get all evil players in the room (except self and Oberon variants)
   const { data, error } = await client
     .from('player_roles')
     .select(`
@@ -146,7 +147,7 @@ export async function getEvilTeammates(
     .eq('room_id', roomId)
     .eq('role', 'evil')
     .neq('player_id', playerId)
-    .neq('special_role', 'oberon');
+    .not('special_role', 'in', '(oberon_standard,oberon_chaos)');
 
   if (error) {
     throw error;
@@ -164,7 +165,28 @@ export async function getEvilTeammates(
 }
 
 /**
- * Get players visible to Merlin (all evil except Mordred)
+ * T040: Set Lady of Lake status for a player
+ */
+export async function setLadyOfLakeForPlayer(
+  client: SupabaseClient,
+  roomId: string,
+  playerId: string,
+  hasLady: boolean
+): Promise<void> {
+  const { error } = await client
+    .from('player_roles')
+    .update({ has_lady_of_lake: hasLady })
+    .eq('room_id', roomId)
+    .eq('player_id', playerId);
+
+  if (error) {
+    throw error;
+  }
+}
+
+/**
+ * Get players visible to Merlin (all evil except Mordred and Oberon Chaos)
+ * Phase 2: Updated to exclude oberon_chaos
  */
 export async function getPlayersVisibleToMerlin(
   client: SupabaseClient,
@@ -181,7 +203,7 @@ export async function getPlayersVisibleToMerlin(
     `)
     .eq('room_id', roomId)
     .eq('role', 'evil')
-    .neq('special_role', 'mordred');  // Mordred is hidden from Merlin
+    .not('special_role', 'in', '(mordred,oberon_chaos)');  // Mordred and Oberon Chaos are hidden from Merlin
 
   if (error) {
     throw error;

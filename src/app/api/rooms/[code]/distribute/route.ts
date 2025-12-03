@@ -1,16 +1,19 @@
 /**
  * API Route: POST /api/rooms/[code]/distribute
  * Distribute roles to all players (manager only)
+ * T038, T039: Updated for Phase 2 to use role_config and Lady of Lake
  */
 
 import { NextResponse } from 'next/server';
 import { createServerClient, getPlayerIdFromRequest } from '@/lib/supabase/server';
 import { findPlayerByPlayerId } from '@/lib/supabase/players';
-import { findRoomByCode, getRoomPlayerCount, updateRoomStatus } from '@/lib/supabase/rooms';
-import { insertRoleAssignments, rolesDistributed } from '@/lib/supabase/roles';
+import { findRoomByCode, getRoomPlayerCount, updateRoomStatus, updateLadyOfLakeHolder } from '@/lib/supabase/rooms';
+import { insertRoleAssignments, rolesDistributed, setLadyOfLakeForPlayer } from '@/lib/supabase/roles';
 import { distributeRoles, getRoleRatio } from '@/lib/domain/roles';
+import { computeRolesInPlay, designateLadyOfLakeHolder } from '@/lib/domain/role-config';
 import { validateRoomCode } from '@/lib/domain/validation';
 import { errors, handleError } from '@/lib/utils/errors';
+import type { RoleConfig } from '@/types/role-config';
 
 interface RouteParams {
   params: Promise<{ code: string }>;
@@ -74,11 +77,12 @@ export async function POST(request: Request, { params }: RouteParams) {
       return errors.roomNotFull();
     }
 
-    // Get all player IDs in the room
+    // Get all player IDs in the room (ordered by join time for Lady of Lake)
     const { data: roomPlayers, error: rpError } = await supabase
       .from('room_players')
       .select('player_id')
-      .eq('room_id', room.id);
+      .eq('room_id', room.id)
+      .order('joined_at', { ascending: true });
 
     if (rpError) {
       throw rpError;
@@ -86,17 +90,34 @@ export async function POST(request: Request, { params }: RouteParams) {
 
     const playerIds = (roomPlayers || []).map((rp: { player_id: string }) => rp.player_id);
 
-    // Distribute roles
-    const assignments = distributeRoles(playerIds);
+    // T038: Get role configuration from room
+    const roleConfig: RoleConfig = room.role_config || {};
+
+    // Distribute roles using role configuration
+    const assignments = distributeRoles(playerIds, roleConfig);
 
     // Insert role assignments
     await insertRoleAssignments(supabase, room.id, assignments);
 
+    // T039: Handle Lady of the Lake designation
+    let ladyOfLakeHolderId: string | null = null;
+    if (roleConfig.ladyOfLake || room.lady_of_lake_enabled) {
+      // Designate holder (player to the left of manager)
+      ladyOfLakeHolderId = designateLadyOfLakeHolder(playerIds, room.manager_id);
+      
+      // Update room with holder
+      await updateLadyOfLakeHolder(supabase, room.id, ladyOfLakeHolderId);
+      
+      // Update player_roles to mark holder
+      await setLadyOfLakeForPlayer(supabase, room.id, ladyOfLakeHolderId, true);
+    }
+
     // Update room status
     await updateRoomStatus(supabase, room.id, 'roles_distributed');
 
-    // Get role counts
+    // Get role counts and roles in play
     const ratio = getRoleRatio(playerCount);
+    const rolesInPlay = computeRolesInPlay(roleConfig);
 
     return NextResponse.json({
       data: {
@@ -104,6 +125,8 @@ export async function POST(request: Request, { params }: RouteParams) {
         player_count: playerCount,
         good_count: ratio.good,
         evil_count: ratio.evil,
+        roles_in_play: rolesInPlay,
+        lady_of_lake_holder_id: ladyOfLakeHolderId,
       },
     });
   } catch (error) {

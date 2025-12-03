@@ -109,6 +109,27 @@ export async function updateRoomActivity(
 }
 
 /**
+ * T040: Update Lady of Lake holder for a room
+ */
+export async function updateLadyOfLakeHolder(
+  client: SupabaseClient,
+  roomId: string,
+  holderId: string | null
+): Promise<void> {
+  const { error } = await client
+    .from('rooms')
+    .update({
+      lady_of_lake_holder_id: holderId,
+      last_activity_at: new Date().toISOString()
+    })
+    .eq('id', roomId);
+
+  if (error) {
+    throw error;
+  }
+}
+
+/**
  * Get all waiting rooms with player counts
  */
 export async function getWaitingRooms(

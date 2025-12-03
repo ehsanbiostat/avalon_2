@@ -135,22 +135,22 @@
 
 ### Domain Logic for US2
 
-- [ ] T037 [US2] Create designateLadyOfLakeHolder function in src/lib/domain/role-config.ts
-- [ ] T038 [US2] Add Lady of Lake designation to role distribution in src/lib/domain/roles.ts
+- [X] T037 [US2] Create designateLadyOfLakeHolder function in src/lib/domain/role-config.ts
+- [X] T038 [US2] Add Lady of Lake designation to role distribution in src/lib/domain/roles.ts
 
 ### API Updates for US2
 
-- [ ] T039 [US2] Update POST /api/rooms/[code]/distribute to set Lady holder in src/app/api/rooms/[code]/distribute/route.ts
-- [ ] T040 [US2] Update room database functions for Lady of Lake in src/lib/supabase/rooms.ts
-- [ ] T041 [US2] Include lady_of_lake_holder_id in room details in src/app/api/rooms/[code]/route.ts
+- [X] T039 [US2] Update POST /api/rooms/[code]/distribute to set Lady holder in src/app/api/rooms/[code]/distribute/route.ts
+- [X] T040 [US2] Update room database functions for Lady of Lake in src/lib/supabase/rooms.ts
+- [X] T041 [US2] Include lady_of_lake_holder_id in room details in src/app/api/rooms/[code]/route.ts
 
 ### UI Components for US2
 
 - [X] T042 [P] [US2] Create LadyOfLakeBadge component in src/components/LadyOfLakeBadge.tsx
-- [ ] T043 [US2] Add Lady of Lake toggle to RoleConfigPanel in src/components/RoleConfigPanel.tsx
-- [ ] T044 [US2] Add player count warning (<7 players) for Lady in src/components/RoleConfigPanel.tsx
-- [ ] T045 [US2] Display Lady of Lake holder badge in Lobby in src/components/Lobby.tsx
-- [ ] T046 [US2] Show Lady of Lake designation on holder's role card in src/components/RoleRevealModal.tsx
+- [X] T043 [US2] Add Lady of Lake toggle to RoleConfigPanel in src/components/RoleConfigPanel.tsx
+- [X] T044 [US2] Add player count warning (<7 players) for Lady in src/components/RoleConfigPanel.tsx
+- [X] T045 [US2] Display Lady of Lake holder badge in Lobby in src/components/Lobby.tsx
+- [X] T046 [US2] Show Lady of Lake designation on holder's role card in src/components/RoleRevealModal.tsx
 
 **Checkpoint**: Lady of Lake holder correctly designated and displayed
 

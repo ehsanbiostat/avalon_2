@@ -3,8 +3,17 @@
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 
-// Special role type
-type SpecialRole = 'merlin' | 'percival' | 'servant' | 'assassin' | 'morgana' | 'mordred' | 'oberon' | 'minion';
+// Special role type (Phase 2: includes oberon variants)
+type SpecialRole = 
+  | 'merlin' 
+  | 'percival' 
+  | 'servant' 
+  | 'assassin' 
+  | 'morgana' 
+  | 'mordred' 
+  | 'oberon_standard' 
+  | 'oberon_chaos' 
+  | 'minion';
 
 interface RoleRevealModalProps {
   isOpen: boolean;
@@ -15,11 +24,13 @@ interface RoleRevealModalProps {
   roleDescription: string;
   knownPlayers?: string[];
   knownPlayersLabel?: string;
+  hiddenEvilCount?: number;
+  hasLadyOfLake?: boolean;
   isConfirmed: boolean;
   onConfirm: () => Promise<void>;
 }
 
-// Role-specific icons
+// Role-specific icons (Phase 2: added oberon variants)
 const ROLE_ICONS: Record<SpecialRole, string> = {
   merlin: '🧙',
   percival: '⚔️',
@@ -27,12 +38,14 @@ const ROLE_ICONS: Record<SpecialRole, string> = {
   assassin: '🗡️',
   morgana: '🔮',
   mordred: '👑',
-  oberon: '👤',
+  oberon_standard: '👤',
+  oberon_chaos: '👻',
   minion: '⚫',
 };
 
 /**
  * Modal for revealing player's assigned role
+ * T046: Updated for Phase 2 to show Lady of Lake and hidden evil count
  */
 export function RoleRevealModal({
   isOpen,
@@ -43,6 +56,8 @@ export function RoleRevealModal({
   roleDescription,
   knownPlayers,
   knownPlayersLabel,
+  hiddenEvilCount,
+  hasLadyOfLake,
   isConfirmed,
   onConfirm,
 }: RoleRevealModalProps) {
@@ -153,6 +168,26 @@ export function RoleRevealModal({
           </div>
         )}
 
+        {/* T046: Lady of the Lake Indicator */}
+        {hasLadyOfLake && (
+          <div className="p-4 bg-purple-500/10 rounded-lg border border-purple-500/30 text-center">
+            <span className="text-2xl mb-2 block">👑</span>
+            <p className="text-purple-300 font-medium">You hold the Lady of the Lake</p>
+            <p className="text-purple-300/70 text-xs mt-1">
+              Use this token to investigate loyalties in future rounds
+            </p>
+          </div>
+        )}
+
+        {/* Hidden Evil Warning (for Merlin) */}
+        {specialRole === 'merlin' && hiddenEvilCount && hiddenEvilCount > 0 && (
+          <div className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/30 text-center">
+            <p className="text-yellow-300 text-sm">
+              ⚠️ <strong>{hiddenEvilCount} evil {hiddenEvilCount === 1 ? 'player is' : 'players are'} hidden from you!</strong>
+            </p>
+          </div>
+        )}
+
         {/* Instructions */}
         <div className="p-4 bg-avalon-midnight/50 rounded-lg border border-avalon-silver/20">
           <p className="text-avalon-parchment/70 text-sm text-center">
@@ -181,10 +216,15 @@ export function RoleRevealModal({
                 👑 <strong>Hidden from Merlin!</strong> Even the wizard cannot
                 see your evil nature. Lead from the shadows!
               </>
-            ) : specialRole === 'oberon' ? (
+            ) : specialRole === 'oberon_standard' ? (
               <>
                 👤 <strong>Work alone!</strong> You don&apos;t know the other evil
-                players. Sabotage carefully without coordination.
+                players, and they don&apos;t know you. Merlin can see you.
+              </>
+            ) : specialRole === 'oberon_chaos' ? (
+              <>
+                👻 <strong>Complete isolation!</strong> No one knows you are evil —
+                not even Merlin! Work alone to sabotage the quests.
               </>
             ) : isEvil ? (
               <>
