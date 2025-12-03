@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server';
 import { createServerClient, getPlayerIdFromRequest } from '@/lib/supabase/server';
 import { findPlayerByPlayerId } from '@/lib/supabase/players';
 import { getGameById, updateGame, addQuestResult, endGame, rotateLeader } from '@/lib/supabase/games';
-import { getCurrentProposal } from '@/lib/supabase/proposals';
+import { getActiveProposalForQuest } from '@/lib/supabase/proposals';
 import { getPlayerRole } from '@/lib/supabase/roles';
 import { submitQuestAction, getActionCount, calculateQuestResult } from '@/lib/supabase/quest-actions';
 import { logQuestCompleted } from '@/lib/supabase/game-events';
@@ -80,8 +80,8 @@ export async function POST(request: Request, { params }: RouteParams) {
       );
     }
 
-    // Get current proposal (to check team membership)
-    const proposal = await getCurrentProposal(supabase, gameId);
+    // Get approved proposal for current quest (to check team membership)
+    const proposal = await getActiveProposalForQuest(supabase, gameId, game.current_quest);
     if (!proposal) {
       return NextResponse.json(
         { error: { code: 'NO_PROPOSAL', message: 'No active quest' } },
