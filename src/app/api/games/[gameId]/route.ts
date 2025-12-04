@@ -215,9 +215,9 @@ export async function GET(request: Request, { params }: RouteParams) {
       }
     }
 
-    // Build Lady of the Lake state
+    // Build Lady of the Lake state (only if migration 009 applied)
     let ladyOfLake: LadyOfLakeState | null = null;
-    if (game.lady_enabled) {
+    if (game.lady_enabled === true) {
       const investigatedIds = await getInvestigatedPlayerIds(supabase, gameId);
       const lastInvestigation = await getLastInvestigation(supabase, gameId);
       

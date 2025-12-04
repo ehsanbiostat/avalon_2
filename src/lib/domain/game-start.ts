@@ -46,17 +46,10 @@ export async function initializeGame(
     throw new Error('Game already exists for this room');
   }
   
-  // Get room data for Lady of the Lake info
-  const { data: roomData } = await client
-    .from('rooms')
-    .select('lady_of_lake_enabled, lady_of_lake_holder_id')
-    .eq('id', roomId)
-    .single();
-  
   // Initialize seating (randomize order and select first leader)
   const { seatingOrder, leaderIndex, leaderId } = initializeSeating(playerIds);
   
-  // Create game record
+  // Create base game record (Lady fields added via separate update if columns exist)
   const gameInsert: GameInsert = {
     room_id: roomId,
     player_count: playerCount,
@@ -67,12 +60,31 @@ export async function initializeGame(
     quest_results: [],
     seating_order: seatingOrder,
     leader_index: leaderIndex,
-    // Copy Lady of the Lake settings from room
-    lady_enabled: roomData?.lady_of_lake_enabled || false,
-    lady_holder_id: roomData?.lady_of_lake_holder_id || null,
   };
   
   const game = await createGame(client, gameInsert);
+  
+  // Try to set Lady of the Lake fields (only works if migration 009 applied)
+  try {
+    const { data: roomData } = await client
+      .from('rooms')
+      .select('lady_of_lake_enabled, lady_of_lake_holder_id')
+      .eq('id', roomId)
+      .single();
+    
+    if (roomData?.lady_of_lake_enabled !== undefined) {
+      await client
+        .from('games')
+        .update({
+          lady_enabled: roomData.lady_of_lake_enabled || false,
+          lady_holder_id: roomData.lady_of_lake_holder_id || null,
+        })
+        .eq('id', game.id);
+    }
+  } catch {
+    // Migration 009 not applied yet - Lady of the Lake features disabled
+    console.log('Lady of the Lake columns not available - skipping');
+  }
   
   // Update room status to 'started'
   await updateRoomStatus(client, roomId, 'started');

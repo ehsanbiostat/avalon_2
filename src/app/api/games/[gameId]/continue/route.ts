@@ -77,14 +77,23 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
 
     // Check if Lady phase should trigger (after Quest 2, 3, 4)
-    const investigatedIds = await getInvestigatedPlayerIds(supabase, gameId);
-    const shouldGoToLadyPhase = shouldTriggerLadyPhase(
-      game.current_quest,
-      game.lady_enabled,
-      investigatedIds,
-      game.seating_order,
-      game.lady_holder_id
-    );
+    // Only if migration 009 applied (lady_enabled exists and is true)
+    let shouldGoToLadyPhase = false;
+    if (game.lady_enabled === true) {
+      try {
+        const investigatedIds = await getInvestigatedPlayerIds(supabase, gameId);
+        shouldGoToLadyPhase = shouldTriggerLadyPhase(
+          game.current_quest,
+          game.lady_enabled,
+          investigatedIds,
+          game.seating_order,
+          game.lady_holder_id
+        );
+      } catch {
+        // Migration 009 not applied - skip Lady phase
+        shouldGoToLadyPhase = false;
+      }
+    }
 
     if (shouldGoToLadyPhase) {
       // Move to Lady of the Lake phase
