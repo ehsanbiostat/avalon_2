@@ -72,6 +72,28 @@ export async function getInvestigatedPlayerIds(
 }
 
 /**
+ * Get IDs of all previous Lady holders (investigators)
+ * These players cannot be investigated per game rules
+ */
+export async function getPreviousLadyHolderIds(
+  client: SupabaseClient,
+  gameId: string
+): Promise<string[]> {
+  const { data, error } = await client
+    .from('lady_investigations')
+    .select('investigator_id')
+    .eq('game_id', gameId);
+
+  if (error) {
+    throw error;
+  }
+
+  // Return unique investigator IDs (all previous Lady holders)
+  const ids = (data || []).map((row: { investigator_id: string }) => row.investigator_id);
+  return [...new Set(ids)];
+}
+
+/**
  * Get the last investigation for a game (for public announcement)
  */
 export async function getLastInvestigation(

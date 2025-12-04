@@ -29,11 +29,12 @@ export function LadyOfLakePhase({
 
   const isHolder = ladyState.is_holder;
   
-  // Get valid targets (exclude self and already investigated)
+  // Get valid targets (exclude self, already investigated, and previous Lady holders)
   const validTargets = players.filter(
     (p) => 
       p.id !== ladyState.holder_id && 
-      !ladyState.investigated_player_ids.includes(p.id)
+      !ladyState.investigated_player_ids.includes(p.id) &&
+      !ladyState.previous_lady_holder_ids.includes(p.id)
   );
 
   const handleSubmitInvestigation = async () => {
@@ -103,8 +104,9 @@ export function LadyOfLakePhase({
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {players.map((player) => {
                 const isInvestigated = ladyState.investigated_player_ids.includes(player.id);
+                const isPreviousHolder = ladyState.previous_lady_holder_ids.includes(player.id);
                 const isSelf = player.id === ladyState.holder_id;
-                const isDisabled = isInvestigated || isSelf || isSubmitting;
+                const isDisabled = isInvestigated || isPreviousHolder || isSelf || isSubmitting;
                 const isSelected = selectedPlayerId === player.id;
 
                 return (
@@ -121,12 +123,15 @@ export function LadyOfLakePhase({
                     }`}
                   >
                     <div className="text-2xl mb-1">
-                      {isSelf ? '👑' : isInvestigated ? '👁️' : isSelected ? '🎯' : '👤'}
+                      {isSelf ? '👑' : isPreviousHolder ? '🌊' : isInvestigated ? '👁️' : isSelected ? '🎯' : '👤'}
                     </div>
                     <div className="font-medium text-sm truncate">
                       {player.nickname}
                       {isSelf && ' (You)'}
                     </div>
+                    {isPreviousHolder && !isSelf && (
+                      <div className="text-xs text-slate-500 mt-1">Past Holder</div>
+                    )}
                     {isInvestigated && (
                       <div className="text-xs text-slate-500 mt-1">Investigated</div>
                     )}

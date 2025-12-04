@@ -10,7 +10,7 @@ import { getGameById } from '@/lib/supabase/games';
 import { getCurrentProposal, getActiveProposalForQuest } from '@/lib/supabase/proposals';
 import { getPlayerVote, getVotedPlayerIds, getVotesForProposal } from '@/lib/supabase/votes';
 import { getActionCount, hasPlayerSubmittedAction } from '@/lib/supabase/quest-actions';
-import { getInvestigatedPlayerIds, getLastInvestigation } from '@/lib/supabase/lady-investigations';
+import { getInvestigatedPlayerIds, getLastInvestigation, getPreviousLadyHolderIds } from '@/lib/supabase/lady-investigations';
 import { getPlayerRole } from '@/lib/supabase/roles';
 import { getQuestRequirementsMap } from '@/lib/domain/quest-config';
 import { isLadyPhase } from '@/lib/domain/game-state-machine';
@@ -218,8 +218,11 @@ export async function GET(request: Request, { params }: RouteParams) {
     // Build Lady of the Lake state (only if migration 009 applied)
     let ladyOfLake: LadyOfLakeState | null = null;
     if (game.lady_enabled === true) {
-      const investigatedIds = await getInvestigatedPlayerIds(supabase, gameId);
-      const lastInvestigation = await getLastInvestigation(supabase, gameId);
+      const [investigatedIds, previousHolderIds, lastInvestigation] = await Promise.all([
+        getInvestigatedPlayerIds(supabase, gameId),
+        getPreviousLadyHolderIds(supabase, gameId),
+        getLastInvestigation(supabase, gameId),
+      ]);
       
       let lastInvestigationInfo = null;
       if (lastInvestigation) {
@@ -240,6 +243,7 @@ export async function GET(request: Request, { params }: RouteParams) {
         holder_id: game.lady_holder_id,
         holder_nickname: holderNickname,
         investigated_player_ids: investigatedIds,
+        previous_lady_holder_ids: previousHolderIds,
         is_holder: player.id === game.lady_holder_id,
         can_investigate: isLadyPhase(game.phase) && player.id === game.lady_holder_id,
         last_investigation: lastInvestigationInfo,

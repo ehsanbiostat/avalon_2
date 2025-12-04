@@ -11,6 +11,7 @@ export function shouldTriggerLadyPhase(
   questNumber: number,
   ladyEnabled: boolean,
   investigatedPlayerIds: string[],
+  previousLadyHolderIds: string[],
   allPlayerIds: string[],
   ladyHolderId: string | null
 ): boolean {
@@ -23,37 +24,47 @@ export function shouldTriggerLadyPhase(
   // Must have a Lady holder
   if (!ladyHolderId) return false;
   
-  // Must have valid targets (at least 1 uninvestigated player besides holder)
-  const validTargets = getValidTargets(allPlayerIds, investigatedPlayerIds, ladyHolderId);
+  // Must have valid targets (at least 1 uninvestigated player besides holder and previous holders)
+  const validTargets = getValidTargets(allPlayerIds, investigatedPlayerIds, previousLadyHolderIds, ladyHolderId);
   return validTargets.length > 0;
 }
 
 /**
  * Get valid investigation targets
- * Excludes the Lady holder and already investigated players
+ * Excludes the Lady holder, previous Lady holders, and already investigated players
  */
 export function getValidTargets(
   allPlayerIds: string[],
   investigatedPlayerIds: string[],
+  previousLadyHolderIds: string[],
   holderId: string
 ): string[] {
   return allPlayerIds.filter(
-    (id) => id !== holderId && !investigatedPlayerIds.includes(id)
+    (id) => 
+      id !== holderId && 
+      !investigatedPlayerIds.includes(id) &&
+      !previousLadyHolderIds.includes(id)
   );
 }
 
 /**
  * Validate investigation target
  * Returns error message if invalid, null if valid
+ * Per game rules: cannot investigate yourself, previous Lady holders, or already investigated players
  */
 export function validateInvestigationTarget(
   targetId: string,
   holderId: string,
   investigatedPlayerIds: string[],
+  previousLadyHolderIds: string[],
   allPlayerIds: string[]
 ): string | null {
   if (targetId === holderId) {
     return 'Cannot investigate yourself';
+  }
+  // Previous Lady holders cannot be investigated (game rule)
+  if (previousLadyHolderIds.includes(targetId)) {
+    return 'This player has previously held the Lady of the Lake and cannot be investigated';
   }
   if (investigatedPlayerIds.includes(targetId)) {
     return 'This player has already been investigated';

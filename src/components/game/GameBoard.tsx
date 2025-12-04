@@ -152,25 +152,27 @@ export function GameBoard({ gameId }: GameBoardProps) {
   // Lady of the Lake Phase
   if (game.phase === 'lady_of_lake' && gameState.lady_of_lake) {
     return (
-      <div className="max-w-2xl mx-auto space-y-6">
-        {/* Quest Tracker - still show progress */}
-        <QuestTracker
-          playerCount={game.player_count}
-          currentQuest={game.current_quest}
-          questResults={game.quest_results}
-          voteTrack={game.vote_track}
-        />
-        
-        {/* Lady of the Lake Phase UI */}
-        <LadyOfLakePhase
-          gameId={gameId}
-          players={players}
-          ladyState={gameState.lady_of_lake}
-          currentPlayerId={currentPlayerId ?? ''}
-          onInvestigationComplete={handleInvestigationComplete}
-        />
+      <>
+        <div className="max-w-2xl mx-auto space-y-6">
+          {/* Quest Tracker - still show progress */}
+          <QuestTracker
+            playerCount={game.player_count}
+            currentQuest={game.current_quest}
+            questResults={game.quest_results}
+            voteTrack={game.vote_track}
+          />
+          
+          {/* Lady of the Lake Phase UI */}
+          <LadyOfLakePhase
+            gameId={gameId}
+            players={players}
+            ladyState={gameState.lady_of_lake}
+            currentPlayerId={currentPlayerId ?? ''}
+            onInvestigationComplete={handleInvestigationComplete}
+          />
+        </div>
 
-        {/* Investigation Result Modal (Lady holder only) */}
+        {/* Investigation Result Modal - rendered outside main div for overlay */}
         {investigationResult && (
           <InvestigationResult
             targetNickname={investigationResult.targetNickname}
@@ -179,7 +181,7 @@ export function GameBoard({ gameId }: GameBoardProps) {
             onContinue={handleInvestigationContinue}
           />
         )}
-      </div>
+      </>
     );
   }
 
@@ -324,6 +326,16 @@ export function GameBoard({ gameId }: GameBoardProps) {
           </p>
         </div>
       </Modal>
+
+      {/* Investigation Result Modal - stays visible even after phase change */}
+      {investigationResult && (
+        <InvestigationResult
+          targetNickname={investigationResult.targetNickname}
+          result={investigationResult.result}
+          newHolderNickname={investigationResult.newHolderNickname}
+          onContinue={handleInvestigationContinue}
+        />
+      )}
     </div>
   );
 }

@@ -9,7 +9,8 @@ import { getGameById, updateGame, updateLadyHolder, rotateLeader } from '@/lib/s
 import { getPlayerRole } from '@/lib/supabase/roles';
 import { 
   createInvestigation, 
-  getInvestigatedPlayerIds 
+  getInvestigatedPlayerIds,
+  getPreviousLadyHolderIds,
 } from '@/lib/supabase/lady-investigations';
 import { 
   validateInvestigationTarget, 
@@ -75,23 +76,29 @@ export async function POST(
       );
     }
 
-    // Get investigated player IDs
-    const investigatedIds = await getInvestigatedPlayerIds(supabase, gameId);
+    // Get investigated player IDs and previous Lady holders
+    const [investigatedIds, previousHolderIds] = await Promise.all([
+      getInvestigatedPlayerIds(supabase, gameId),
+      getPreviousLadyHolderIds(supabase, gameId),
+    ]);
 
-    // Validate target
+    // Validate target (excludes self, investigated targets, and previous Lady holders)
     const validationError = validateInvestigationTarget(
       target_player_id,
       playerDbId,
       investigatedIds,
+      previousHolderIds,
       game.seating_order
     );
 
     if (validationError) {
       const code = validationError.includes('yourself') 
         ? 'CANNOT_INVESTIGATE_SELF' 
-        : validationError.includes('already') 
-          ? 'ALREADY_INVESTIGATED' 
-          : 'INVALID_TARGET';
+        : validationError.includes('held the Lady')
+          ? 'PREVIOUS_LADY_HOLDER'
+          : validationError.includes('already') 
+            ? 'ALREADY_INVESTIGATED' 
+            : 'INVALID_TARGET';
       return NextResponse.json(
         { error: validationError, code },
         { status: 400 }

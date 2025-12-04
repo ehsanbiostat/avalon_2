@@ -256,6 +256,7 @@ export interface LadyOfLakeState {
   holder_id: string | null;
   holder_nickname: string | null;
   investigated_player_ids: string[];
+  previous_lady_holder_ids: string[]; // Previous holders cannot be investigated
   is_holder: boolean;           // Current player is Lady holder
   can_investigate: boolean;     // In lady_of_lake phase and is holder
   last_investigation: {         // For public announcement

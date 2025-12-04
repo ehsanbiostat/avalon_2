@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server';
 import { createServerClient, getPlayerIdFromRequest } from '@/lib/supabase/server';
 import { findPlayerByPlayerId } from '@/lib/supabase/players';
 import { getGameById, updateGame, rotateLeader } from '@/lib/supabase/games';
-import { getInvestigatedPlayerIds } from '@/lib/supabase/lady-investigations';
+import { getInvestigatedPlayerIds, getPreviousLadyHolderIds } from '@/lib/supabase/lady-investigations';
 import { isShowingResults, isTerminalPhase } from '@/lib/domain/game-state-machine';
 import { shouldTriggerLadyPhase } from '@/lib/domain/lady-of-lake';
 import { errors, handleError } from '@/lib/utils/errors';
@@ -81,11 +81,15 @@ export async function POST(request: Request, { params }: RouteParams) {
     let shouldGoToLadyPhase = false;
     if (game.lady_enabled === true) {
       try {
-        const investigatedIds = await getInvestigatedPlayerIds(supabase, gameId);
+        const [investigatedIds, previousHolderIds] = await Promise.all([
+          getInvestigatedPlayerIds(supabase, gameId),
+          getPreviousLadyHolderIds(supabase, gameId),
+        ]);
         shouldGoToLadyPhase = shouldTriggerLadyPhase(
           game.current_quest,
           game.lady_enabled,
           investigatedIds,
+          previousHolderIds,
           game.seating_order,
           game.lady_holder_id
         );
