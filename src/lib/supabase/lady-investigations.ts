@@ -90,7 +90,7 @@ export async function getPreviousLadyHolderIds(
 
   // Return unique investigator IDs (all previous Lady holders)
   const ids = (data || []).map((row: { investigator_id: string }) => row.investigator_id);
-  return [...new Set(ids)];
+  return Array.from(new Set(ids));
 }
 
 /**
