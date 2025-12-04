@@ -5,7 +5,7 @@
  * Main game UI container
  */
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useGameState } from '@/hooks/useGameState';
 import { QuestTracker } from './QuestTracker';
 import { TeamProposal } from './TeamProposal';
@@ -35,19 +35,43 @@ export function GameBoard({ gameId }: GameBoardProps) {
     result: 'good' | 'evil';
     newHolderNickname: string;
   } | null>(null);
-  const lastSeenProposalId = useRef<string | null>(null);
 
-  // Show vote reveal when there's a new resolved proposal
+  // Track seen proposals in localStorage to persist across page refreshes
+  const getSeenProposals = useCallback((): Set<string> => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      const stored = localStorage.getItem(`avalon_seen_proposals_${gameId}`);
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch {
+      return new Set();
+    }
+  }, [gameId]);
+
+  const markProposalSeen = useCallback((proposalId: string) => {
+    if (typeof window === 'undefined') return;
+    try {
+      const seen = getSeenProposals();
+      seen.add(proposalId);
+      // Keep only last 20 to prevent localStorage bloat
+      const arr = Array.from(seen).slice(-20);
+      localStorage.setItem(`avalon_seen_proposals_${gameId}`, JSON.stringify(arr));
+    } catch {
+      // Ignore localStorage errors
+    }
+  }, [gameId, getSeenProposals]);
+
+  // Show vote reveal when there's a new resolved proposal (not seen before)
   useEffect(() => {
     if (gameState?.last_vote_result) {
       const proposalId = gameState.last_vote_result.proposal_id;
-      // Only show if this is a new proposal we haven't seen
-      if (proposalId !== lastSeenProposalId.current) {
-        lastSeenProposalId.current = proposalId;
+      const seenProposals = getSeenProposals();
+      // Only show if this proposal hasn't been seen before (including after refresh)
+      if (!seenProposals.has(proposalId)) {
+        markProposalSeen(proposalId);
         setShowVoteReveal(true);
       }
     }
-  }, [gameState?.last_vote_result]);
+  }, [gameState?.last_vote_result, getSeenProposals, markProposalSeen]);
 
   const handleVoteRevealComplete = useCallback(() => {
     setShowVoteReveal(false);
@@ -243,7 +267,6 @@ export function GameBoard({ gameId }: GameBoardProps) {
             currentPlayerId={currentPlayerId}
             questNumber={game.current_quest}
             questRequirement={quest_requirement}
-            voteTrack={game.vote_track}
             isLeader={isLeader}
             onProposalSubmitted={handleAction}
             ladyHolderId={ladyHolderId}
@@ -262,7 +285,6 @@ export function GameBoard({ gameId }: GameBoardProps) {
             totalPlayers={gameState.total_players}
             onVoteSubmitted={handleAction}
             ladyHolderId={ladyHolderId}
-            voteTrack={game.vote_track}
           />
         )}
 

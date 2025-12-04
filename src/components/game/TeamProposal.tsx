@@ -17,7 +17,6 @@ interface TeamProposalProps {
   currentPlayerId: string | null;
   questNumber: number;
   questRequirement: QuestRequirement;
-  voteTrack: number;
   isLeader: boolean;
   onProposalSubmitted: () => void;
   ladyHolderId?: string | null;
@@ -29,7 +28,6 @@ export function TeamProposal({
   currentPlayerId,
   questNumber,
   questRequirement,
-  voteTrack,
   isLeader,
   onProposalSubmitted,
   ladyHolderId,
@@ -99,7 +97,6 @@ export function TeamProposal({
         selectable={isLeader}
         maxSelectable={requiredSize}
         ladyHolderId={ladyHolderId}
-        voteTrack={voteTrack}
       />
 
       {/* Selection Status */}

@@ -15,7 +15,6 @@ interface PlayerSeatsProps {
   selectable?: boolean;
   maxSelectable?: number;
   ladyHolderId?: string | null;
-  voteTrack?: number; // Current vote track (0-4), 4 means this is the 5th and final vote
 }
 
 export function PlayerSeats({
@@ -26,7 +25,6 @@ export function PlayerSeats({
   selectable = false,
   maxSelectable = 0,
   ladyHolderId,
-  voteTrack = 0,
 }: PlayerSeatsProps) {
   const angleStep = (2 * Math.PI) / players.length;
   const radius = 140; // Distance from center (increased)
@@ -42,22 +40,6 @@ export function PlayerSeats({
   const isSelected = (playerId: string) => selectedTeam.includes(playerId);
   const canSelect = selectable && selectedTeam.length < maxSelectable;
 
-  // Calculate who has the "hammer" - the player whose proposal would be the 5th (final) vote
-  // If that vote fails, Evil wins immediately
-  const getHammerPlayerId = (): string | null => {
-    const leaderIndex = players.findIndex(p => p.is_leader);
-    if (leaderIndex === -1) return null;
-    
-    // How many more proposals until the 5th vote?
-    // voteTrack = 0 means this is proposal 1, hammer is 4 positions ahead
-    // voteTrack = 4 means this IS the 5th proposal, hammer is current leader
-    const positionsAhead = 4 - voteTrack;
-    const hammerIndex = (leaderIndex + positionsAhead) % players.length;
-    return players[hammerIndex]?.id || null;
-  };
-
-  const hammerPlayerId = getHammerPlayerId();
-
   return (
     <div className="relative w-[340px] h-[340px] mx-auto">
       {/* Center table */}
@@ -72,9 +54,6 @@ export function PlayerSeats({
         const selected = isSelected(player.id);
         const clickable = selectable && (selected || canSelect || !isMe);
         const hasLady = ladyHolderId === player.id;
-        // "Hammer" - this player's proposal (when they become leader) would be the 5th vote
-        // If that vote fails, Evil wins immediately
-        const hasHammer = player.id === hammerPlayerId;
         
         return (
           <div
@@ -100,7 +79,6 @@ export function PlayerSeats({
                   ${player.is_leader ? 'ring-3 ring-amber-400 ring-offset-2 ring-offset-slate-900' : ''}
                   ${player.is_on_team ? 'border-green-400 bg-green-800 text-green-200' : ''}
                   ${selected ? 'border-cyan-300 bg-cyan-700 text-cyan-100 shadow-lg shadow-cyan-400/50' : ''}
-                  ${hasHammer ? 'ring-3 ring-red-500 ring-offset-2 ring-offset-slate-900' : ''}
                 `}
                 style={{ borderWidth: '3px' }}
               >
@@ -111,16 +89,6 @@ export function PlayerSeats({
               {player.is_leader && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-lg">
                   👑
-                </div>
-              )}
-              
-              {/* Hammer indicator - 5th vote, must pass or Evil wins */}
-              {hasHammer && (
-                <div 
-                  className="absolute -top-2 -right-3 text-xl animate-bounce" 
-                  title="Final vote! If rejected, Evil wins!"
-                >
-                  🔨
                 </div>
               )}
               
