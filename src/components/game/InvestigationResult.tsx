@@ -3,7 +3,12 @@
 /**
  * InvestigationResult Component
  * Shows the Lady of the Lake investigation result to the holder
+ * Auto-closes after 7 seconds
  */
+
+import { useEffect, useState } from 'react';
+
+const RESULT_DURATION_MS = 7000;
 
 interface InvestigationResultProps {
   targetNickname: string;
@@ -19,6 +24,22 @@ export function InvestigationResult({
   onContinue,
 }: InvestigationResultProps) {
   const isGood = result === 'good';
+  const [countdown, setCountdown] = useState(RESULT_DURATION_MS / 1000);
+
+  // Auto-close after 7 seconds
+  useEffect(() => {
+    const timer = setTimeout(onContinue, RESULT_DURATION_MS);
+    
+    // Countdown display
+    const countdownInterval = setInterval(() => {
+      setCountdown((prev) => Math.max(0, prev - 1));
+    }, 1000);
+
+    return () => {
+      clearTimeout(timer);
+      clearInterval(countdownInterval);
+    };
+  }, [onContinue]);
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
@@ -68,12 +89,25 @@ export function InvestigationResult({
           </p>
         </div>
 
-        {/* Continue Button */}
+        {/* Countdown Progress */}
+        <div className="mb-4">
+          <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-1000"
+              style={{ width: `${(countdown / (RESULT_DURATION_MS / 1000)) * 100}%` }}
+            />
+          </div>
+          <p className="text-center text-slate-400 text-sm mt-2">
+            Continuing in {countdown}s...
+          </p>
+        </div>
+
+        {/* Continue Button (can skip countdown) */}
         <button
           onClick={onContinue}
           className="w-full py-3 px-4 rounded-lg font-bold text-lg bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-lg transition-all"
         >
-          Continue
+          Continue Now
         </button>
 
         {/* Private Info Notice */}

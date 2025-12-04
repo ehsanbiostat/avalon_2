@@ -103,9 +103,10 @@ export function GameBoard({ gameId }: GameBoardProps) {
     );
   }
 
-  const { game, players, current_proposal, quest_requirement } = gameState;
+  const { game, players, current_proposal, quest_requirement, lady_of_lake } = gameState;
   const currentPlayer = players.find((p) => p.id === currentPlayerId);
   const isLeader = currentPlayer?.is_leader || false;
+  const ladyHolderId = lady_of_lake?.holder_id || game.lady_holder_id || null;
 
   // Game Over
   if (game.phase === 'game_over' && game.winner) {
@@ -226,6 +227,7 @@ export function GameBoard({ gameId }: GameBoardProps) {
             voteTrack={game.vote_track}
             isLeader={isLeader}
             onProposalSubmitted={handleAction}
+            ladyHolderId={ladyHolderId}
           />
         )}
 
@@ -240,6 +242,7 @@ export function GameBoard({ gameId }: GameBoardProps) {
             votesSubmitted={gameState.votes_submitted}
             totalPlayers={gameState.total_players}
             onVoteSubmitted={handleAction}
+            ladyHolderId={ladyHolderId}
           />
         )}
 

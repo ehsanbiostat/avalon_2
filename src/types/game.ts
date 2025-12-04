@@ -292,6 +292,7 @@ export interface LadyInvestigateResponse {
   result: 'good' | 'evil';      // Only for Lady holder
   new_holder_id: string;
   new_holder_nickname: string;
+  next_quest?: number;          // The next quest number after Lady phase
 }
 
 /**

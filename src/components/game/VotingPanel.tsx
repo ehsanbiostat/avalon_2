@@ -20,6 +20,7 @@ interface VotingPanelProps {
   votesSubmitted: number;
   totalPlayers: number;
   onVoteSubmitted: () => void;
+  ladyHolderId?: string | null;
 }
 
 export function VotingPanel({
@@ -31,6 +32,7 @@ export function VotingPanel({
   votesSubmitted,
   totalPlayers,
   onVoteSubmitted,
+  ladyHolderId,
 }: VotingPanelProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -88,6 +90,7 @@ export function VotingPanel({
       <PlayerSeats
         players={players}
         currentPlayerId={currentPlayerId}
+        ladyHolderId={ladyHolderId}
       />
 
       {/* Vote Progress */}

@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
-import { getGameById, updateGame, updateLadyHolder } from '@/lib/supabase/games';
+import { getGameById, updateGame, updateLadyHolder, rotateLeader } from '@/lib/supabase/games';
 import { getPlayerRole } from '@/lib/supabase/roles';
 import { 
   createInvestigation, 
@@ -122,9 +122,13 @@ export async function POST(
     // Transfer Lady to target player
     await updateLadyHolder(supabase, gameId, target_player_id);
 
-    // Transition to team_building phase for next quest
+    // Rotate leader for next quest
+    await rotateLeader(supabase, gameId);
+
+    // Transition to team_building phase for NEXT quest (increment quest number)
     await updateGame(supabase, gameId, {
       phase: 'team_building',
+      current_quest: game.current_quest + 1,
     });
 
     // Get target player's nickname for response
@@ -139,6 +143,7 @@ export async function POST(
       result,
       new_holder_id: target_player_id,
       new_holder_nickname: targetData?.nickname || 'Unknown',
+      next_quest: game.current_quest + 1,
     };
 
     return NextResponse.json({ data: response });

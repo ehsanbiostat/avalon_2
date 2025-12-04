@@ -20,6 +20,7 @@ interface TeamProposalProps {
   voteTrack: number;
   isLeader: boolean;
   onProposalSubmitted: () => void;
+  ladyHolderId?: string | null;
 }
 
 export function TeamProposal({
@@ -31,6 +32,7 @@ export function TeamProposal({
   voteTrack,
   isLeader,
   onProposalSubmitted,
+  ladyHolderId,
 }: TeamProposalProps) {
   const [selectedTeam, setSelectedTeam] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -102,6 +104,7 @@ export function TeamProposal({
         onPlayerClick={handlePlayerClick}
         selectable={isLeader}
         maxSelectable={requiredSize}
+        ladyHolderId={ladyHolderId}
       />
 
       {/* Selection Status */}

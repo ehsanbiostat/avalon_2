@@ -14,6 +14,7 @@ interface PlayerSeatsProps {
   onPlayerClick?: (playerId: string) => void;
   selectable?: boolean;
   maxSelectable?: number;
+  ladyHolderId?: string | null;
 }
 
 export function PlayerSeats({
@@ -23,6 +24,7 @@ export function PlayerSeats({
   onPlayerClick,
   selectable = false,
   maxSelectable = 0,
+  ladyHolderId,
 }: PlayerSeatsProps) {
   const angleStep = (2 * Math.PI) / players.length;
   const radius = 130; // Distance from center
@@ -51,6 +53,7 @@ export function PlayerSeats({
         const isMe = player.id === currentPlayerId;
         const selected = isSelected(player.id);
         const clickable = selectable && (selected || canSelect || !isMe);
+        const hasLady = ladyHolderId === player.id;
         
         return (
           <div
@@ -86,6 +89,13 @@ export function PlayerSeats({
               {player.is_leader && (
                 <div className="absolute -top-2 left-1/2 -translate-x-1/2 text-amber-500">
                   👑
+                </div>
+              )}
+              
+              {/* Lady of the Lake token */}
+              {hasLady && (
+                <div className="absolute -bottom-1 -left-1 text-blue-400 text-lg" title="Lady of the Lake">
+                  🌊
                 </div>
               )}
               
