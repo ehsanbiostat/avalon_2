@@ -158,8 +158,8 @@ export function RoleConfigPanel({
 
       {/* Lady of the Lake */}
       <div>
-        <h4 className="font-display text-sm text-avalon-gold mb-3 flex items-center gap-2">
-          🏞️ Game Options
+        <h4 className="font-display text-sm text-blue-300 mb-3 flex items-center gap-2">
+          🌊 Game Options
         </h4>
         
         <RoleToggle
@@ -167,8 +167,8 @@ export function RoleConfigPanel({
           enabled={config.ladyOfLake || false}
           onChange={(v) => handleToggle('ladyOfLake', v)}
           label="Lady of the Lake"
-          description="Loyalty-checking token (setup only in this version)"
-          emoji="👑"
+          description="Investigate player loyalties after Quest 2, 3, 4"
+          emoji="🌊"
         />
         
         {/* T044: Warning for small games */}

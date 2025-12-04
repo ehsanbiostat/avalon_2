@@ -105,6 +105,7 @@ export function TeamProposal({
         selectable={isLeader}
         maxSelectable={requiredSize}
         ladyHolderId={ladyHolderId}
+        voteTrack={voteTrack}
       />
 
       {/* Selection Status */}

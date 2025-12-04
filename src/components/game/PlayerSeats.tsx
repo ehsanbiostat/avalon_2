@@ -15,6 +15,7 @@ interface PlayerSeatsProps {
   selectable?: boolean;
   maxSelectable?: number;
   ladyHolderId?: string | null;
+  voteTrack?: number; // Current vote track (0-4), 4 means this is the 5th and final vote
 }
 
 export function PlayerSeats({
@@ -25,6 +26,7 @@ export function PlayerSeats({
   selectable = false,
   maxSelectable = 0,
   ladyHolderId,
+  voteTrack = 0,
 }: PlayerSeatsProps) {
   const angleStep = (2 * Math.PI) / players.length;
   const radius = 130; // Distance from center
@@ -54,6 +56,8 @@ export function PlayerSeats({
         const selected = isSelected(player.id);
         const clickable = selectable && (selected || canSelect || !isMe);
         const hasLady = ladyHolderId === player.id;
+        // "Hammer" - this leader's proposal must pass or Evil wins
+        const hasHammer = player.is_leader && voteTrack === 4;
         
         return (
           <div
@@ -89,6 +93,16 @@ export function PlayerSeats({
               {player.is_leader && (
                 <div className="absolute -top-2 left-1/2 -translate-x-1/2 text-amber-500">
                   👑
+                </div>
+              )}
+              
+              {/* Hammer indicator - 5th vote, must pass or Evil wins */}
+              {hasHammer && (
+                <div 
+                  className="absolute -top-1 -right-2 text-red-400 animate-pulse" 
+                  title="Final vote! If rejected, Evil wins!"
+                >
+                  🔨
                 </div>
               )}
               

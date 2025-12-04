@@ -216,6 +216,23 @@ export function GameBoard({ gameId }: GameBoardProps) {
         voteTrack={game.vote_track}
       />
 
+      {/* Lady of the Lake Investigation Announcement (visible to all players) */}
+      {lady_of_lake?.last_investigation && (
+        <div className="bg-blue-900/30 border border-blue-500/30 rounded-lg p-3 flex items-center gap-3">
+          <span className="text-2xl">🌊</span>
+          <div className="flex-1">
+            <p className="text-blue-200 text-sm">
+              <span className="font-medium">{lady_of_lake.last_investigation.investigator_nickname}</span>
+              {' '}investigated{' '}
+              <span className="font-medium">{lady_of_lake.last_investigation.target_nickname}</span>
+            </p>
+            <p className="text-blue-300/60 text-xs">
+              🌊 {lady_of_lake.holder_nickname} now holds the Lady of the Lake
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Phase-specific content */}
       <div className="bg-avalon-dark-blue/30 rounded-xl p-6 border border-avalon-silver/10">
         {/* Team Building */}
@@ -245,6 +262,7 @@ export function GameBoard({ gameId }: GameBoardProps) {
             totalPlayers={gameState.total_players}
             onVoteSubmitted={handleAction}
             ladyHolderId={ladyHolderId}
+            voteTrack={game.vote_track}
           />
         )}
 
