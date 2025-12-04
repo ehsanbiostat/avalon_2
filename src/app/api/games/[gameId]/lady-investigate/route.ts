@@ -27,9 +27,9 @@ export async function POST(
     const body = await request.json();
     const { target_player_id } = body;
 
-    // Get player ID from header
-    const playerId = request.headers.get('x-player-id');
-    if (!playerId) {
+    // Get player ID from header (this is the database ID passed from frontend)
+    const playerDbId = request.headers.get('x-player-id');
+    if (!playerDbId) {
       return NextResponse.json(
         { error: 'Player ID required' },
         { status: 401 }
@@ -59,21 +59,13 @@ export async function POST(
       );
     }
 
-    // Get the player's database ID
-    const { data: playerData } = await supabase
-      .from('players')
-      .select('id, nickname')
-      .eq('player_id', playerId)
-      .single();
-
-    if (!playerData) {
+    // Verify the player exists in the game
+    if (!game.seating_order.includes(playerDbId)) {
       return NextResponse.json(
-        { error: 'Player not found' },
-        { status: 404 }
+        { error: 'Player not in this game' },
+        { status: 403 }
       );
     }
-
-    const playerDbId = playerData.id;
 
     // Verify player is the Lady holder
     if (game.lady_holder_id !== playerDbId) {
