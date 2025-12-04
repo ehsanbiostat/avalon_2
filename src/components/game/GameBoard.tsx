@@ -13,6 +13,8 @@ import { VotingPanel } from './VotingPanel';
 import { QuestExecution } from './QuestExecution';
 import { QuestResultDisplay } from './QuestResultDisplay';
 import { VoteResultReveal } from './VoteResultReveal';
+import { LadyOfLakePhase } from './LadyOfLakePhase';
+import { InvestigationResult } from './InvestigationResult';
 import { AssassinPhase } from './AssassinPhase';
 import { GameOver } from './GameOver';
 import { Modal } from '@/components/ui/Modal';
@@ -28,6 +30,11 @@ export function GameBoard({ gameId }: GameBoardProps) {
   const { gameState, currentPlayerId, playerRole, specialRole, loading, error, refetch } = useGameState(gameId);
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [showVoteReveal, setShowVoteReveal] = useState(false);
+  const [investigationResult, setInvestigationResult] = useState<{
+    targetNickname: string;
+    result: 'good' | 'evil';
+    newHolderNickname: string;
+  } | null>(null);
   const lastSeenProposalId = useRef<string | null>(null);
 
   // Show vote reveal when there's a new resolved proposal
@@ -48,6 +55,27 @@ export function GameBoard({ gameId }: GameBoardProps) {
 
   const handleAction = useCallback(() => {
     // Refetch after any action to get latest state
+    refetch();
+  }, [refetch]);
+
+  const handleInvestigationComplete = useCallback((result: 'good' | 'evil', newHolderNickname: string) => {
+    // Find the target player nickname
+    const targetId = gameState?.players.find(p => 
+      gameState.lady_of_lake?.investigated_player_ids.includes(p.id) === false && 
+      p.id !== gameState.lady_of_lake?.holder_id
+    );
+    // For now, we'll get it from the last investigation
+    const targetNickname = gameState?.lady_of_lake?.last_investigation?.target_nickname || 'Unknown';
+    
+    setInvestigationResult({
+      targetNickname: newHolderNickname, // The new holder IS the target
+      result,
+      newHolderNickname,
+    });
+  }, [gameState]);
+
+  const handleInvestigationContinue = useCallback(() => {
+    setInvestigationResult(null);
     refetch();
   }, [refetch]);
 
@@ -116,6 +144,40 @@ export function GameBoard({ gameId }: GameBoardProps) {
           currentPlayerId={currentPlayerId ?? ''}
           onGuessSubmitted={handleAction}
         />
+      </div>
+    );
+  }
+
+  // Lady of the Lake Phase
+  if (game.phase === 'lady_of_lake' && gameState.lady_of_lake) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        {/* Quest Tracker - still show progress */}
+        <QuestTracker
+          playerCount={game.player_count}
+          currentQuest={game.current_quest}
+          questResults={game.quest_results}
+          voteTrack={game.vote_track}
+        />
+        
+        {/* Lady of the Lake Phase UI */}
+        <LadyOfLakePhase
+          gameId={gameId}
+          players={players}
+          ladyState={gameState.lady_of_lake}
+          currentPlayerId={currentPlayerId ?? ''}
+          onInvestigationComplete={handleInvestigationComplete}
+        />
+
+        {/* Investigation Result Modal (Lady holder only) */}
+        {investigationResult && (
+          <InvestigationResult
+            targetNickname={investigationResult.targetNickname}
+            result={investigationResult.result}
+            newHolderNickname={investigationResult.newHolderNickname}
+            onContinue={handleInvestigationContinue}
+          />
+        )}
       </div>
     );
   }

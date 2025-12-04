@@ -212,3 +212,16 @@ export async function gameExistsForRoom(
   return (count ?? 0) > 0;
 }
 
+/**
+ * Update Lady of the Lake holder
+ */
+export async function updateLadyHolder(
+  client: SupabaseClient,
+  gameId: string,
+  newHolderId: string
+): Promise<Game> {
+  return updateGame(client, gameId, {
+    lady_holder_id: newHolderId,
+  });
+}
+

@@ -12,6 +12,7 @@ export type GamePhase =
   | 'voting'          // All players voting on team
   | 'quest'           // Team executing quest
   | 'quest_result'    // Showing quest result
+  | 'lady_of_lake'    // Lady of the Lake investigation (after Quest 2, 3, 4)
   | 'assassin'        // Assassin guessing Merlin (Good won 3 quests)
   | 'game_over';      // Game ended
 
@@ -41,6 +42,8 @@ export interface Game {
   winner: GameWinner | null;
   win_reason: string | null;
   assassin_guess_id: string | null;
+  lady_holder_id: string | null;
+  lady_enabled: boolean;
   created_at: string;
   updated_at: string;
   ended_at: string | null;
@@ -59,6 +62,8 @@ export interface GameInsert {
   leader_index?: number;
   winner?: GameWinner | null;
   win_reason?: string | null;
+  lady_holder_id?: string | null;
+  lady_enabled?: boolean;
   created_at?: string;
   updated_at?: string;
   ended_at?: string | null;
@@ -74,6 +79,8 @@ export interface GameUpdate {
   winner?: GameWinner | null;
   win_reason?: string | null;
   assassin_guess_id?: string | null;
+  lady_holder_id?: string | null;
+  lady_enabled?: boolean;
   ended_at?: string | null;
 }
 
@@ -200,6 +207,8 @@ export interface GameState {
   // Assassin phase (when Good wins 3 quests)
   assassin_phase: AssassinPhaseState | null;
   is_assassin: boolean;
+  // Lady of the Lake phase
+  lady_of_lake: LadyOfLakeState | null;
 }
 
 /**
@@ -237,6 +246,52 @@ export interface AssassinPhaseState {
   assassin_nickname: string;
   merlin_id: string; // Only known to server
   can_guess: boolean; // True if current player is assassin
+}
+
+/**
+ * Lady of the Lake state
+ */
+export interface LadyOfLakeState {
+  enabled: boolean;
+  holder_id: string | null;
+  holder_nickname: string | null;
+  investigated_player_ids: string[];
+  is_holder: boolean;           // Current player is Lady holder
+  can_investigate: boolean;     // In lady_of_lake phase and is holder
+  last_investigation: {         // For public announcement
+    investigator_nickname: string;
+    target_nickname: string;
+  } | null;
+}
+
+/**
+ * Lady investigation record
+ */
+export interface LadyInvestigation {
+  id: string;
+  game_id: string;
+  quest_number: number;
+  investigator_id: string;
+  target_id: string;
+  result: 'good' | 'evil';
+  created_at: string;
+}
+
+/**
+ * Lady investigation API request
+ */
+export interface LadyInvestigateRequest {
+  target_player_id: string;
+}
+
+/**
+ * Lady investigation API response
+ */
+export interface LadyInvestigateResponse {
+  success: boolean;
+  result: 'good' | 'evil';      // Only for Lady holder
+  new_holder_id: string;
+  new_holder_nickname: string;
 }
 
 /**

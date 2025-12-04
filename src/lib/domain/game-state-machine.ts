@@ -13,7 +13,8 @@ export const VALID_TRANSITIONS: Record<GamePhase, GamePhase[]> = {
   team_building: ['voting'],
   voting: ['team_building', 'quest', 'game_over'], // rejected -> team_building, approved -> quest, 5 rejections -> game_over
   quest: ['quest_result', 'assassin'], // quest -> result OR assassin (if Good wins 3)
-  quest_result: ['team_building', 'assassin', 'game_over'], // next quest, assassin phase, or game ends
+  quest_result: ['team_building', 'lady_of_lake', 'assassin', 'game_over'], // next quest, lady phase, assassin phase, or game ends
+  lady_of_lake: ['team_building'], // Lady phase leads to next team building
   assassin: ['game_over'], // Assassin phase always leads to game_over
   game_over: [], // Terminal state
 };
@@ -122,6 +123,8 @@ export function getPhaseName(phase: GamePhase): string {
       return 'Quest';
     case 'quest_result':
       return 'Quest Result';
+    case 'lady_of_lake':
+      return 'Lady of the Lake';
     case 'assassin':
       return 'Assassin\'s Gambit';
     case 'game_over':
@@ -144,6 +147,8 @@ export function getPhaseDescription(phase: GamePhase): string {
       return 'The team is on a quest';
     case 'quest_result':
       return 'Reviewing the quest results';
+    case 'lady_of_lake':
+      return 'The Lady of the Lake holder is investigating a player';
     case 'assassin':
       return 'The Assassin has one chance to find Merlin';
     case 'game_over':
@@ -151,5 +156,12 @@ export function getPhaseDescription(phase: GamePhase): string {
     default:
       return '';
   }
+}
+
+/**
+ * Check if game is in Lady of the Lake phase
+ */
+export function isLadyPhase(phase: GamePhase): boolean {
+  return phase === 'lady_of_lake';
 }
 

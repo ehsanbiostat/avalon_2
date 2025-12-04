@@ -1,13 +1,15 @@
 /**
  * API Route: POST /api/games/[gameId]/continue
- * Advance from quest_result to team_building for next quest
+ * Advance from quest_result to lady_of_lake or team_building for next quest
  */
 
 import { NextResponse } from 'next/server';
 import { createServerClient, getPlayerIdFromRequest } from '@/lib/supabase/server';
 import { findPlayerByPlayerId } from '@/lib/supabase/players';
 import { getGameById, updateGame, rotateLeader } from '@/lib/supabase/games';
+import { getInvestigatedPlayerIds } from '@/lib/supabase/lady-investigations';
 import { isShowingResults, isTerminalPhase } from '@/lib/domain/game-state-machine';
+import { shouldTriggerLadyPhase } from '@/lib/domain/lady-of-lake';
 import { errors, handleError } from '@/lib/utils/errors';
 import type { ContinueGameResponse } from '@/types/game';
 
@@ -72,6 +74,31 @@ export async function POST(request: Request, { params }: RouteParams) {
         { error: { code: 'INVALID_PHASE', message: 'Can only continue from quest_result phase' } },
         { status: 400 }
       );
+    }
+
+    // Check if Lady phase should trigger (after Quest 2, 3, 4)
+    const investigatedIds = await getInvestigatedPlayerIds(supabase, gameId);
+    const shouldGoToLadyPhase = shouldTriggerLadyPhase(
+      game.current_quest,
+      game.lady_enabled,
+      investigatedIds,
+      game.seating_order,
+      game.lady_holder_id
+    );
+
+    if (shouldGoToLadyPhase) {
+      // Move to Lady of the Lake phase
+      await updateGame(supabase, gameId, {
+        phase: 'lady_of_lake',
+      });
+
+      const response: ContinueGameResponse = {
+        phase: 'lady_of_lake',
+        current_quest: game.current_quest,
+        current_leader_id: game.current_leader_id,
+      };
+
+      return NextResponse.json({ data: response });
     }
 
     // Rotate leader for next quest

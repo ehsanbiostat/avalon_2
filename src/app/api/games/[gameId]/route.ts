@@ -10,10 +10,12 @@ import { getGameById } from '@/lib/supabase/games';
 import { getCurrentProposal, getActiveProposalForQuest } from '@/lib/supabase/proposals';
 import { getPlayerVote, getVotedPlayerIds, getVotesForProposal } from '@/lib/supabase/votes';
 import { getActionCount, hasPlayerSubmittedAction } from '@/lib/supabase/quest-actions';
+import { getInvestigatedPlayerIds, getLastInvestigation } from '@/lib/supabase/lady-investigations';
 import { getPlayerRole } from '@/lib/supabase/roles';
 import { getQuestRequirementsMap } from '@/lib/domain/quest-config';
+import { isLadyPhase } from '@/lib/domain/game-state-machine';
 import { errors, handleError } from '@/lib/utils/errors';
-import type { GameState, GamePlayer } from '@/types/game';
+import type { GameState, GamePlayer, LadyOfLakeState } from '@/types/game';
 
 interface RouteParams {
   params: Promise<{ gameId: string }>;
@@ -213,6 +215,37 @@ export async function GET(request: Request, { params }: RouteParams) {
       }
     }
 
+    // Build Lady of the Lake state
+    let ladyOfLake: LadyOfLakeState | null = null;
+    if (game.lady_enabled) {
+      const investigatedIds = await getInvestigatedPlayerIds(supabase, gameId);
+      const lastInvestigation = await getLastInvestigation(supabase, gameId);
+      
+      let lastInvestigationInfo = null;
+      if (lastInvestigation) {
+        const investigatorNickname = nicknameMap.get(lastInvestigation.investigator_id) || 'Unknown';
+        const targetNickname = nicknameMap.get(lastInvestigation.target_id) || 'Unknown';
+        lastInvestigationInfo = {
+          investigator_nickname: investigatorNickname,
+          target_nickname: targetNickname,
+        };
+      }
+      
+      const holderNickname = game.lady_holder_id 
+        ? nicknameMap.get(game.lady_holder_id) || 'Unknown'
+        : null;
+      
+      ladyOfLake = {
+        enabled: true,
+        holder_id: game.lady_holder_id,
+        holder_nickname: holderNickname,
+        investigated_player_ids: investigatedIds,
+        is_holder: player.id === game.lady_holder_id,
+        can_investigate: isLadyPhase(game.phase) && player.id === game.lady_holder_id,
+        last_investigation: lastInvestigationInfo,
+      };
+    }
+
     const gameState: GameState = {
       game,
       players,
@@ -229,6 +262,7 @@ export async function GET(request: Request, { params }: RouteParams) {
       last_vote_result: lastVoteResult,
       assassin_phase: assassinPhase,
       is_assassin: isAssassin,
+      lady_of_lake: ladyOfLake,
     };
 
     // Include current player's database ID and role for proper identification

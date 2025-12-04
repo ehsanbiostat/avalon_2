@@ -46,6 +46,13 @@ export async function initializeGame(
     throw new Error('Game already exists for this room');
   }
   
+  // Get room data for Lady of the Lake info
+  const { data: roomData } = await client
+    .from('rooms')
+    .select('lady_of_lake_enabled, lady_of_lake_holder_id')
+    .eq('id', roomId)
+    .single();
+  
   // Initialize seating (randomize order and select first leader)
   const { seatingOrder, leaderIndex, leaderId } = initializeSeating(playerIds);
   
@@ -60,6 +67,9 @@ export async function initializeGame(
     quest_results: [],
     seating_order: seatingOrder,
     leader_index: leaderIndex,
+    // Copy Lady of the Lake settings from room
+    lady_enabled: roomData?.lady_of_lake_enabled || false,
+    lady_holder_id: roomData?.lady_of_lake_holder_id || null,
   };
   
   const game = await createGame(client, gameInsert);
