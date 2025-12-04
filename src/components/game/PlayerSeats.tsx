@@ -42,6 +42,22 @@ export function PlayerSeats({
   const isSelected = (playerId: string) => selectedTeam.includes(playerId);
   const canSelect = selectable && selectedTeam.length < maxSelectable;
 
+  // Calculate who has the "hammer" - the player whose proposal would be the 5th (final) vote
+  // If that vote fails, Evil wins immediately
+  const getHammerPlayerId = (): string | null => {
+    const leaderIndex = players.findIndex(p => p.is_leader);
+    if (leaderIndex === -1) return null;
+    
+    // How many more proposals until the 5th vote?
+    // voteTrack = 0 means this is proposal 1, hammer is 4 positions ahead
+    // voteTrack = 4 means this IS the 5th proposal, hammer is current leader
+    const positionsAhead = 4 - voteTrack;
+    const hammerIndex = (leaderIndex + positionsAhead) % players.length;
+    return players[hammerIndex]?.id || null;
+  };
+
+  const hammerPlayerId = getHammerPlayerId();
+
   return (
     <div className="relative w-[340px] h-[340px] mx-auto">
       {/* Center table */}
@@ -56,8 +72,9 @@ export function PlayerSeats({
         const selected = isSelected(player.id);
         const clickable = selectable && (selected || canSelect || !isMe);
         const hasLady = ladyHolderId === player.id;
-        // "Hammer" - this leader's proposal must pass or Evil wins
-        const hasHammer = player.is_leader && voteTrack === 4;
+        // "Hammer" - this player's proposal (when they become leader) would be the 5th vote
+        // If that vote fails, Evil wins immediately
+        const hasHammer = player.id === hammerPlayerId;
         
         return (
           <div
