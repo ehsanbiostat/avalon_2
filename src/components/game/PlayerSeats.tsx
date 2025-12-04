@@ -29,13 +29,13 @@ export function PlayerSeats({
   voteTrack = 0,
 }: PlayerSeatsProps) {
   const angleStep = (2 * Math.PI) / players.length;
-  const radius = 130; // Distance from center
+  const radius = 140; // Distance from center (increased)
   
   const getPlayerPosition = (index: number) => {
     // Start from top (subtract PI/2 to rotate)
     const angle = angleStep * index - Math.PI / 2;
-    const x = Math.cos(angle) * radius + 150; // Center X
-    const y = Math.sin(angle) * radius + 150; // Center Y
+    const x = Math.cos(angle) * radius + 170; // Center X (increased)
+    const y = Math.sin(angle) * radius + 170; // Center Y (increased)
     return { x, y };
   };
 
@@ -43,10 +43,10 @@ export function PlayerSeats({
   const canSelect = selectable && selectedTeam.length < maxSelectable;
 
   return (
-    <div className="relative w-[300px] h-[300px] mx-auto">
+    <div className="relative w-[340px] h-[340px] mx-auto">
       {/* Center table */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-gradient-to-br from-amber-900/40 to-amber-950/60 border-4 border-amber-800/50 shadow-lg flex items-center justify-center">
-        <span className="text-amber-600/80 text-xs font-bold">ROUND TABLE</span>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 rounded-full bg-gradient-to-br from-amber-800 to-amber-950 border-4 border-amber-700 shadow-lg flex items-center justify-center">
+        <span className="text-amber-500 text-xs font-bold">ROUND TABLE</span>
       </div>
       
       {/* Players */}
@@ -77,21 +77,22 @@ export function PlayerSeats({
               {/* Avatar */}
               <div
                 className={`
-                  w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold
-                  border-2 transition-all duration-300
-                  ${isMe ? 'border-avalon-gold bg-avalon-gold/20' : 'border-avalon-silver/40 bg-avalon-dark-blue'}
-                  ${player.is_leader ? 'ring-2 ring-amber-500 ring-offset-2 ring-offset-avalon-navy' : ''}
-                  ${player.is_on_team ? 'border-emerald-500 bg-emerald-500/20' : ''}
-                  ${selected ? 'border-cyan-400 bg-cyan-500/30 shadow-lg shadow-cyan-500/30' : ''}
-                  ${player.has_voted ? 'opacity-80' : ''}
+                  w-14 h-14 rounded-full flex items-center justify-center text-base font-bold
+                  border-3 transition-all duration-300
+                  ${isMe ? 'border-yellow-400 bg-yellow-900 text-yellow-200' : 'border-slate-400 bg-slate-700 text-slate-200'}
+                  ${player.is_leader ? 'ring-3 ring-amber-400 ring-offset-2 ring-offset-slate-900' : ''}
+                  ${player.is_on_team ? 'border-green-400 bg-green-800 text-green-200' : ''}
+                  ${selected ? 'border-cyan-300 bg-cyan-700 text-cyan-100 shadow-lg shadow-cyan-400/50' : ''}
+                  ${hasHammer ? 'ring-3 ring-red-500 ring-offset-2 ring-offset-slate-900' : ''}
                 `}
+                style={{ borderWidth: '3px' }}
               >
                 {player.nickname.charAt(0).toUpperCase()}
               </div>
               
               {/* Crown for leader */}
               {player.is_leader && (
-                <div className="absolute -top-2 left-1/2 -translate-x-1/2 text-amber-500">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-lg">
                   👑
                 </div>
               )}
@@ -99,7 +100,7 @@ export function PlayerSeats({
               {/* Hammer indicator - 5th vote, must pass or Evil wins */}
               {hasHammer && (
                 <div 
-                  className="absolute -top-1 -right-2 text-red-400 animate-pulse" 
+                  className="absolute -top-2 -right-3 text-xl animate-bounce" 
                   title="Final vote! If rejected, Evil wins!"
                 >
                   🔨
@@ -108,28 +109,28 @@ export function PlayerSeats({
               
               {/* Lady of the Lake token */}
               {hasLady && (
-                <div className="absolute -bottom-1 -left-1 text-blue-400 text-lg" title="Lady of the Lake">
+                <div className="absolute -bottom-1 -left-2 text-xl" title="Lady of the Lake">
                   🌊
                 </div>
               )}
               
               {/* Shield for team member */}
               {player.is_on_team && !selected && (
-                <div className="absolute -top-1 -right-1 text-emerald-500">
+                <div className="absolute -top-1 -right-1 text-lg">
                   🛡️
                 </div>
               )}
               
               {/* Checkmark for selection */}
               {selected && (
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-cyan-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                <div className="absolute -top-1 -right-1 w-6 h-6 bg-cyan-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
                   ✓
                 </div>
               )}
               
               {/* Vote indicator */}
               {player.has_voted && (
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-avalon-gold rounded-full flex items-center justify-center text-xs">
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center text-xs text-black font-bold">
                   ✓
                 </div>
               )}
@@ -137,8 +138,8 @@ export function PlayerSeats({
               {/* Name */}
               <span
                 className={`
-                  mt-1 text-xs max-w-[60px] truncate
-                  ${isMe ? 'text-avalon-gold font-bold' : 'text-avalon-silver/80'}
+                  mt-2 text-sm font-medium max-w-[70px] truncate
+                  ${isMe ? 'text-yellow-300 font-bold' : 'text-slate-200'}
                 `}
               >
                 {isMe ? 'You' : player.nickname}

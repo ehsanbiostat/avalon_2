@@ -88,12 +88,6 @@ export function TeamProposal({
             </>
           )}
         </p>
-        
-        {voteTrack > 0 && (
-          <p className="text-sm text-amber-400 mt-1">
-            Proposal #{voteTrack + 1} of 5
-          </p>
-        )}
       </div>
 
       {/* Player Selection Circle */}
