@@ -142,7 +142,7 @@ export function GameBoard({ gameId }: GameBoardProps) {
     );
   }
 
-  const { game, players, current_proposal, quest_requirement, lady_of_lake } = gameState;
+  const { game, players, current_proposal, quest_requirement, lady_of_lake, draft_team, is_draft_in_progress } = gameState;
   const currentPlayer = players.find((p) => p.id === currentPlayerId);
   const isLeader = currentPlayer?.is_leader || false;
   const ladyHolderId = lady_of_lake?.holder_id || game.lady_holder_id || null;
@@ -308,6 +308,8 @@ export function GameBoard({ gameId }: GameBoardProps) {
             isLeader={isLeader}
             onProposalSubmitted={handleAction}
             ladyHolderId={ladyHolderId}
+            draftTeam={draft_team}
+            isDraftInProgress={is_draft_in_progress}
           />
         )}
 

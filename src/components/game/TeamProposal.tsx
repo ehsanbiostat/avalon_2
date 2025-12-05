@@ -3,13 +3,30 @@
 /**
  * TeamProposal Component
  * For leader to select team members
+ * Feature 007: Added real-time draft team broadcasting
  */
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
 import { PlayerSeats } from './PlayerSeats';
 import type { GamePlayer, QuestRequirement } from '@/types/game';
-import { proposeTeam } from '@/lib/api/game';
+import { proposeTeam, updateDraftTeam } from '@/lib/api/game';
+
+// Debounce helper for draft team updates
+function useDebouncedCallback<T extends (...args: any[]) => any>(
+  callback: T,
+  delay: number
+): (...args: Parameters<T>) => void {
+  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+
+  return useCallback((...args: Parameters<T>) => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+    const newTimeoutId = setTimeout(() => callback(...args), delay);
+    setTimeoutId(newTimeoutId);
+  }, [callback, delay, timeoutId]);
+}
 
 interface TeamProposalProps {
   gameId: string;
@@ -20,6 +37,10 @@ interface TeamProposalProps {
   isLeader: boolean;
   onProposalSubmitted: () => void;
   ladyHolderId?: string | null;
+  /** Feature 007: Draft team from game state (visible to all players) */
+  draftTeam?: string[] | null;
+  /** Feature 007: Whether draft is in progress */
+  isDraftInProgress?: boolean;
 }
 
 export function TeamProposal({
@@ -31,25 +52,46 @@ export function TeamProposal({
   isLeader,
   onProposalSubmitted,
   ladyHolderId,
+  draftTeam,
+  isDraftInProgress = false,
 }: TeamProposalProps) {
   const [selectedTeam, setSelectedTeam] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [broadcastError, setBroadcastError] = useState<string | null>(null);
 
   const leader = players.find((p) => p.is_leader);
   const requiredSize = questRequirement.size;
+
+  // Feature 007: Debounced broadcast function (200ms)
+  const broadcastDraftTeam = useDebouncedCallback(
+    async (teamIds: string[]) => {
+      try {
+        await updateDraftTeam(gameId, teamIds);
+        setBroadcastError(null);
+      } catch (err) {
+        console.error('Failed to broadcast draft team:', err);
+        setBroadcastError('Unable to broadcast selection');
+        // Don't block UI - local state still updates
+      }
+    },
+    200
+  );
 
   const handlePlayerClick = (playerId: string) => {
     if (!isLeader) return;
     
     setSelectedTeam((prev) => {
-      if (prev.includes(playerId)) {
-        return prev.filter((id) => id !== playerId);
-      }
-      if (prev.length < requiredSize) {
-        return [...prev, playerId];
-      }
-      return prev;
+      const newTeam = prev.includes(playerId)
+        ? prev.filter((id) => id !== playerId)
+        : prev.length < requiredSize
+        ? [...prev, playerId]
+        : prev;
+      
+      // Feature 007: Broadcast to all players (debounced)
+      broadcastDraftTeam(newTeam);
+      
+      return newTeam;
     });
   };
 
@@ -97,13 +139,26 @@ export function TeamProposal({
         selectable={isLeader}
         maxSelectable={requiredSize}
         ladyHolderId={ladyHolderId}
+        draftTeam={draftTeam}
+        isDraftInProgress={isDraftInProgress}
       />
+
+      {/* Feature 007: Selection count visible to all players */}
+      {isDraftInProgress && (
+        <div className="text-center">
+          <p className={`text-sm font-semibold ${
+            (draftTeam?.length || 0) === requiredSize ? 'text-green-400' : 'text-cyan-400'
+          }`}>
+            Selecting team: {draftTeam?.length || 0} / {requiredSize}
+          </p>
+        </div>
+      )}
 
       {/* Selection Status */}
       {isLeader && (
         <div className="text-center">
           <p className="text-avalon-silver/60 text-sm">
-            {selectedTeam.length} / {requiredSize} selected
+            {selectedTeam.length} / {requiredSize} selected (local)
           </p>
           
           {/* Selected Players Preview */}
@@ -125,6 +180,11 @@ export function TeamProposal({
           
           {error && (
             <p className="text-red-400 text-sm mt-2">{error}</p>
+          )}
+          
+          {/* Feature 007: Broadcast error (doesn't block submission) */}
+          {broadcastError && (
+            <p className="text-orange-400 text-xs mt-1">⚠️ {broadcastError}</p>
           )}
           
           <Button

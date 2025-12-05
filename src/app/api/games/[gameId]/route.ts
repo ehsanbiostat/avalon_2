@@ -270,6 +270,9 @@ export async function GET(request: Request, { params }: RouteParams) {
       };
     }
 
+    // Feature 007: Calculate is_draft_in_progress
+    const isDraftInProgress = game.draft_team !== null && game.draft_team !== undefined && (game.draft_team as string[]).length > 0;
+
     const gameState: GameState = {
       game,
       players,
@@ -287,6 +290,9 @@ export async function GET(request: Request, { params }: RouteParams) {
       assassin_phase: assassinPhase,
       is_assassin: isAssassin,
       lady_of_lake: ladyOfLake,
+      // Feature 007: Draft team selection
+      draft_team: game.draft_team ?? null,  // Backward compatibility: treat undefined as null
+      is_draft_in_progress: isDraftInProgress,
     };
 
     // Include current player's database ID and role for proper identification
