@@ -44,6 +44,7 @@ export interface Game {
   assassin_guess_id: string | null;
   lady_holder_id: string | null;
   lady_enabled: boolean;
+  draft_team: string[] | null;  // Feature 007: Leader's current draft team selection
   created_at: string;
   updated_at: string;
   ended_at: string | null;
@@ -81,6 +82,7 @@ export interface GameUpdate {
   assassin_guess_id?: string | null;
   lady_holder_id?: string | null;
   lady_enabled?: boolean;
+  draft_team?: string[] | null;  // Feature 007: Update draft team selection
   ended_at?: string | null;
 }
 
@@ -209,6 +211,9 @@ export interface GameState {
   is_assassin: boolean;
   // Lady of the Lake phase
   lady_of_lake: LadyOfLakeState | null;
+  // Feature 007: Draft team selection
+  draft_team: string[] | null;
+  is_draft_in_progress: boolean;
 }
 
 /**
@@ -365,6 +370,35 @@ export interface GameHistoryResponse {
   events: GameEvent[];
   proposals: (TeamProposal & { votes: VoteInfo[] })[];
   quest_results: QuestResult[];
+}
+
+// ============================================
+// FEATURE 007: DRAFT TEAM SELECTION
+// ============================================
+
+/**
+ * API Request: Update draft team selection
+ */
+export interface UpdateDraftTeamRequest {
+  team_member_ids: string[];  // Array of player database IDs (0 to quest_size)
+}
+
+/**
+ * API Response: Update draft team selection
+ */
+export interface UpdateDraftTeamResponse {
+  draft_team: string[];
+  quest_number: number;
+  required_size: number;
+  updated_at: string;
+}
+
+/**
+ * Result of validating a draft team selection
+ */
+export interface DraftValidationResult {
+  valid: boolean;
+  error?: string;
 }
 
 // ============================================
