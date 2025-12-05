@@ -117,13 +117,13 @@
 
 ### Implementation for User Story 3
 
-- [ ] T013 [US3] Update `getCenterMessage()` to accept `isOnQuestTeam` parameter
+- [ ] T013 [US3] Update `getCenterMessage()` to accept `isOnQuestTeam` and `lastQuestResult` parameters (lastQuestResult from game state: 'success' | 'failed' | null)
 - [ ] T014 [US3] Implement message logic for `quest` phase:
   - If on quest team: Line 2 = "Submit your quest action"
   - If not on team: Line 2 = "Quest team is deciding..."
 - [ ] T015 [US3] Implement message logic for `quest_result` phase:
   - Line 1: `Quest ${questNumber}`
-  - Line 2: "Quest succeeded!" or "Quest failed!" (based on quest outcome prop)
+  - Line 2: "Quest succeeded!" if lastQuestResult === 'success', "Quest failed!" otherwise
 - [ ] T016 [US3] Implement message logic for `assassin` phase:
   - Line 1: "Assassin Phase"
   - If is assassin: Line 2 = "Select your target"
