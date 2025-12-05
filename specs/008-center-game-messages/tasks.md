@@ -158,10 +158,12 @@
   - Line 2: "Game in progress..."
 - [x] T020 [P] Add defensive checks for missing data (handle `null`/`undefined` for leader, holder, etc.) in all message logic branches
 - [ ] T021 Test on mobile viewport (375px width) using browser dev tools - verify text fits in center circle and is readable
+  - **STATUS**: Requires manual testing after deployment
 - [ ] T022 Update center circle styling if needed:
   - Verify font sizes (Line 1: text-lg, Line 2: text-sm)
   - Verify colors (text-amber-500, text-amber-400)
   - Ensure proper centering (flex flex-col items-center justify-center)
+  - **STATUS**: Requires manual visual verification after deployment
 
 **Checkpoint**: ✅ Feature complete, polished, and production-ready!
 
