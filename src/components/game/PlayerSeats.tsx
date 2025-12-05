@@ -54,7 +54,7 @@ export function PlayerSeats({
   isAssassin = false,
 }: PlayerSeatsProps) {
   const angleStep = (2 * Math.PI) / players.length;
-  const radius = 180; // Distance from center (increased for bigger layout)
+  const radius = 210; // Distance from center - scales well for up to 10 players
 
   /**
    * Feature 008: Get dynamic center message based on game state
@@ -162,8 +162,8 @@ export function PlayerSeats({
   const getPlayerPosition = (index: number) => {
     // Start from top (subtract PI/2 to rotate)
     const angle = angleStep * index - Math.PI / 2;
-    const x = Math.cos(angle) * radius + 220; // Center X (increased)
-    const y = Math.sin(angle) * radius + 220; // Center Y (increased)
+    const x = Math.cos(angle) * radius + 260; // Center X
+    const y = Math.sin(angle) * radius + 260; // Center Y
     return { x, y };
   };
 
@@ -183,11 +183,11 @@ export function PlayerSeats({
   const centerMessage = getCenterMessage();
 
   return (
-    <div className="relative w-[440px] h-[440px] mx-auto">
+    <div className="relative w-[520px] h-[520px] mx-auto">
       {/* Feature 008: Dynamic center messages */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full bg-gradient-to-br from-amber-800 to-amber-950 border-4 border-amber-700 shadow-lg">
-        <div className="flex flex-col items-center justify-center h-full text-center px-2">
-          <span className="text-lg font-bold text-amber-500 leading-tight">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 rounded-full bg-gradient-to-br from-amber-800 to-amber-950 border-4 border-amber-700 shadow-lg">
+        <div className="flex flex-col items-center justify-center h-full text-center px-3">
+          <span className="text-xl font-bold text-amber-500 leading-tight">
             {centerMessage.line1}
           </span>
           <span className="text-sm text-amber-400 leading-tight mt-1">

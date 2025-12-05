@@ -65,19 +65,14 @@ export function QuestExecution({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="text-center">
-        <h2 className="text-xl font-bold text-avalon-gold mb-1">
-          Quest {questNumber} in Progress
-        </h2>
-        <p className="text-avalon-silver/80 text-sm">
-          {questRequirement.fails === 2 ? (
+      {/* Quest Requirement Notice */}
+      {questRequirement.fails === 2 && (
+        <div className="text-center">
+          <p className="text-avalon-silver/80 text-sm">
             <span className="text-amber-400">⚠️ This quest requires 2 fails to fail!</span>
-          ) : (
-            'One fail card will doom this quest'
-          )}
-        </p>
-      </div>
+          </p>
+        </div>
+      )}
 
       {/* Quest Team */}
       <div className="bg-avalon-dark-blue/50 rounded-xl p-4 border border-avalon-silver/20">

@@ -62,16 +62,6 @@ export function VotingPanel({
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="text-center">
-        <h2 className="text-xl font-bold text-avalon-gold mb-1">
-          Vote on Team
-        </h2>
-        <p className="text-avalon-silver/80 text-sm">
-          Quest {proposal.quest_number} • Proposal {proposal.proposal_number}
-        </p>
-      </div>
-
       {/* Proposed Team Display */}
       <div className="bg-avalon-dark-blue/50 rounded-xl p-4 border border-avalon-silver/20">
         <p className="text-sm text-avalon-silver/60 mb-2 text-center">

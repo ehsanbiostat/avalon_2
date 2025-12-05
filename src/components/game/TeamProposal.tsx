@@ -114,22 +114,6 @@ export function TeamProposal({
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="text-center">
-        <h2 className="text-xl font-bold text-avalon-gold mb-1">
-          Quest {questNumber}
-        </h2>
-        <p className="text-avalon-silver/80">
-          {isLeader ? (
-            `Select ${requiredSize} players for the quest`
-          ) : (
-            <>
-              <span className="text-amber-500">{leader?.nickname}</span> is selecting a team
-            </>
-          )}
-        </p>
-      </div>
-
       {/* Player Selection Circle */}
       <PlayerSeats
         players={players}
