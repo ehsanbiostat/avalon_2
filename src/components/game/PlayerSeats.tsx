@@ -31,13 +31,13 @@ export function PlayerSeats({
   disabledPlayerIds = [],
 }: PlayerSeatsProps) {
   const angleStep = (2 * Math.PI) / players.length;
-  const radius = 140; // Distance from center (increased)
+  const radius = 180; // Distance from center (increased for bigger layout)
 
   const getPlayerPosition = (index: number) => {
     // Start from top (subtract PI/2 to rotate)
     const angle = angleStep * index - Math.PI / 2;
-    const x = Math.cos(angle) * radius + 170; // Center X (increased)
-    const y = Math.sin(angle) * radius + 170; // Center Y (increased)
+    const x = Math.cos(angle) * radius + 220; // Center X (increased)
+    const y = Math.sin(angle) * radius + 220; // Center Y (increased)
     return { x, y };
   };
 
@@ -46,10 +46,10 @@ export function PlayerSeats({
   const isDisabled = (playerId: string) => disabledPlayerIds.includes(playerId);
 
   return (
-    <div className="relative w-[340px] h-[340px] mx-auto">
+    <div className="relative w-[440px] h-[440px] mx-auto">
       {/* Center table */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 rounded-full bg-gradient-to-br from-amber-800 to-amber-950 border-4 border-amber-700 shadow-lg flex items-center justify-center">
-        <span className="text-amber-500 text-xs font-bold">ROUND TABLE</span>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full bg-gradient-to-br from-amber-800 to-amber-950 border-4 border-amber-700 shadow-lg flex items-center justify-center">
+        <span className="text-amber-500 text-sm font-bold">ROUND TABLE</span>
       </div>
 
       {/* Players */}
@@ -82,29 +82,29 @@ export function PlayerSeats({
               {/* Avatar */}
               <div
                 className={`
-                  w-14 h-14 rounded-full flex items-center justify-center text-base font-bold
+                  w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold
                   border-3 transition-all duration-300
                   ${isMe ? 'border-yellow-400 bg-yellow-900 text-yellow-200' : 'border-slate-400 bg-slate-700 text-slate-200'}
-                  ${player.is_leader ? 'ring-3 ring-amber-400 ring-offset-2 ring-offset-slate-900' : ''}
+                  ${player.is_leader ? 'ring-4 ring-amber-400 ring-offset-2 ring-offset-avalon-midnight' : ''}
                   ${player.is_on_team ? 'border-green-400 bg-green-800 text-green-200' : ''}
                   ${selected ? 'border-cyan-300 bg-cyan-700 text-cyan-100 shadow-lg shadow-cyan-400/50' : ''}
                   ${isDisconnected ? 'opacity-50 grayscale' : ''}
                 `}
-                style={{ borderWidth: '3px' }}
+                style={{ borderWidth: '4px' }}
               >
                 {player.nickname.charAt(0).toUpperCase()}
               </div>
 
               {/* Crown for leader */}
               {player.is_leader && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-lg">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-2xl">
                   👑
                 </div>
               )}
 
               {/* Lady of the Lake token */}
               {hasLady && (
-                <div className="absolute -bottom-1 -left-2 text-xl" title="Lady of the Lake">
+                <div className="absolute -bottom-2 -left-3 text-2xl" title="Lady of the Lake">
                   🌊
                 </div>
               )}
@@ -112,10 +112,10 @@ export function PlayerSeats({
               {/* T042, T043: Disconnect indicator */}
               {isDisconnected && (
                 <div
-                  className="absolute -top-2 -left-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center"
+                  className="absolute -top-2 -left-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center"
                   title="Disconnected"
                 >
-                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </div>
@@ -123,30 +123,30 @@ export function PlayerSeats({
 
               {/* Shield for team member */}
               {player.is_on_team && !selected && (
-                <div className="absolute -top-1 -right-1 text-lg">
+                <div className="absolute -top-2 -right-2 text-xl">
                   🛡️
                 </div>
               )}
 
               {/* Checkmark for selection */}
               {selected && (
-                <div className="absolute -top-1 -right-1 w-6 h-6 bg-cyan-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                <div className="absolute -top-2 -right-2 w-7 h-7 bg-cyan-500 rounded-full flex items-center justify-center text-white text-base font-bold">
                   ✓
                 </div>
               )}
 
               {/* Vote indicator */}
               {player.has_voted && (
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center text-xs text-black font-bold">
+                <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-sm text-black font-bold">
                   ✓
                 </div>
               )}
 
-              {/* Name */}
+              {/* Name - Show full name, no truncation */}
               <span
                 className={`
-                  mt-2 text-sm font-medium max-w-[70px] truncate
-                  ${isMe ? 'text-yellow-300 font-bold' : 'text-slate-200'}
+                  mt-3 text-base font-semibold whitespace-nowrap
+                  ${isMe ? 'text-yellow-300 font-bold' : 'text-slate-100'}
                   ${isDisconnected ? 'text-red-400' : ''}
                 `}
               >

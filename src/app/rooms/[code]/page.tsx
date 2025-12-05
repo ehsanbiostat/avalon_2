@@ -205,7 +205,7 @@ export default function RoomPage() {
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-12 h-12 border-4 border-avalon-gold/30 border-t-avalon-gold rounded-full animate-spin mx-auto" />
-          <p className="text-avalon-silver">Entering the chamber...</p>
+          <p className="text-avalon-text-secondary">Entering the chamber...</p>
         </div>
       </div>
     );
@@ -218,7 +218,7 @@ export default function RoomPage() {
         <div className="card max-w-md w-full text-center space-y-4">
           <div className="text-4xl">⚠️</div>
           <h2 className="font-display text-xl text-avalon-gold">Room Not Found</h2>
-          <p className="text-avalon-silver">{error}</p>
+          <p className="text-avalon-text-secondary">{error}</p>
           <button
             onClick={() => router.push('/')}
             className="text-avalon-gold hover:underline"
@@ -237,7 +237,7 @@ export default function RoomPage() {
         <div className="card max-w-md w-full text-center space-y-4">
           <div className="text-4xl">🔍</div>
           <h2 className="font-display text-xl text-avalon-gold">Room Not Found</h2>
-          <p className="text-avalon-silver">
+          <p className="text-avalon-text-secondary">
             This room doesn&apos;t exist or you&apos;re not a member.
           </p>
           <button
@@ -296,7 +296,7 @@ export default function RoomPage() {
           <div className="mt-4">
             <button
               onClick={() => setShowRoleModal(true)}
-              className="w-full text-center text-avalon-silver hover:text-avalon-gold transition-colors text-sm"
+              className="w-full text-center text-avalon-text-secondary hover:text-avalon-gold transition-colors text-sm"
             >
               View my role →
             </button>

@@ -226,49 +226,48 @@ export function GameBoard({ gameId }: GameBoardProps) {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      {/* Room Code Header */}
+      {/* Compact Room Code Header */}
       {roomCode && (
-        <div className="flex items-center justify-between bg-avalon-dark-blue/20 rounded-lg px-4 py-2 border border-avalon-silver/10">
+        <div className="flex items-center justify-between bg-avalon-navy/50 rounded-md px-3 py-1.5 border border-avalon-dark-border">
           <button
             onClick={() => router.push('/')}
-            className="text-avalon-silver hover:text-avalon-gold transition-colors text-sm flex items-center gap-1"
+            className="text-avalon-text-muted hover:text-avalon-gold transition-colors text-xs flex items-center gap-1"
           >
             ← Home
           </button>
           <button
             onClick={handleCopyRoomCode}
-            className="flex items-center gap-2 group"
+            className="flex items-center gap-1.5 group"
           >
-            <span className="text-avalon-silver/60 text-xs uppercase tracking-wider">Room</span>
-            <span className="font-mono font-bold text-avalon-gold tracking-wider">
+            <span className="text-avalon-text-muted text-xs">Room</span>
+            <span className="font-mono font-bold text-avalon-gold text-sm tracking-wider">
               {roomCode}
             </span>
-            <span className={`text-xs transition-all ${copied ? 'text-good' : 'text-avalon-silver/40 group-hover:text-avalon-gold'}`}>
+            <span className={`text-xs transition-all ${copied ? 'text-good' : 'text-avalon-text-muted group-hover:text-avalon-gold'}`}>
               {copied ? '✓' : '📋'}
             </span>
           </button>
         </div>
       )}
 
-      {/* Phase Header */}
+      {/* Compact Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-avalon-gold">
+        <div className="flex-1">
+          <h1 className="text-lg font-bold text-avalon-gold">
             {getPhaseName(game.phase)}
           </h1>
-          <p className="text-sm text-avalon-silver/70">
+          <p className="text-xs text-avalon-text-muted">
             {getPhaseDescription(game.phase)}
           </p>
         </div>
 
-        {/* View Role Button */}
-        <Button
-          variant="secondary"
-          size="sm"
+        {/* Compact View Role Button */}
+        <button
           onClick={() => setShowRoleModal(true)}
+          className="px-3 py-1.5 text-xs rounded-md border border-avalon-dark-border text-avalon-text-secondary hover:bg-avalon-dark-lighter transition-colors"
         >
-          View My Role
-        </Button>
+          👁️ Role
+        </button>
       </div>
 
       {/* Quest Tracker */}

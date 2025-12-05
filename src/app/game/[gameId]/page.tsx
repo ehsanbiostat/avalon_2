@@ -32,7 +32,7 @@ export default function GamePage() {
 
   // GameBoard handles all loading states internally
   return (
-    <main className="min-h-screen bg-avalon-navy py-8 px-4">
+    <main className="min-h-screen bg-avalon-midnight py-6 px-4">
       <GameBoard gameId={gameId} />
     </main>
   );
