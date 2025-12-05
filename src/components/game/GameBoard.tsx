@@ -6,6 +6,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useGameState } from '@/hooks/useGameState';
 import { QuestTracker } from './QuestTracker';
 import { TeamProposal } from './TeamProposal';
@@ -28,8 +29,21 @@ interface GameBoardProps {
 }
 
 export function GameBoard({ gameId }: GameBoardProps) {
-  const { gameState, currentPlayerId, playerRole, specialRole, loading, error, sessionTakenOver, refetch } = useGameState(gameId);
+  const router = useRouter();
+  const { gameState, currentPlayerId, playerRole, specialRole, roomCode, loading, error, sessionTakenOver, refetch } = useGameState(gameId);
   const [showRoleModal, setShowRoleModal] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyRoomCode = async () => {
+    if (!roomCode) return;
+    try {
+      await navigator.clipboard.writeText(roomCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
   const [showVoteReveal, setShowVoteReveal] = useState(false);
   const [investigationResult, setInvestigationResult] = useState<{
     targetNickname: string;
@@ -212,7 +226,31 @@ export function GameBoard({ gameId }: GameBoardProps) {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      {/* Header */}
+      {/* Room Code Header */}
+      {roomCode && (
+        <div className="flex items-center justify-between bg-avalon-dark-blue/20 rounded-lg px-4 py-2 border border-avalon-silver/10">
+          <button
+            onClick={() => router.push('/')}
+            className="text-avalon-silver hover:text-avalon-gold transition-colors text-sm flex items-center gap-1"
+          >
+            ← Home
+          </button>
+          <button
+            onClick={handleCopyRoomCode}
+            className="flex items-center gap-2 group"
+          >
+            <span className="text-avalon-silver/60 text-xs uppercase tracking-wider">Room</span>
+            <span className="font-mono font-bold text-avalon-gold tracking-wider">
+              {roomCode}
+            </span>
+            <span className={`text-xs transition-all ${copied ? 'text-good' : 'text-avalon-silver/40 group-hover:text-avalon-gold'}`}>
+              {copied ? '✓' : '📋'}
+            </span>
+          </button>
+        </div>
+      )}
+
+      {/* Phase Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-avalon-gold">

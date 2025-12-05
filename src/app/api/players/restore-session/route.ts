@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
         .from('games')
         .select('id')
         .eq('room_id', room.id)
-        .in('status', ['in_progress', 'team_building', 'voting', 'quest', 'quest_result', 'lady_of_lake', 'assassin'])
+        .not('phase', 'eq', 'game_over')  // Any phase except game_over is active
         .order('created_at', { ascending: false })
         .limit(1)
         .single();

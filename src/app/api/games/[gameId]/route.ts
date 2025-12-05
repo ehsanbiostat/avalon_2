@@ -53,6 +53,14 @@ export async function GET(request: Request, { params }: RouteParams) {
       );
     }
 
+    // Get room code for display
+    const { data: room } = await supabase
+      .from('rooms')
+      .select('code')
+      .eq('id', game.room_id)
+      .single();
+    const roomCode = room?.code || null;
+
     // Verify player is in this game
     if (!game.seating_order.includes(player.id)) {
       return NextResponse.json(
@@ -287,6 +295,7 @@ export async function GET(request: Request, { params }: RouteParams) {
       current_player_id: player.id,
       player_role: playerRole,
       special_role: specialRole,
+      room_code: roomCode,
     });
   } catch (error) {
     return handleError(error);
