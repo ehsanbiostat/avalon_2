@@ -9,24 +9,46 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Avalon theme colors - medieval fantasy aesthetic
+        // Avalon theme - Dark theme, colorblind-friendly
+        // Uses blue/orange primary contrast (works for deuteranopia/protanopia)
         avalon: {
-          gold: "#D4AF37",
-          crimson: "#8B0000",
-          navy: "#1A1A2E",
-          midnight: "#0F0F1A",
-          silver: "#C0C0C0",
-          parchment: "#F5F0E1",
+          // Primary accent - warm gold/amber
+          gold: "#F59E0B",        // Amber-500 - high visibility
+          "gold-light": "#FBBF24", // Amber-400
+          "gold-dark": "#D97706",  // Amber-600
+          
+          // Background colors - consistent dark theme
+          midnight: "#0f172a",     // Slate-900 - darkest background
+          navy: "#1e293b",         // Slate-800 - card backgrounds
+          "dark-lighter": "#334155", // Slate-700 - elevated surfaces
+          "dark-border": "#475569", // Slate-600 - borders
+          
+          // Text colors - high contrast
+          text: "#f8fafc",         // Slate-50 - primary text
+          "text-secondary": "#e2e8f0", // Slate-200 - secondary text
+          "text-muted": "#94a3b8",  // Slate-400 - muted text
+          
+          // Accent colors (colorblind-friendly)
+          accent: "#3b82f6",       // Blue-500 - primary action
+          "accent-hover": "#2563eb", // Blue-600 - hover state
+          
+          // Legacy support - map old names
+          crimson: "#ef4444",      // Red-500
+          silver: "#94a3b8",       // Slate-400
+          parchment: "#f8fafc",    // Slate-50 (now light text on dark)
         },
+        // Colorblind-friendly team colors
+        // Blue for Good (visible to all types of colorblindness)
+        // Orange for Evil (distinct from blue for all types)
         good: {
-          DEFAULT: "#3B82F6",
-          light: "#60A5FA",
-          dark: "#1D4ED8",
+          DEFAULT: "#0ea5e9",      // Sky-500 - cyan-blue
+          light: "#38bdf8",        // Sky-400
+          dark: "#0284c7",         // Sky-600
         },
         evil: {
-          DEFAULT: "#DC2626",
-          light: "#F87171",
-          dark: "#991B1B",
+          DEFAULT: "#f97316",      // Orange-500 - distinct from blue
+          light: "#fb923c",        // Orange-400
+          dark: "#ea580c",         // Orange-600
         },
       },
       fontFamily: {

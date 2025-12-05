@@ -83,19 +83,19 @@ export function FindMyGame() {
     switch (status) {
       case 'waiting':
         return (
-          <span className="px-2 py-1 text-xs rounded bg-yellow-500/20 text-yellow-400">
+          <span className="px-2 py-1 text-xs rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
             Waiting for players
           </span>
         );
       case 'roles_distributed':
         return (
-          <span className="px-2 py-1 text-xs rounded bg-blue-500/20 text-blue-400">
+          <span className="px-2 py-1 text-xs rounded bg-sky-500/20 text-sky-400 border border-sky-500/30">
             Roles assigned
           </span>
         );
       case 'started':
         return (
-          <span className="px-2 py-1 text-xs rounded bg-green-500/20 text-green-400">
+          <span className="px-2 py-1 text-xs rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
             Game in progress
           </span>
         );

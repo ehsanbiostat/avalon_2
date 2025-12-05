@@ -170,10 +170,10 @@ export function RoleRevealModal({
 
         {/* T046: Lady of the Lake Indicator */}
         {hasLadyOfLake && (
-          <div className="p-4 bg-purple-500/10 rounded-lg border border-purple-500/30 text-center">
-            <span className="text-2xl mb-2 block">👑</span>
-            <p className="text-purple-300 font-medium">You hold the Lady of the Lake</p>
-            <p className="text-purple-300/70 text-xs mt-1">
+          <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/30 text-center">
+            <span className="text-2xl mb-2 block">🌊</span>
+            <p className="text-blue-300 font-medium">You hold the Lady of the Lake</p>
+            <p className="text-blue-300/70 text-xs mt-1">
               Use this token to investigate loyalties in future rounds
             </p>
           </div>

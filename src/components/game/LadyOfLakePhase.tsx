@@ -123,7 +123,7 @@ export function LadyOfLakePhase({
                     }`}
                   >
                     <div className="text-2xl mb-1">
-                      {isSelf ? '👑' : isPreviousHolder ? '🌊' : isInvestigated ? '👁️' : isSelected ? '🎯' : '👤'}
+                      {isSelf ? '🌊' : isPreviousHolder ? '🚫' : isInvestigated ? '👁️' : isSelected ? '🎯' : '👤'}
                     </div>
                     <div className="font-medium text-sm truncate">
                       {player.nickname}
