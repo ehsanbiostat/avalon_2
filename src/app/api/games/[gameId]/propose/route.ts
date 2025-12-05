@@ -6,7 +6,7 @@
 import { NextResponse } from 'next/server';
 import { createServerClient, getPlayerIdFromRequest } from '@/lib/supabase/server';
 import { findPlayerByPlayerId } from '@/lib/supabase/players';
-import { getGameById, updateGamePhase } from '@/lib/supabase/games';
+import { getGameById, updateGamePhase, clearDraftTeam } from '@/lib/supabase/games';
 import { createProposal, countProposalsForQuest } from '@/lib/supabase/proposals';
 import { logTeamProposed } from '@/lib/supabase/game-events';
 import { getQuestRequirement } from '@/lib/domain/quest-config';
@@ -114,6 +114,9 @@ export async function POST(request: Request, { params }: RouteParams) {
       leader_id: player.id,
       team_member_ids,
     });
+
+    // Feature 007: Clear draft team when proposal is submitted
+    await clearDraftTeam(supabase, gameId);
 
     // Update game phase to voting
     await updateGamePhase(supabase, gameId, 'voting');

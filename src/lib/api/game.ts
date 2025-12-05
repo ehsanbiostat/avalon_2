@@ -13,6 +13,8 @@ import type {
   ContinueGameResponse,
   VoteChoice,
   QuestActionType,
+  UpdateDraftTeamRequest,
+  UpdateDraftTeamResponse,
 } from '@/types/game';
 
 /**
@@ -149,5 +151,60 @@ export async function getGameForRoom(
 
   const { data } = await response.json();
   return data;
+}
+
+// ============================================
+// FEATURE 007: DRAFT TEAM SELECTION
+// ============================================
+
+/**
+ * Update the leader's draft team selection
+ * Feature 007: Real-Time Team Selection Visibility
+ * 
+ * @param gameId - Game identifier
+ * @param teamMemberIds - Array of player database IDs (0 to quest_size)
+ * @returns Promise<UpdateDraftTeamResponse>
+ * @throws Error if not leader, invalid phase, or validation fails
+ */
+export async function updateDraftTeam(
+  gameId: string,
+  teamMemberIds: string[]
+): Promise<UpdateDraftTeamResponse> {
+  const playerId = getPlayerId();
+  const headers = {
+    'X-Player-ID': playerId,
+    'Content-Type': 'application/json',
+  };
+
+  const body: UpdateDraftTeamRequest = {
+    team_member_ids: teamMemberIds,
+  };
+
+  const response = await fetch(`/api/games/${gameId}/draft-team`, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const data = await response.json();
+    const errorCode = data.error?.code;
+    const errorMessage = data.error?.message;
+
+    // Feature 007: Handle new error codes
+    if (errorCode === 'NOT_LEADER') {
+      throw new Error('Only the current leader can update team selection');
+    }
+    if (errorCode === 'INVALID_PHASE') {
+      throw new Error('Cannot update draft team in current phase');
+    }
+    if (errorCode === 'INVALID_TEAM_SIZE' || errorCode === 'INVALID_PLAYER_ID') {
+      throw new Error(errorMessage || 'Invalid team selection');
+    }
+
+    throw new Error(errorMessage || 'Failed to update draft team');
+  }
+
+  return response.json();
 }
 

@@ -225,3 +225,42 @@ export async function updateLadyHolder(
   });
 }
 
+// ============================================
+// FEATURE 007: DRAFT TEAM SELECTION
+// ============================================
+
+/**
+ * Update the leader's draft team selection
+ * 
+ * @param client - Supabase client
+ * @param gameId - Game identifier
+ * @param playerIds - Array of player database IDs (0 to quest_size)
+ * @returns Updated game record
+ */
+export async function updateDraftTeam(
+  client: SupabaseClient,
+  gameId: string,
+  playerIds: string[]
+): Promise<Game> {
+  return updateGame(client, gameId, {
+    draft_team: playerIds,
+  });
+}
+
+/**
+ * Clear the draft team selection
+ * Called when proposal is submitted or quest advances
+ * 
+ * @param client - Supabase client
+ * @param gameId - Game identifier
+ * @returns Updated game record
+ */
+export async function clearDraftTeam(
+  client: SupabaseClient,
+  gameId: string
+): Promise<Game> {
+  return updateGame(client, gameId, {
+    draft_team: null,
+  });
+}
+
