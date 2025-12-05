@@ -52,7 +52,10 @@ export function PlayerSeats({
   const isDisabled = (playerId: string) => disabledPlayerIds.includes(playerId);
   
   // Feature 007: Draft team selection state
+  // For leader (selectable=true): use local selectedTeam (handled by isSelected)
+  // For other players: show draft_team from server
   const isDraftSelected = (playerId: string) => {
+    if (selectable) return false; // Leader uses selectedTeam for instant feedback
     return isDraftInProgress && draftTeam && draftTeam.includes(playerId);
   };
 
