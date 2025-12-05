@@ -5,6 +5,8 @@ Auto-generated from all feature plans. Last updated: 2025-12-02
 ## Active Technologies
 - TypeScript 5.x, Node.js (via Next.js 14.2.21) + Next.js (App Router), React 18, Supabase JS Client, Tailwind CSS (007-realtime-team-selection)
 - Supabase Postgres (games table will store draft_team field) (007-realtime-team-selection)
+- TypeScript 5.x with Next.js 14 (App Router) + React 18, Tailwind CSS 3.x, Next.js 14.2+ (008-center-game-messages)
+- N/A (no database changes - uses existing game state) (008-center-game-messages)
 
 - TypeScript 5.x, Node.js 20.x + Next.js 14+ (App Router), React 18+, Supabase JS Client v2, Tailwind CSS 3.x (001-avalon-mvp-lobby)
 
@@ -24,6 +26,7 @@ npm test && npm run lint
 TypeScript 5.x, Node.js 20.x: Follow standard conventions
 
 ## Recent Changes
+- 008-center-game-messages: Added TypeScript 5.x with Next.js 14 (App Router) + React 18, Tailwind CSS 3.x, Next.js 14.2+
 - 007-realtime-team-selection: Added TypeScript 5.x, Node.js (via Next.js 14.2.21) + Next.js (App Router), React 18, Supabase JS Client, Tailwind CSS
 
 - 001-avalon-mvp-lobby: Added TypeScript 5.x, Node.js 20.x + Next.js 14+ (App Router), React 18+, Supabase JS Client v2, Tailwind CSS 3.x
