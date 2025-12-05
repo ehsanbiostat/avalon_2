@@ -37,14 +37,14 @@ This project uses Next.js full-stack architecture:
 
 | Story | Priority | Goal | Tasks |
 |-------|----------|------|-------|
-| **Foundational** | - | Database, types, domain logic | 7 tasks |
-| **US1** | P1 🎯 | Real-time visibility for all players | 7 tasks |
+| **Foundational** | - | Database, types, domain logic | 10 tasks |
+| **US1** | P1 🎯 | Real-time visibility for all players | 10 tasks |
 | **US2** | P1 🎯 | Visual distinction for selection states | 4 tasks |
 | **US3** | P2 | Leader feedback (optimistic UI) | 3 tasks |
-| **US4** | P2 | Performance and responsiveness | 5 tasks |
+| **US4** | P2 | Performance and responsiveness | 7 tasks |
 | **Polish** | - | Edge cases, documentation | 3 tasks |
 
-**Total**: 29 tasks
+**Total**: 37 tasks
 
 ---
 
@@ -206,7 +206,22 @@ This project uses Next.js full-stack architecture:
 
 ### Documentation & Validation
 
-- [ ] T037 Run quickstart.md testing scenarios to validate all 8 test cases pass
+- [ ] T037 Run quickstart.md testing scenarios to validate all 8 test cases pass (includes cross-browser testing: Chrome, Safari, Firefox)
+
+### Edge Case Coverage Notes
+
+All edge cases from spec.md are addressed:
+- **Disconnect during selection**: T035 (explicit task)
+- **Race conditions (rapid toggles)**: T025 (debouncing at 200ms)
+- **Session takeover during selection**: T001 (DB persistence maintains state)
+- **Selected player disconnects**: T035 (both statuses shown)
+- **Network latency delays**: T025-T027 (optimistic UI provides instant feedback)
+- **Leader refresh mid-selection**: T001 (draft_team persists in database)
+
+**Cross-Browser Compatibility** (FR-012):
+- CSS animations (`animate-pulse`) use standard Tailwind classes with broad browser support
+- Touch targets maintained for mobile (constitution requirement)
+- Manual testing in T037 includes Chrome, Safari, Firefox validation per quickstart.md
 
 **Checkpoint**: Feature complete. All user stories independently functional. Ready for deployment.
 
