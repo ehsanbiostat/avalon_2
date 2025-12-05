@@ -160,7 +160,7 @@ export default function RoomsPage() {
   // Loading state
   if (playerLoading || isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center bg-avalon-midnight min-h-screen">
         <div className="text-center space-y-4">
           <div className="w-12 h-12 border-4 border-avalon-gold/30 border-t-avalon-gold rounded-full animate-spin mx-auto" />
           <p className="text-avalon-text-secondary">Searching for active rooms...</p>
@@ -170,7 +170,7 @@ export default function RoomsPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-start p-6 md:p-8">
+    <div className="flex-1 flex flex-col items-center justify-start p-6 md:p-8 bg-avalon-midnight">
       <div className="w-full max-w-lg space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex items-center justify-between">

@@ -202,7 +202,7 @@ export default function RoomPage() {
   // Loading state
   if (playerLoading || roomLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center bg-avalon-midnight min-h-screen">
         <div className="text-center space-y-4">
           <div className="w-12 h-12 border-4 border-avalon-gold/30 border-t-avalon-gold rounded-full animate-spin mx-auto" />
           <p className="text-avalon-text-secondary">Entering the chamber...</p>
@@ -214,7 +214,7 @@ export default function RoomPage() {
   // Error state
   if (error) {
     return (
-      <div className="flex-1 flex items-center justify-center p-6">
+      <div className="flex-1 flex items-center justify-center p-6 bg-avalon-midnight min-h-screen">
         <div className="card max-w-md w-full text-center space-y-4">
           <div className="text-4xl">⚠️</div>
           <h2 className="font-display text-xl text-avalon-gold">Room Not Found</h2>
@@ -233,7 +233,7 @@ export default function RoomPage() {
   // No room data
   if (!room) {
     return (
-      <div className="flex-1 flex items-center justify-center p-6">
+      <div className="flex-1 flex items-center justify-center p-6 bg-avalon-midnight min-h-screen">
         <div className="card max-w-md w-full text-center space-y-4">
           <div className="text-4xl">🔍</div>
           <h2 className="font-display text-xl text-avalon-gold">Room Not Found</h2>
@@ -252,7 +252,7 @@ export default function RoomPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-start p-6 md:p-8">
+    <div className="flex-1 flex flex-col items-center justify-start p-6 md:p-8 bg-avalon-midnight min-h-screen">
       <div className="w-full max-w-lg animate-fade-in">
         {/* Error Display */}
         {roleError && (

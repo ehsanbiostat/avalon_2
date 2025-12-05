@@ -150,7 +150,7 @@ export default function Home() {
   // Show loading state during initial player initialization
   if (playerLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center bg-avalon-midnight min-h-screen">
         <div className="text-center space-y-4">
           <div className="w-12 h-12 border-4 border-avalon-gold/30 border-t-avalon-gold rounded-full animate-spin mx-auto" />
           <p className="text-avalon-text-secondary">Preparing the Round Table...</p>
@@ -160,7 +160,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-8">
+    <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-8 bg-avalon-midnight min-h-screen">
       <div className="w-full max-w-md space-y-8 animate-fade-in">
         {/* Logo / Title */}
         <div className="text-center space-y-3">

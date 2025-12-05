@@ -13,9 +13,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-gradient-avalon bg-pattern-medieval">
-        <main className="min-h-screen flex flex-col">
+    <html lang="en" className="bg-avalon-midnight">
+      <body className="min-h-screen bg-avalon-midnight text-avalon-text antialiased">
+        <main className="min-h-screen flex flex-col bg-avalon-midnight">
           {children}
         </main>
       </body>
