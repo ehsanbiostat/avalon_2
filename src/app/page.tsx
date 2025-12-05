@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { CreateRoomModal } from '@/components/CreateRoomModal';
 import { FindMyGame } from '@/components/FindMyGame';
+import { ReturningPlayerPanel } from '@/components/ReturningPlayerPanel';
 import { usePlayer } from '@/hooks/usePlayer';
 import { validateNickname, validateRoomCode } from '@/lib/domain/validation';
 import type { RoleConfig } from '@/types/role-config';
@@ -18,6 +19,7 @@ export default function Home() {
   const [nicknameInput, setNicknameInput] = useState('');
   const [roomCodeInput, setRoomCodeInput] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [showReturningPlayer, setShowReturningPlayer] = useState(false);
 
   // Loading states
   const [isRegistering, setIsRegistering] = useState(false);
@@ -180,38 +182,53 @@ export default function Home() {
         {/* Main Card */}
         <div className="card animate-slide-up">
           {!isRegistered ? (
-            /* Step 1: Enter Nickname */
-            <div className="space-y-6">
-              <div className="text-center space-y-2">
-                <h2 className="text-xl font-display text-avalon-gold">
-                  Welcome, Knight
-                </h2>
-                <p className="text-avalon-parchment/70 text-sm">
-                  Enter your name to join the Round Table
-                </p>
+            showReturningPlayer ? (
+              /* Returning Player Flow - Session Restore */
+              <ReturningPlayerPanel onBack={() => setShowReturningPlayer(false)} />
+            ) : (
+              /* Step 1: Enter Nickname */
+              <div className="space-y-6">
+                <div className="text-center space-y-2">
+                  <h2 className="text-xl font-display text-avalon-gold">
+                    Welcome, Knight
+                  </h2>
+                  <p className="text-avalon-parchment/70 text-sm">
+                    Enter your name to join the Round Table
+                  </p>
+                </div>
+
+                <form onSubmit={handleRegister} className="space-y-4">
+                  <Input
+                    label="Your Nickname"
+                    placeholder="Enter 3-20 characters"
+                    value={nicknameInput}
+                    onChange={(e) => setNicknameInput(e.target.value)}
+                    error={nicknameError || undefined}
+                    maxLength={20}
+                    disabled={isRegistering}
+                  />
+
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    fullWidth
+                    isLoading={isRegistering}
+                  >
+                    Continue
+                  </Button>
+                </form>
+
+                {/* Returning Player Option */}
+                <div className="pt-4 border-t border-avalon-silver/10">
+                  <button
+                    onClick={() => setShowReturningPlayer(true)}
+                    className="w-full text-center text-avalon-silver hover:text-avalon-gold transition-colors text-sm"
+                  >
+                    Already in a game? <span className="underline">Restore session</span> →
+                  </button>
+                </div>
               </div>
-
-              <form onSubmit={handleRegister} className="space-y-4">
-                <Input
-                  label="Your Nickname"
-                  placeholder="Enter 3-20 characters"
-                  value={nicknameInput}
-                  onChange={(e) => setNicknameInput(e.target.value)}
-                  error={nicknameError || undefined}
-                  maxLength={20}
-                  disabled={isRegistering}
-                />
-
-                <Button
-                  type="submit"
-                  variant="primary"
-                  fullWidth
-                  isLoading={isRegistering}
-                >
-                  Continue
-                </Button>
-              </form>
-            </div>
+            )
           ) : (
             /* Step 2: Create or Join Room */
             <div className="space-y-6">

@@ -183,3 +183,32 @@ export interface RegisterPlayerPayload {
   player_id: string;
   nickname: string;
 }
+
+// ============================================
+// SESSION RESTORE (for returning players on new devices)
+// ============================================
+
+/** POST /api/players/restore-session - Request */
+export interface RestoreSessionRequest {
+  nickname: string;
+  room_code: string;
+}
+
+/** POST /api/players/restore-session - Success Response */
+export interface RestoreSessionSuccessResponse {
+  success: true;
+  player_id: string;  // The localStorage UUID to save
+  nickname: string;
+  room_code: string;
+  room_id: string;
+  game_id?: string;
+  is_manager: boolean;
+}
+
+/** POST /api/players/restore-session - Error Response */
+export interface RestoreSessionErrorResponse {
+  success: false;
+  error: 'INVALID_INPUT' | 'PLAYER_NOT_FOUND' | 'PLAYER_ACTIVE' | 'GRACE_PERIOD' | 'SERVER_ERROR';
+  message: string;
+  grace_period_remaining?: number;
+}

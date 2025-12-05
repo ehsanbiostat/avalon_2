@@ -94,6 +94,18 @@ export function getPlayerIdentity() {
 }
 
 /**
+ * Set player identity (used when restoring a session from another device)
+ * This replaces the current localStorage identity with a previous one
+ */
+export function setPlayerIdentity(playerId: string, nickname: string): void {
+  if (typeof window === 'undefined') {
+    throw new Error('setPlayerIdentity() can only be called on the client');
+  }
+  localStorage.setItem(PLAYER_ID_KEY, playerId);
+  localStorage.setItem(PLAYER_NICKNAME_KEY, nickname);
+}
+
+/**
  * Validate a UUID format
  */
 export function isValidUUID(uuid: string): boolean {
