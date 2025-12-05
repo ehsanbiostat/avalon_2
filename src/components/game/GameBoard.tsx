@@ -17,6 +17,7 @@ import { LadyOfLakePhase } from './LadyOfLakePhase';
 import { InvestigationResult } from './InvestigationResult';
 import { AssassinPhase } from './AssassinPhase';
 import { GameOver } from './GameOver';
+import { SessionTakeoverAlert } from '@/components/SessionTakeoverAlert';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { getPhaseName, getPhaseDescription } from '@/lib/domain/game-state-machine';
@@ -27,7 +28,7 @@ interface GameBoardProps {
 }
 
 export function GameBoard({ gameId }: GameBoardProps) {
-  const { gameState, currentPlayerId, playerRole, specialRole, loading, error, refetch } = useGameState(gameId);
+  const { gameState, currentPlayerId, playerRole, specialRole, loading, error, sessionTakenOver, refetch } = useGameState(gameId);
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [showVoteReveal, setShowVoteReveal] = useState(false);
   const [investigationResult, setInvestigationResult] = useState<{
@@ -84,13 +85,13 @@ export function GameBoard({ gameId }: GameBoardProps) {
 
   const handleInvestigationComplete = useCallback((result: 'good' | 'evil', newHolderNickname: string) => {
     // Find the target player nickname
-    const targetId = gameState?.players.find(p => 
-      gameState.lady_of_lake?.investigated_player_ids.includes(p.id) === false && 
+    const targetId = gameState?.players.find(p =>
+      gameState.lady_of_lake?.investigated_player_ids.includes(p.id) === false &&
       p.id !== gameState.lady_of_lake?.holder_id
     );
     // For now, we'll get it from the last investigation
     const targetNickname = gameState?.lady_of_lake?.last_investigation?.target_nickname || 'Unknown';
-    
+
     setInvestigationResult({
       targetNickname: newHolderNickname, // The new holder IS the target
       result,
@@ -147,7 +148,7 @@ export function GameBoard({ gameId }: GameBoardProps) {
       </div>
     );
   }
-  
+
   // Assassin Phase
   if (game.phase === 'assassin' && gameState.assassin_phase) {
     return (
@@ -159,7 +160,7 @@ export function GameBoard({ gameId }: GameBoardProps) {
           questResults={game.quest_results}
           voteTrack={game.vote_track}
         />
-        
+
         {/* Assassin Phase UI */}
         <AssassinPhase
           gameId={gameId}
@@ -185,7 +186,7 @@ export function GameBoard({ gameId }: GameBoardProps) {
             questResults={game.quest_results}
             voteTrack={game.vote_track}
           />
-          
+
           {/* Lady of the Lake Phase UI */}
           <LadyOfLakePhase
             gameId={gameId}
@@ -221,7 +222,7 @@ export function GameBoard({ gameId }: GameBoardProps) {
             {getPhaseDescription(game.phase)}
           </p>
         </div>
-        
+
         {/* View Role Button */}
         <Button
           variant="secondary"
@@ -347,7 +348,7 @@ export function GameBoard({ gameId }: GameBoardProps) {
           >
             {playerRole === 'good' ? '🛡️' : '🗡️'}
           </div>
-          
+
           <div>
             <h3
               className={`text-2xl font-bold ${playerRole === 'good' ? 'text-emerald-400' : 'text-red-400'}`}
@@ -358,7 +359,7 @@ export function GameBoard({ gameId }: GameBoardProps) {
               <p className="text-avalon-gold capitalize mt-1">{specialRole.replace(/_/g, ' ')}</p>
             )}
           </div>
-          
+
           <p className="text-avalon-silver/70 text-sm">
             {playerRole === 'good'
               ? 'Help the quests succeed. Watch for saboteurs!'
@@ -376,7 +377,9 @@ export function GameBoard({ gameId }: GameBoardProps) {
           onContinue={handleInvestigationContinue}
         />
       )}
+
+      {/* T073: Session Takeover Alert */}
+      <SessionTakeoverAlert isOpen={sessionTakenOver} />
     </div>
   );
 }
-

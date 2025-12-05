@@ -1,10 +1,12 @@
 /**
  * Room database queries
+ * Updated for Phase 6: Player Recovery & Reconnection
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Room, RoomInsert, RoomPlayer } from '@/types/database';
 import type { RoomListItem, RoomDetails, RoomPlayerInfo } from '@/types/room';
+import { getConnectionStatus } from '@/lib/domain/connection-status';
 
 /**
  * Find a room by code
@@ -186,6 +188,7 @@ export async function getWaitingRooms(
 
 /**
  * Get room details with players
+ * T037, T038: Updated for Phase 6 to include player connection status
  */
 export async function getRoomDetails(
   client: SupabaseClient,
@@ -196,7 +199,7 @@ export async function getRoomDetails(
   const room = await findRoomById(client, roomId);
   if (!room) return null;
 
-  // Get players in room with their info
+  // Get players in room with their info (including last_activity_at for Phase 6)
   const { data: roomPlayers, error: rpError } = await client
     .from('room_players')
     .select(`
@@ -205,7 +208,8 @@ export async function getRoomDetails(
       is_connected,
       players!inner (
         id,
-        nickname
+        nickname,
+        last_activity_at
       )
     `)
     .eq('room_id', roomId);
@@ -232,22 +236,33 @@ export async function getRoomDetails(
     };
   }
 
-  // Map players
+  // Map players with computed connection status (Phase 6)
   // Note: Supabase !inner join returns single object, not array
   const players: RoomPlayerInfo[] = (roomPlayers || []).map((rp: {
     player_id: string;
     joined_at: string;
     is_connected: boolean;
-    players: { id: string; nickname: string } | { id: string; nickname: string }[];
+    players: { id: string; nickname: string; last_activity_at?: string } | { id: string; nickname: string; last_activity_at?: string }[];
   }) => {
     // Handle both single object (correct) and array (defensive) cases
     const playerData = Array.isArray(rp.players) ? rp.players[0] : rp.players;
+
+    // T038: Compute connection status from last_activity_at
+    const lastActivityAt = playerData?.last_activity_at;
+    let connectionStatus = { is_connected: rp.is_connected, seconds_since_activity: 0 };
+
+    if (lastActivityAt) {
+      connectionStatus = getConnectionStatus(lastActivityAt);
+    }
+
     return {
       id: rp.player_id,
       nickname: playerData?.nickname || 'Unknown',
       is_manager: rp.player_id === room.manager_id,
-      is_connected: rp.is_connected,
+      is_connected: connectionStatus.is_connected,
       joined_at: rp.joined_at,
+      last_activity_at: lastActivityAt,
+      seconds_since_activity: connectionStatus.seconds_since_activity,
     };
   });
 

@@ -2,6 +2,7 @@
  * Database types for Supabase tables
  * Auto-generated from data-model.md schema
  * Updated for Phase 2: Special Roles & Configurations
+ * Updated for Phase 6: Player Recovery & Reconnection
  */
 
 import type { RoleConfig } from './role-config';
@@ -14,6 +15,8 @@ export interface Database {
           id: string;
           player_id: string;
           nickname: string;
+          nickname_lower: string;      // Phase 6: Generated column for case-insensitive uniqueness
+          last_activity_at: string;    // Phase 6: Heartbeat timestamp for disconnect detection
           created_at: string;
           updated_at: string;
         };
@@ -21,6 +24,8 @@ export interface Database {
           id?: string;
           player_id: string;
           nickname: string;
+          // nickname_lower is generated, not insertable
+          last_activity_at?: string;   // Phase 6
           created_at?: string;
           updated_at?: string;
         };
@@ -28,6 +33,8 @@ export interface Database {
           id?: string;
           player_id?: string;
           nickname?: string;
+          // nickname_lower is generated, not updatable directly
+          last_activity_at?: string;   // Phase 6
           created_at?: string;
           updated_at?: string;
         };
@@ -144,6 +151,30 @@ export interface Database {
         Args: Record<string, never>;
         Returns: void;
       };
+      // Phase 6: Player Reconnection Functions
+      check_nickname_available: {
+        Args: { p_nickname: string };
+        Returns: boolean;
+      };
+      find_player_in_room: {
+        Args: { p_room_code: string; p_nickname: string };
+        Returns: Array<{
+          player_id: string;
+          room_player_id: string;
+          nickname: string;
+          last_activity_at: string;
+          room_id: string;
+        }>;
+      };
+      reclaim_seat: {
+        Args: { p_room_code: string; p_nickname: string; p_new_player_id: string };
+        Returns: Array<{
+          success: boolean;
+          error_code: string | null;
+          room_id: string | null;
+          old_player_id: string | null;
+        }>;
+      };
     };
   };
 }
@@ -156,7 +187,7 @@ export type Role = 'good' | 'evil';
 
 // Special role enum (specific characters)
 // Phase 2: Split oberon into oberon_standard and oberon_chaos
-export type SpecialRole = 
+export type SpecialRole =
   | 'merlin'          // Good - knows evil players (except Mordred, Oberon Chaos)
   | 'percival'        // Good - knows Merlin (but Morgana looks the same)
   | 'servant'         // Good - basic loyal servant

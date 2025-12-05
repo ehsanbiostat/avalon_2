@@ -14,6 +14,7 @@ import { getInvestigatedPlayerIds, getLastInvestigation, getPreviousLadyHolderId
 import { getPlayerRole } from '@/lib/supabase/roles';
 import { getQuestRequirementsMap } from '@/lib/domain/quest-config';
 import { isLadyPhase } from '@/lib/domain/game-state-machine';
+import { getConnectionStatus } from '@/lib/domain/connection-status';
 import { errors, handleError } from '@/lib/utils/errors';
 import type { GameState, GamePlayer, LadyOfLakeState } from '@/types/game';
 
@@ -68,14 +69,19 @@ export async function GET(request: Request, { params }: RouteParams) {
       currentProposal = await getCurrentProposal(supabase, gameId);
     }
 
-    // Get player nicknames for seating display
+    // T039, T040: Get player nicknames and activity for seating display (Phase 6)
     const { data: playersData } = await supabase
       .from('players')
-      .select('id, nickname')
+      .select('id, nickname, last_activity_at')
       .in('id', game.seating_order);
 
     const nicknameMap = new Map(
       (playersData || []).map((p: { id: string; nickname: string }) => [p.id, p.nickname])
+    );
+
+    // Phase 6: Map last_activity_at for connection status
+    const activityMap = new Map(
+      (playersData || []).map((p: { id: string; last_activity_at?: string }) => [p.id, p.last_activity_at])
     );
 
     // Get voted player IDs if in voting phase
@@ -104,7 +110,7 @@ export async function GET(request: Request, { params }: RouteParams) {
         .order('resolved_at', { ascending: false })
         .limit(1)
         .single();
-      
+
       if (recentProposal) {
         const voteInfos = await getVotesForProposal(supabase, recentProposal.id);
         lastVoteResult = {
@@ -129,7 +135,7 @@ export async function GET(request: Request, { params }: RouteParams) {
     if (game.phase === 'quest' && currentProposal) {
       totalTeamMembers = currentProposal.team_member_ids.length;
       actionsSubmitted = await getActionCount(supabase, gameId, game.current_quest);
-      
+
       if (amTeamMember) {
         hasSubmittedAction = await hasPlayerSubmittedAction(
           supabase,
@@ -148,19 +154,25 @@ export async function GET(request: Request, { params }: RouteParams) {
         .from('player_roles')
         .select('player_id, role, special_role')
         .eq('room_id', game.room_id);
-      
+
       if (allRoles) {
         playerRolesMap = new Map(
-          allRoles.map((pr: { player_id: string; role: string; special_role: string | null }) => 
+          allRoles.map((pr: { player_id: string; role: string; special_role: string | null }) =>
             [pr.player_id, { role: pr.role, special_role: pr.special_role }]
           )
         );
       }
     }
 
-    // Build game players list
+    // Build game players list (T040: with connection status)
     const players: GamePlayer[] = game.seating_order.map((pid, index) => {
       const roleInfo = playerRolesMap.get(pid);
+      // T040: Compute connection status from last_activity_at
+      const lastActivity = activityMap.get(pid);
+      const connectionStatus = lastActivity
+        ? getConnectionStatus(lastActivity)
+        : { is_connected: true, seconds_since_activity: 0 };
+
       return {
         id: pid,
         nickname: nicknameMap.get(pid) || 'Unknown',
@@ -168,7 +180,7 @@ export async function GET(request: Request, { params }: RouteParams) {
         is_leader: pid === game.current_leader_id,
         is_on_team: currentProposal?.team_member_ids.includes(pid) || false,
         has_voted: votedPlayerIds.includes(pid),
-        is_connected: true, // TODO: Track connection status
+        is_connected: connectionStatus.is_connected, // Phase 6: Real connection status
         // Reveal roles only at game_over
         revealed_role: game.phase === 'game_over' ? (roleInfo?.role as 'good' | 'evil') : undefined,
         revealed_special_role: game.phase === 'game_over' ? roleInfo?.special_role ?? undefined : undefined,
@@ -195,14 +207,14 @@ export async function GET(request: Request, { params }: RouteParams) {
         .eq('room_id', game.room_id)
         .eq('special_role', 'assassin')
         .single();
-      
+
       const { data: merlinData } = await supabase
         .from('player_roles')
         .select('player_id')
         .eq('room_id', game.room_id)
         .eq('special_role', 'merlin')
         .single();
-      
+
       if (assassinData && merlinData) {
         const assassinNickname = nicknameMap.get(assassinData.player_id) || 'Unknown';
         assassinPhase = {
@@ -223,7 +235,7 @@ export async function GET(request: Request, { params }: RouteParams) {
         getPreviousLadyHolderIds(supabase, gameId),
         getLastInvestigation(supabase, gameId),
       ]);
-      
+
       let lastInvestigationInfo = null;
       if (lastInvestigation) {
         const investigatorNickname = nicknameMap.get(lastInvestigation.investigator_id) || 'Unknown';
@@ -233,11 +245,11 @@ export async function GET(request: Request, { params }: RouteParams) {
           target_nickname: targetNickname,
         };
       }
-      
-      const holderNickname = game.lady_holder_id 
+
+      const holderNickname = game.lady_holder_id
         ? nicknameMap.get(game.lady_holder_id) || 'Unknown'
         : null;
-      
+
       ladyOfLake = {
         enabled: true,
         holder_id: game.lady_holder_id,
@@ -270,7 +282,7 @@ export async function GET(request: Request, { params }: RouteParams) {
     };
 
     // Include current player's database ID and role for proper identification
-    return NextResponse.json({ 
+    return NextResponse.json({
       data: gameState,
       current_player_id: player.id,
       player_role: playerRole,
@@ -280,4 +292,3 @@ export async function GET(request: Request, { params }: RouteParams) {
     return handleError(error);
   }
 }
-

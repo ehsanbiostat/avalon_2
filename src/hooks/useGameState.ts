@@ -1,9 +1,10 @@
 /**
  * useGameState hook
  * Manages game state with polling updates
+ * T073: Updated for Phase 6 to detect session takeover
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { GameState } from '@/types/game';
 import { getPlayerId } from '@/lib/utils/player-id';
 
@@ -16,6 +17,8 @@ interface UseGameStateResult {
   specialRole: string | null;
   loading: boolean;
   error: string | null;
+  /** T073: Session was taken over by another device */
+  sessionTakenOver: boolean;
   refetch: () => Promise<void>;
 }
 
@@ -26,6 +29,9 @@ export function useGameState(gameId: string | null): UseGameStateResult {
   const [specialRole, setSpecialRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // T073: Session takeover detection
+  const [sessionTakenOver, setSessionTakenOver] = useState(false);
+  const hadGameAccessRef = useRef<boolean>(false);
 
   const fetchGameState = useCallback(async () => {
     if (!gameId) {
@@ -40,9 +46,18 @@ export function useGameState(gameId: string | null): UseGameStateResult {
       const response = await fetch(`/api/games/${gameId}`, {
         headers: { 'X-Player-ID': playerId },
       });
-      
+
       if (!response.ok) {
         const data = await response.json();
+        const errorCode = data.error?.code;
+
+        // T073: Detect session takeover - if we previously had access but now don't
+        if (hadGameAccessRef.current &&
+            (errorCode === 'NOT_IN_GAME' || response.status === 403)) {
+          setSessionTakenOver(true);
+          return;
+        }
+
         throw new Error(data.error?.message || 'Failed to fetch game state');
       }
 
@@ -52,6 +67,8 @@ export function useGameState(gameId: string | null): UseGameStateResult {
       setPlayerRole(responseData.player_role || 'good');
       setSpecialRole(responseData.special_role || null);
       setError(null);
+      // Mark that we had successful access
+      hadGameAccessRef.current = true;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
@@ -62,7 +79,7 @@ export function useGameState(gameId: string | null): UseGameStateResult {
   // Initial fetch and polling
   useEffect(() => {
     fetchGameState();
-    
+
     const interval = setInterval(fetchGameState, POLL_INTERVAL);
     return () => clearInterval(interval);
   }, [fetchGameState]);
@@ -74,7 +91,7 @@ export function useGameState(gameId: string | null): UseGameStateResult {
     specialRole,
     loading,
     error,
+    sessionTakenOver,
     refetch: fetchGameState,
   };
 }
-

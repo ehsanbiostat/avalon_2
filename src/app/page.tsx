@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { CreateRoomModal } from '@/components/CreateRoomModal';
+import { FindMyGame } from '@/components/FindMyGame';
 import { usePlayer } from '@/hooks/usePlayer';
 import { validateNickname, validateRoomCode } from '@/lib/domain/validation';
 import type { RoleConfig } from '@/types/role-config';
@@ -78,7 +79,7 @@ export default function Home() {
           'Content-Type': 'application/json',
           'X-Player-ID': playerId,
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           expected_players: expectedPlayers,
           role_config: roleConfig,
         }),
@@ -276,6 +277,13 @@ export default function Home() {
             </div>
           )}
         </div>
+
+        {/* T069: Find My Game Section */}
+        {isRegistered && (
+          <div className="card animate-slide-up">
+            <FindMyGame />
+          </div>
+        )}
 
         {/* Footer Info */}
         <p className="text-center text-sm text-avalon-silver/50">

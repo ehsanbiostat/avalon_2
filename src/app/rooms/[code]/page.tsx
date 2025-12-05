@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useParams } from 'next/navigation';
 import { Lobby } from '@/components/Lobby';
 import { RoleRevealModal } from '@/components/RoleRevealModal';
+import { SessionTakeoverAlert } from '@/components/SessionTakeoverAlert';
 import { useRoom } from '@/hooks/useRoom';
 import { usePlayer } from '@/hooks/usePlayer';
+import { useHeartbeat } from '@/hooks/useHeartbeat';
 import { getPlayerId } from '@/lib/utils/player-id';
 
 export default function RoomPage() {
@@ -14,7 +16,10 @@ export default function RoomPage() {
   const code = params.code as string;
   const router = useRouter();
   const { isRegistered, isLoading: playerLoading } = usePlayer();
-  const { room, isLoading: roomLoading, error, isConnected, rolesInPlay, leave, refresh } = useRoom(code);
+  const { room, isLoading: roomLoading, error, isConnected, rolesInPlay, sessionTakenOver, leave, refresh } = useRoom(code);
+
+  // T035: Activity heartbeat for disconnect detection
+  useHeartbeat({ enabled: isRegistered && !roomLoading && !sessionTakenOver });
 
   const [isDistributing, setIsDistributing] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
@@ -78,7 +83,7 @@ export default function RoomPage() {
           const response = await fetch(`/api/rooms/${code}/game`, {
             headers: { 'X-Player-ID': playerId },
           });
-          
+
           if (response.ok) {
             const { data } = await response.json();
             if (data.has_game && data.game_id) {
@@ -90,7 +95,7 @@ export default function RoomPage() {
         }
       }
     };
-    
+
     redirectToGame();
   }, [room?.room.status, code, router]);
 
@@ -298,6 +303,9 @@ export default function RoomPage() {
           </div>
         )}
       </div>
+
+      {/* T072: Session Takeover Alert */}
+      <SessionTakeoverAlert isOpen={sessionTakenOver} />
     </div>
   );
 }

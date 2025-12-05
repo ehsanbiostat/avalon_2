@@ -56,6 +56,7 @@ export interface RoomDetails {
 
 /**
  * Player info within a room
+ * Updated for Phase 6: Connection status computed from last_activity_at
  */
 export interface RoomPlayerInfo {
   id: string;
@@ -63,6 +64,9 @@ export interface RoomPlayerInfo {
   is_manager: boolean;
   is_connected: boolean;
   joined_at: string;
+  // Phase 6: Connection status details
+  last_activity_at?: string;
+  seconds_since_activity?: number;
 }
 
 /**

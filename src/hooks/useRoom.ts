@@ -25,6 +25,8 @@ interface UseRoomReturn {
   rolesInPlay: string[];
   /** T036: Lady of the Lake holder info */
   ladyOfLakeHolder: { id: string; nickname: string } | null;
+  /** T072: Session was taken over by another device */
+  sessionTakenOver: boolean;
   /** Refresh room data */
   refresh: () => Promise<void>;
   /** Leave the room */
@@ -46,8 +48,11 @@ export function useRoom(roomCode: string): UseRoomReturn {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(true);
+  // T072: Session takeover detection
+  const [sessionTakenOver, setSessionTakenOver] = useState(false);
   const lastFetchRef = useRef<number>(0);
   const isFetchingRef = useRef<boolean>(false);
+  const hadRoomAccessRef = useRef<boolean>(false);
 
   /**
    * Fetch room data from API (with deduplication)
@@ -57,16 +62,16 @@ export function useRoom(roomCode: string): UseRoomReturn {
     if (isFetchingRef.current && !force) {
       return null;
     }
-    
+
     // Throttle fetches (min 1 second apart unless forced)
     const now = Date.now();
     if (!force && now - lastFetchRef.current < 1000) {
       return null;
     }
-    
+
     isFetchingRef.current = true;
     lastFetchRef.current = now;
-    
+
     try {
       const playerId = getPlayerId();
       const response = await fetch(`/api/rooms/${roomCode}`, {
@@ -78,6 +83,15 @@ export function useRoom(roomCode: string): UseRoomReturn {
 
       if (!response.ok) {
         const data = await response.json();
+        const errorCode = data.error?.code;
+
+        // T072: Detect session takeover - if we previously had access but now don't
+        if (hadRoomAccessRef.current &&
+            (errorCode === 'NOT_IN_ROOM' || errorCode === 'NOT_ROOM_MEMBER' || response.status === 403)) {
+          setSessionTakenOver(true);
+          return null;
+        }
+
         throw new Error(data.error?.message || 'Failed to fetch room');
       }
 
@@ -88,7 +102,9 @@ export function useRoom(roomCode: string): UseRoomReturn {
       setLadyOfLakeHolder(data.lady_of_lake_holder || null);
       setError(null);
       setIsConnected(true);
-      
+      // Mark that we had successful access
+      hadRoomAccessRef.current = true;
+
       return data;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch room');
@@ -168,6 +184,7 @@ export function useRoom(roomCode: string): UseRoomReturn {
     isConnected,
     rolesInPlay,
     ladyOfLakeHolder,
+    sessionTakenOver,
     refresh: () => fetchRoom(true),
     leave,
   };
