@@ -52,7 +52,7 @@ export function RolesInPlay({
   }
 
   return (
-    <div className={`p-4 bg-avalon-midnight/50 rounded-lg border border-avalon-silver/20 ${className}`}>
+    <div className={`p-4 bg-avalon-navy rounded-lg border border-avalon-dark-border ${className}`}>
       {showTitle && (
         <h4 className="font-display text-avalon-gold text-sm mb-3">
           🎭 Roles in This Game
@@ -63,7 +63,7 @@ export function RolesInPlay({
         {/* Good Team Roles */}
         {goodRoles.length > 0 && (
           <div>
-            <span className="text-xs text-good-light/60 uppercase tracking-wide">Good Team</span>
+            <span className="text-xs text-good-light font-semibold uppercase tracking-wide">Good Team</span>
             <div className="flex flex-wrap gap-2 mt-1">
               {goodRoles.map((role) => (
                 <RoleBadge key={role} name={role} team="good" />
@@ -75,7 +75,7 @@ export function RolesInPlay({
         {/* Evil Team Roles */}
         {evilRoles.length > 0 && (
           <div>
-            <span className="text-xs text-evil-light/60 uppercase tracking-wide">Evil Team</span>
+            <span className="text-xs text-evil-light font-semibold uppercase tracking-wide">Evil Team</span>
             <div className="flex flex-wrap gap-2 mt-1">
               {evilRoles.map((role) => (
                 <RoleBadge key={role} name={role} team="evil" />
@@ -87,17 +87,17 @@ export function RolesInPlay({
 
       {/* T035: Oberon mode indicator */}
       {hasOberon && oberonMode && (
-        <div className="mt-3 pt-3 border-t border-avalon-silver/10">
+        <div className="mt-3 pt-3 border-t border-avalon-dark-border">
           <div className="flex items-center gap-2 text-xs">
             {oberonMode === 'chaos' ? (
               <>
                 <span className="text-purple-400">👻</span>
-                <span className="text-purple-300">Chaos Mode: Oberon is hidden from everyone!</span>
+                <span className="text-purple-300 font-medium">Chaos Mode: Oberon is hidden from everyone!</span>
               </>
             ) : (
               <>
-                <span className="text-avalon-silver">👤</span>
-                <span className="text-avalon-silver/70">Standard Mode: Oberon visible to Merlin</span>
+                <span className="text-slate-400">👤</span>
+                <span className="text-slate-300">Standard Mode: Oberon visible to Merlin</span>
               </>
             )}
           </div>
@@ -120,17 +120,17 @@ function RoleBadge({ name, team, small }: RoleBadgeProps) {
   const actualTeam = team || roleInfo?.team || 'good';
 
   const sizeClasses = small 
-    ? 'px-2 py-0.5 text-xs' 
-    : 'px-3 py-1 text-sm';
+    ? 'px-2 py-1 text-xs' 
+    : 'px-3 py-1.5 text-sm';
 
   return (
     <span
       className={`
-        inline-flex items-center gap-1 rounded font-medium
+        inline-flex items-center gap-1.5 rounded-md font-semibold
         ${sizeClasses}
         ${actualTeam === 'good'
-          ? 'bg-good/20 text-good-light border border-good/30'
-          : 'bg-evil/20 text-evil-light border border-evil/30'
+          ? 'bg-good/30 text-good-light border border-good/50'
+          : 'bg-evil/30 text-evil-light border border-evil/50'
         }
       `}
       title={roleInfo?.description}

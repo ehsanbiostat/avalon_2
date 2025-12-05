@@ -163,7 +163,7 @@ export default function RoomsPage() {
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-12 h-12 border-4 border-avalon-gold/30 border-t-avalon-gold rounded-full animate-spin mx-auto" />
-          <p className="text-avalon-silver">Searching for active rooms...</p>
+          <p className="text-avalon-text-secondary">Searching for active rooms...</p>
         </div>
       </div>
     );
@@ -178,13 +178,13 @@ export default function RoomsPage() {
             <h1 className="text-2xl font-display font-bold text-avalon-gold">
               Active Rooms
             </h1>
-            <p className="text-avalon-silver text-sm">
+            <p className="text-avalon-text-muted text-sm">
               Join an existing room or create your own
             </p>
           </div>
           <button
             onClick={() => router.push('/')}
-            className="text-avalon-silver hover:text-avalon-gold transition-colors"
+            className="text-avalon-text-secondary hover:text-avalon-gold transition-colors"
           >
             ← Back
           </button>
@@ -216,7 +216,7 @@ export default function RoomsPage() {
         {/* Refresh Button */}
         <button
           onClick={fetchRooms}
-          className="w-full text-center text-avalon-silver hover:text-avalon-gold transition-colors text-sm"
+          className="w-full text-center text-avalon-text-secondary hover:text-avalon-gold transition-colors text-sm"
         >
           🔄 Refresh list
         </button>

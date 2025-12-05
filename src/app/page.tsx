@@ -153,7 +153,7 @@ export default function Home() {
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-12 h-12 border-4 border-avalon-gold/30 border-t-avalon-gold rounded-full animate-spin mx-auto" />
-          <p className="text-avalon-silver">Preparing the Round Table...</p>
+          <p className="text-avalon-text-secondary">Preparing the Round Table...</p>
         </div>
       </div>
     );
@@ -167,7 +167,7 @@ export default function Home() {
           <h1 className="text-5xl md:text-6xl font-display font-bold text-avalon-gold text-shadow">
             AVALON
           </h1>
-          <p className="text-lg md:text-xl text-avalon-silver font-body italic">
+          <p className="text-lg md:text-xl text-avalon-text-secondary font-body italic">
             The Resistance: Social Deduction
           </p>
         </div>
@@ -192,7 +192,7 @@ export default function Home() {
                   <h2 className="text-xl font-display text-avalon-gold">
                     Welcome, Knight
                   </h2>
-                  <p className="text-avalon-parchment/70 text-sm">
+                  <p className="text-avalon-text-muted text-sm">
                     Enter your name to join the Round Table
                   </p>
                 </div>
@@ -219,10 +219,10 @@ export default function Home() {
                 </form>
 
                 {/* Returning Player Option */}
-                <div className="pt-4 border-t border-avalon-silver/10">
+                <div className="pt-4 border-t border-avalon-dark-border">
                   <button
                     onClick={() => setShowReturningPlayer(true)}
-                    className="w-full text-center text-avalon-silver hover:text-avalon-gold transition-colors text-sm"
+                    className="w-full text-center text-avalon-text-secondary hover:text-avalon-gold transition-colors text-sm"
                   >
                     Already in a game? <span className="underline">Restore session</span> →
                   </button>
@@ -233,7 +233,7 @@ export default function Home() {
             /* Step 2: Create or Join Room */
             <div className="space-y-6">
               <div className="text-center space-y-2">
-                <p className="text-avalon-silver text-sm">Welcome back,</p>
+                <p className="text-avalon-text-muted text-sm">Welcome back,</p>
                 <h2 className="text-xl font-display text-avalon-gold">
                   {nickname}
                 </h2>
@@ -253,9 +253,9 @@ export default function Home() {
 
               {/* Divider */}
               <div className="flex items-center gap-4">
-                <div className="flex-1 h-px bg-avalon-silver/20" />
-                <span className="text-avalon-silver/50 text-sm">or</span>
-                <div className="flex-1 h-px bg-avalon-silver/20" />
+                <div className="flex-1 h-px bg-avalon-dark-border" />
+                <span className="text-avalon-text-muted text-sm">or</span>
+                <div className="flex-1 h-px bg-avalon-dark-border" />
               </div>
 
               {/* Join by Code */}
@@ -283,10 +283,10 @@ export default function Home() {
               </form>
 
               {/* Browse Rooms Link */}
-              <div className="pt-4 border-t border-avalon-silver/10">
+              <div className="pt-4 border-t border-avalon-dark-border">
                 <button
                   onClick={() => router.push('/rooms')}
-                  className="w-full text-center text-avalon-silver hover:text-avalon-gold transition-colors text-sm"
+                  className="w-full text-center text-avalon-text-secondary hover:text-avalon-gold transition-colors text-sm"
                 >
                   Browse active rooms →
                 </button>
@@ -303,7 +303,7 @@ export default function Home() {
         )}
 
         {/* Footer Info */}
-        <p className="text-center text-sm text-avalon-silver/50">
+        <p className="text-center text-sm text-avalon-text-muted">
           For 5-10 players • Real-time multiplayer
         </p>
       </div>
