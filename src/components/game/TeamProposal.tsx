@@ -144,12 +144,15 @@ export function TeamProposal({
       />
 
       {/* Feature 007: Selection count visible to all players */}
-      {isDraftInProgress && (
+      {/* Leader sees their local state, others see server state */}
+      {(isLeader || isDraftInProgress) && (
         <div className="text-center">
           <p className={`text-sm font-semibold ${
-            (draftTeam?.length || 0) === requiredSize ? 'text-green-400' : 'text-cyan-400'
+            (isLeader ? selectedTeam.length : (draftTeam?.length || 0)) === requiredSize 
+              ? 'text-green-400' 
+              : 'text-cyan-400'
           }`}>
-            Selecting team: {draftTeam?.length || 0} / {requiredSize}
+            {isLeader ? 'Your selection' : 'Selecting team'}: {isLeader ? selectedTeam.length : (draftTeam?.length || 0)} / {requiredSize}
           </p>
         </div>
       )}
