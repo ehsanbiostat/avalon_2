@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Check connection status
-    const status = getConnectionStatus(player.last_activity_at);
+    const status = getConnectionStatus(player.last_activity_at || new Date(0).toISOString());
 
     // If player is still active, they should use their original session
     if (status.is_connected) {
