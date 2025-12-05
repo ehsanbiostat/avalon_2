@@ -33,9 +33,9 @@
 
 **Purpose**: Verify environment and understand existing component structure
 
-- [ ] T001 Verify feature branch `008-center-game-messages` is checked out and up to date
-- [ ] T002 Read existing `src/components/game/PlayerSeats.tsx` to understand current structure
-- [ ] T003 Review `src/app/game/[gameId]/page.tsx` and `src/components/game/GameBoard.tsx` to understand how PlayerSeats is used and what props are available
+- [x] T001 Verify feature branch `008-center-game-messages` is checked out and up to date
+- [x] T002 Read existing `src/components/game/PlayerSeats.tsx` to understand current structure
+- [x] T003 Review `src/app/game/[gameId]/page.tsx` and `src/components/game/GameBoard.tsx` to understand how PlayerSeats is used and what props are available
 
 **Checkpoint**: Environment ready, existing code understood
 
@@ -47,14 +47,17 @@
 
 **⚠️ CRITICAL**: Complete before any user story implementation
 
-- [ ] T004 Add `CenterMessage` interface to `src/types/game.ts` if not already defined (or define inline in PlayerSeats)
+- [x] T004 Add `CenterMessage` interface to `src/types/game.ts` if not already defined (or define inline in PlayerSeats)
   ```typescript
   interface CenterMessage {
     line1: string;
     line2: string;
   }
   ```
-- [ ] T005 Document the center circle HTML structure in PlayerSeats component (locate the div with "ROUND TABLE" text)
+- [x] T005 Document the center circle HTML structure in PlayerSeats component (locate the div with "ROUND TABLE" text)
+  - Located at lines 64-67 in PlayerSeats.tsx
+  - Current structure: w-32 h-32 rounded-full with gradient background
+  - Contains single span with "ROUND TABLE" text
 
 **Checkpoint**: Types ready, center circle location identified
 
@@ -68,14 +71,14 @@
 
 ### Implementation for User Story 1
 
-- [ ] T006 [US1] Create `getCenterMessage()` function skeleton in `src/components/game/PlayerSeats.tsx` that accepts game phase and quest number
-- [ ] T007 [US1] Implement message logic for `team_building` phase in `getCenterMessage()`:
+- [x] T006 [US1] Create `getCenterMessage()` function skeleton in `src/components/game/PlayerSeats.tsx` that accepts game phase and quest number
+- [x] T007 [US1] Implement message logic for `team_building` phase in `getCenterMessage()`:
   - Line 1: `Quest ${questNumber}`
   - Line 2: Generic "Team is being selected..." (will enhance in US2)
-- [ ] T008 [US1] Implement message logic for `voting` phase:
+- [x] T008 [US1] Implement message logic for `voting` phase:
   - Line 1: `Quest ${questNumber}`
   - Line 2: "Vote on the proposed team"
-- [ ] T009 [US1] Replace static "ROUND TABLE" text in center circle div with dynamic message rendering using `getCenterMessage()` result
+- [x] T009 [US1] Replace static "ROUND TABLE" text in center circle div with dynamic message rendering using `getCenterMessage()` result
 
 **Checkpoint**: ✅ US1 Complete - Center displays quest number and basic phase info. Testable independently!
 
@@ -94,11 +97,11 @@
 
 ### Implementation for User Story 2
 
-- [ ] T010 [US2] Update `getCenterMessage()` to accept `isCurrentPlayerLeader`, `leaderNickname`, and `teamSize` parameters
-- [ ] T011 [US2] Enhance `team_building` phase logic in `getCenterMessage()`:
+- [x] T010 [US2] Update `getCenterMessage()` to accept `isCurrentPlayerLeader`, `leaderNickname`, and `teamSize` parameters
+- [x] T011 [US2] Enhance `team_building` phase logic in `getCenterMessage()`:
   - If leader: Line 2 = `Select ${teamSize} players for the quest`
   - If not leader: Line 2 = `${leaderNickname} is selecting a team`
-- [ ] T012 [US2] Add nickname truncation logic: if `leaderNickname.length > 15`, truncate to 15 chars + "..."
+- [x] T012 [US2] Add nickname truncation logic: if `leaderNickname.length > 15`, truncate to 15 chars + "..."
 
 **Checkpoint**: ✅ US2 Complete - Leader context and team size visible. Testable with US1!
 
@@ -117,22 +120,22 @@
 
 ### Implementation for User Story 3
 
-- [ ] T013 [US3] Update `getCenterMessage()` to accept `isOnQuestTeam` and `lastQuestResult` parameters (lastQuestResult from game state: 'success' | 'failed' | null)
-- [ ] T014 [US3] Implement message logic for `quest` phase:
+- [x] T013 [US3] Update `getCenterMessage()` to accept `isOnQuestTeam` and `lastQuestResult` parameters (lastQuestResult from game state: 'success' | 'failed' | null)
+- [x] T014 [US3] Implement message logic for `quest` phase:
   - If on quest team: Line 2 = "Submit your quest action"
   - If not on team: Line 2 = "Quest team is deciding..."
-- [ ] T015 [US3] Implement message logic for `quest_result` phase:
+- [x] T015 [US3] Implement message logic for `quest_result` phase:
   - Line 1: `Quest ${questNumber}`
   - Line 2: "Quest succeeded!" if lastQuestResult === 'success', "Quest failed!" otherwise
-- [ ] T016 [US3] Implement message logic for `assassin` phase:
+- [x] T016 [US3] Implement message logic for `assassin` phase:
   - Line 1: "Assassin Phase"
   - If is assassin: Line 2 = "Select your target"
   - If not assassin: Line 2 = "The Assassin is choosing..."
-- [ ] T017 [US3] Implement message logic for `lady_of_lake` phase:
+- [x] T017 [US3] Implement message logic for `lady_of_lake` phase:
   - Line 1: "Lady of the Lake"
   - If is holder: Line 2 = "Select a player to investigate"
   - If not holder: Line 2 = `${holderNickname} is investigating...`
-- [ ] T018 [US3] Implement message logic for `game_over` phase:
+- [x] T018 [US3] Implement message logic for `game_over` phase:
   - Line 1: "Game Over"
   - Line 2: "Good Wins!" or "Evil Wins!" (based on game winner)
 
@@ -150,10 +153,10 @@
 
 **Purpose**: Handle edge cases, ensure mobile compatibility, finalize documentation
 
-- [ ] T019 [P] Add fallback message in `getCenterMessage()` for unknown/undefined game phases:
+- [x] T019 [P] Add fallback message in `getCenterMessage()` for unknown/undefined game phases:
   - Line 1: `Quest ${questNumber || 1}`
   - Line 2: "Game in progress..."
-- [ ] T020 [P] Add defensive checks for missing data (handle `null`/`undefined` for leader, holder, etc.) in all message logic branches
+- [x] T020 [P] Add defensive checks for missing data (handle `null`/`undefined` for leader, holder, etc.) in all message logic branches
 - [ ] T021 Test on mobile viewport (375px width) using browser dev tools - verify text fits in center circle and is readable
 - [ ] T022 Update center circle styling if needed:
   - Verify font sizes (Line 1: text-lg, Line 2: text-sm)

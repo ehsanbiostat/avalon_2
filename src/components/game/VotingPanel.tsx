@@ -21,6 +21,8 @@ interface VotingPanelProps {
   totalPlayers: number;
   onVoteSubmitted: () => void;
   ladyHolderId?: string | null;
+  /** Feature 008: Game context for center messages */
+  questNumber?: number;
 }
 
 export function VotingPanel({
@@ -33,6 +35,7 @@ export function VotingPanel({
   totalPlayers,
   onVoteSubmitted,
   ladyHolderId,
+  questNumber,
 }: VotingPanelProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -91,6 +94,8 @@ export function VotingPanel({
         players={players}
         currentPlayerId={currentPlayerId}
         ladyHolderId={ladyHolderId}
+        gamePhase="voting"
+        questNumber={questNumber}
       />
 
       {/* Vote Progress */}

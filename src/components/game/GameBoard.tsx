@@ -325,6 +325,7 @@ export function GameBoard({ gameId }: GameBoardProps) {
             totalPlayers={gameState.total_players}
             onVoteSubmitted={handleAction}
             ladyHolderId={ladyHolderId}
+            questNumber={game.current_quest}
           />
         )}
 

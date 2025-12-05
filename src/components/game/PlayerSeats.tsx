@@ -6,7 +6,7 @@
  * T042, T043: Updated for Phase 6 to show disconnect status
  */
 
-import type { GamePlayer } from '@/types/game';
+import type { GamePlayer, CenterMessage, GamePhase } from '@/types/game';
 
 interface PlayerSeatsProps {
   players: GamePlayer[];
@@ -22,6 +22,15 @@ interface PlayerSeatsProps {
   draftTeam?: string[] | null;
   /** Feature 007: Whether draft selection is in progress */
   isDraftInProgress?: boolean;
+  /** Feature 008: Game context for center messages */
+  gamePhase?: GamePhase;
+  questNumber?: number;
+  questRequirement?: { size: number };
+  isCurrentPlayerLeader?: boolean;
+  isOnQuestTeam?: boolean;
+  lastQuestResult?: 'success' | 'failed' | null;
+  gameWinner?: 'good' | 'evil' | null;
+  isAssassin?: boolean;
 }
 
 export function PlayerSeats({
@@ -35,9 +44,120 @@ export function PlayerSeats({
   disabledPlayerIds = [],
   draftTeam,
   isDraftInProgress = false,
+  gamePhase,
+  questNumber,
+  questRequirement,
+  isCurrentPlayerLeader = false,
+  isOnQuestTeam = false,
+  lastQuestResult,
+  gameWinner,
+  isAssassin = false,
 }: PlayerSeatsProps) {
   const angleStep = (2 * Math.PI) / players.length;
   const radius = 180; // Distance from center (increased for bigger layout)
+
+  /**
+   * Feature 008: Get dynamic center message based on game state
+   * T006: getCenterMessage() skeleton
+   * T011: Enhanced with leader context
+   * T013-T018: All phase messages
+   * T020: Defensive checks for missing/null data
+   */
+  const getCenterMessage = (): CenterMessage => {
+    // T020: Defensive checks - provide safe defaults
+    const phase = gamePhase || 'team_building';
+    const quest = questNumber || 1;
+    const teamSize = questRequirement?.size || 0;
+    
+    // T020: Safely get leader name
+    const leader = players.find((p) => p.is_leader);
+    let leaderName = leader?.nickname || 'Leader';
+    
+    // T020: Safely get Lady holder name
+    const ladyHolder = players.find((p) => p.id === ladyHolderId);
+    let ladyName = ladyHolder?.nickname || 'Player';
+    
+    // T012: Truncate long nicknames to 15 chars + "..."
+    if (leaderName.length > 15) {
+      leaderName = leaderName.slice(0, 15) + '...';
+    }
+    if (ladyName.length > 15) {
+      ladyName = ladyName.slice(0, 15) + '...';
+    }
+
+    // T007, T011: Team building phase (enhanced with leader context)
+    if (phase === 'team_building') {
+      return {
+        line1: `Quest ${quest}`,
+        line2: isCurrentPlayerLeader
+          ? `Select ${teamSize} players for the quest`
+          : `${leaderName} is selecting a team`,
+      };
+    }
+
+    // T008: Voting phase
+    if (phase === 'voting') {
+      return {
+        line1: `Quest ${quest}`,
+        line2: 'Vote on the proposed team',
+      };
+    }
+
+    // T014: Quest execution phase
+    if (phase === 'quest') {
+      return {
+        line1: `Quest ${quest}`,
+        line2: isOnQuestTeam
+          ? 'Submit your quest action'
+          : 'Quest team is deciding...',
+      };
+    }
+
+    // T015: Quest result phase
+    if (phase === 'quest_result') {
+      return {
+        line1: `Quest ${quest}`,
+        line2: lastQuestResult === 'success'
+          ? 'Quest succeeded!'
+          : 'Quest failed!',
+      };
+    }
+
+    // T016: Assassin phase
+    if (phase === 'assassin') {
+      return {
+        line1: 'Assassin Phase',
+        line2: isAssassin
+          ? 'Select your target'
+          : 'The Assassin is choosing...',
+      };
+    }
+
+    // T017: Lady of the Lake phase
+    if (phase === 'lady_of_lake') {
+      const isLadyHolder = ladyHolderId === currentPlayerId;
+      return {
+        line1: 'Lady of the Lake',
+        line2: isLadyHolder
+          ? 'Select a player to investigate'
+          : `${ladyName} is investigating...`,
+      };
+    }
+
+    // T018: Game over phase
+    if (phase === 'game_over') {
+      return {
+        line1: 'Game Over',
+        line2: gameWinner === 'good' ? 'Good Wins!' : 'Evil Wins!',
+      };
+    }
+
+    // T019: Fallback for unknown phases
+    return {
+      line1: `Quest ${quest}`,
+      line2: 'Game in progress...',
+    };
+  };
 
   const getPlayerPosition = (index: number) => {
     // Start from top (subtract PI/2 to rotate)
@@ -59,11 +179,21 @@ export function PlayerSeats({
     return isDraftInProgress && draftTeam && draftTeam.includes(playerId);
   };
 
+  // T009: Get dynamic center message
+  const centerMessage = getCenterMessage();
+
   return (
     <div className="relative w-[440px] h-[440px] mx-auto">
-      {/* Center table */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full bg-gradient-to-br from-amber-800 to-amber-950 border-4 border-amber-700 shadow-lg flex items-center justify-center">
-        <span className="text-amber-500 text-sm font-bold">ROUND TABLE</span>
+      {/* Feature 008: Dynamic center messages */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full bg-gradient-to-br from-amber-800 to-amber-950 border-4 border-amber-700 shadow-lg">
+        <div className="flex flex-col items-center justify-center h-full text-center px-2">
+          <span className="text-lg font-bold text-amber-500 leading-tight">
+            {centerMessage.line1}
+          </span>
+          <span className="text-sm text-amber-400 leading-tight mt-1">
+            {centerMessage.line2}
+          </span>
+        </div>
       </div>
 
       {/* Players */}

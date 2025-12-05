@@ -141,6 +141,10 @@ export function TeamProposal({
         ladyHolderId={ladyHolderId}
         draftTeam={draftTeam}
         isDraftInProgress={isDraftInProgress}
+        gamePhase="team_building"
+        questNumber={questNumber}
+        questRequirement={questRequirement}
+        isCurrentPlayerLeader={isLeader}
       />
 
       {/* Feature 007: Selection count visible to all players */}

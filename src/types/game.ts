@@ -25,6 +25,19 @@ export type QuestActionType = 'success' | 'fail';
 export type GameWinner = 'good' | 'evil';
 
 // ============================================
+// UI DISPLAY TYPES
+// ============================================
+
+/**
+ * Feature 008: Center Game Messages
+ * Message structure for center circle display
+ */
+export interface CenterMessage {
+  line1: string;  // Primary text (e.g., "Quest 1", "Assassin Phase")
+  line2: string;  // Secondary text (e.g., "Select 2 players", "Vote on the team")
+}
+
+// ============================================
 // DATABASE ROW TYPES
 // ============================================
 
