@@ -18,6 +18,10 @@ interface PlayerSeatsProps {
   ladyHolderId?: string | null;
   /** Disable selection for these player IDs (e.g., previous Lady holders) */
   disabledPlayerIds?: string[];
+  /** Feature 007: Draft team selection (leader's tentative selection) */
+  draftTeam?: string[] | null;
+  /** Feature 007: Whether draft selection is in progress */
+  isDraftInProgress?: boolean;
 }
 
 export function PlayerSeats({
@@ -29,6 +33,8 @@ export function PlayerSeats({
   maxSelectable = 0,
   ladyHolderId,
   disabledPlayerIds = [],
+  draftTeam,
+  isDraftInProgress = false,
 }: PlayerSeatsProps) {
   const angleStep = (2 * Math.PI) / players.length;
   const radius = 180; // Distance from center (increased for bigger layout)
@@ -44,6 +50,11 @@ export function PlayerSeats({
   const isSelected = (playerId: string) => selectedTeam.includes(playerId);
   const canSelect = selectable && selectedTeam.length < maxSelectable;
   const isDisabled = (playerId: string) => disabledPlayerIds.includes(playerId);
+  
+  // Feature 007: Draft team selection state
+  const isDraftSelected = (playerId: string) => {
+    return isDraftInProgress && draftTeam && draftTeam.includes(playerId);
+  };
 
   return (
     <div className="relative w-[440px] h-[440px] mx-auto">
@@ -62,6 +73,10 @@ export function PlayerSeats({
         const hasLady = ladyHolderId === player.id;
         // T042: Check connection status
         const isDisconnected = !player.is_connected;
+        
+        // Feature 007: Determine visual state
+        const inDraftSelection = isDraftSelected(player.id);
+        const isProposed = player.is_on_team; // Officially proposed team
 
         return (
           <div
@@ -86,7 +101,8 @@ export function PlayerSeats({
                   border-3 transition-all duration-300
                   ${isMe ? 'border-yellow-400 bg-yellow-900 text-yellow-200' : 'border-slate-400 bg-slate-700 text-slate-200'}
                   ${player.is_leader ? 'ring-4 ring-amber-400 ring-offset-2 ring-offset-avalon-midnight' : ''}
-                  ${player.is_on_team ? 'border-green-400 bg-green-800 text-green-200' : ''}
+                  ${isProposed ? 'border-green-400 bg-green-800 text-green-200' : ''}
+                  ${inDraftSelection ? 'border-cyan-400 bg-cyan-900/30 text-cyan-100 animate-pulse shadow-lg shadow-cyan-400/50' : ''}
                   ${selected ? 'border-cyan-300 bg-cyan-700 text-cyan-100 shadow-lg shadow-cyan-400/50' : ''}
                   ${isDisconnected ? 'opacity-50 grayscale' : ''}
                 `}
@@ -121,16 +137,18 @@ export function PlayerSeats({
                 </div>
               )}
 
-              {/* Shield for team member */}
-              {player.is_on_team && !selected && (
+              {/* Shield for proposed team member (not draft) */}
+              {isProposed && !selected && !inDraftSelection && (
                 <div className="absolute -top-2 -right-2 text-xl">
                   🛡️
                 </div>
               )}
 
-              {/* Checkmark for selection */}
-              {selected && (
-                <div className="absolute -top-2 -right-2 w-7 h-7 bg-cyan-500 rounded-full flex items-center justify-center text-white text-base font-bold">
+              {/* Checkmark for selection (draft or regular selection) */}
+              {(selected || inDraftSelection) && (
+                <div className={`absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center text-white text-base font-bold ${
+                  inDraftSelection ? 'bg-cyan-400' : 'bg-cyan-500'
+                }`}>
                   ✓
                 </div>
               )}
@@ -148,6 +166,8 @@ export function PlayerSeats({
                   mt-3 text-base font-semibold whitespace-nowrap
                   ${isMe ? 'text-yellow-300 font-bold' : 'text-slate-100'}
                   ${isDisconnected ? 'text-red-400' : ''}
+                  ${inDraftSelection ? 'text-cyan-300' : ''}
+                  ${isProposed && !inDraftSelection ? 'text-green-300' : ''}
                 `}
               >
                 {isMe ? 'You' : player.nickname}
