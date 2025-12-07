@@ -30,10 +30,10 @@ export function PlayerList({
     <div className="space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="font-display text-avalon-gold text-sm uppercase tracking-wider">
+        <h3 className="font-display text-avalon-gold text-base font-bold uppercase tracking-wider">
           Knights at the Table
         </h3>
-        <span className="text-avalon-silver text-sm">
+        <span className="text-avalon-silver text-base font-bold">
           {players.length}/{expectedPlayers}
         </span>
       </div>
@@ -57,9 +57,9 @@ export function PlayerList({
                 className="flex items-center gap-3 p-3 rounded-lg border border-dashed border-avalon-silver/20"
               >
                 <div className="w-10 h-10 rounded-full bg-avalon-midnight/30 flex items-center justify-center">
-                  <span className="text-avalon-silver/30 text-lg">?</span>
+                  <span className="text-avalon-silver/30 text-xl">?</span>
                 </div>
-                <span className="text-avalon-silver/40 italic">
+                <span className="text-avalon-silver/50 text-base font-medium italic">
                   Waiting for knight...
                 </span>
               </div>

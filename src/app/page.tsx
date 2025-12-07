@@ -175,7 +175,7 @@ export default function Home() {
         {/* General Error Display */}
         {generalError && (
           <div className="p-4 bg-evil/20 border border-evil/50 rounded-lg animate-slide-up">
-            <p className="text-evil-light text-sm text-center">{generalError}</p>
+            <p className="text-evil-light text-base font-medium text-center">{generalError}</p>
           </div>
         )}
 
@@ -189,10 +189,10 @@ export default function Home() {
               /* Step 1: Enter Nickname */
               <div className="space-y-6">
                 <div className="text-center space-y-2">
-                  <h2 className="text-xl font-display text-avalon-gold">
+                  <h2 className="text-2xl font-display font-bold text-avalon-gold">
                     Welcome, Knight
                   </h2>
-                  <p className="text-avalon-text-muted text-sm">
+                  <p className="text-avalon-text-muted text-base font-medium">
                     Enter your name to join the Round Table
                   </p>
                 </div>
@@ -222,9 +222,9 @@ export default function Home() {
                 <div className="pt-4 border-t border-avalon-dark-border">
                   <button
                     onClick={() => setShowReturningPlayer(true)}
-                    className="w-full text-center text-avalon-text-secondary hover:text-avalon-gold transition-colors text-sm"
+                    className="w-full text-center text-avalon-text-secondary hover:text-avalon-gold transition-colors text-base font-medium"
                   >
-                    Already in a game? <span className="underline">Restore session</span> →
+                    Already in a game? <span className="underline font-semibold">Restore session</span> →
                   </button>
                 </div>
               </div>
@@ -233,8 +233,8 @@ export default function Home() {
             /* Step 2: Create or Join Room */
             <div className="space-y-6">
               <div className="text-center space-y-2">
-                <p className="text-avalon-text-muted text-sm">Welcome back,</p>
-                <h2 className="text-xl font-display text-avalon-gold">
+                <p className="text-avalon-text-muted text-base font-medium">Welcome back,</p>
+                <h2 className="text-2xl font-display font-bold text-avalon-gold">
                   {nickname}
                 </h2>
               </div>
@@ -254,7 +254,7 @@ export default function Home() {
               {/* Divider */}
               <div className="flex items-center gap-4">
                 <div className="flex-1 h-px bg-avalon-dark-border" />
-                <span className="text-avalon-text-muted text-sm">or</span>
+                <span className="text-avalon-text-muted text-base font-medium">or</span>
                 <div className="flex-1 h-px bg-avalon-dark-border" />
               </div>
 
@@ -286,7 +286,7 @@ export default function Home() {
               <div className="pt-4 border-t border-avalon-dark-border">
                 <button
                   onClick={() => router.push('/rooms')}
-                  className="w-full text-center text-avalon-text-secondary hover:text-avalon-gold transition-colors text-sm"
+                  className="w-full text-center text-avalon-text-secondary hover:text-avalon-gold transition-colors text-base font-medium"
                 >
                   Browse active rooms →
                 </button>
@@ -303,7 +303,7 @@ export default function Home() {
         )}
 
         {/* Footer Info */}
-        <p className="text-center text-sm text-avalon-text-muted">
+        <p className="text-center text-base font-medium text-avalon-text-muted">
           For 5-10 players • Real-time multiplayer
         </p>
       </div>

@@ -86,10 +86,10 @@ export function CreateRoomModal({
     >
       <form id="create-room-form" onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-avalon-parchment mb-2">
+          <label className="block text-lg font-bold text-avalon-parchment mb-2">
             Number of Players
           </label>
-          <p className="text-sm text-avalon-silver/70 mb-4">
+          <p className="text-base font-medium text-avalon-silver/80 mb-4">
             Select how many knights will join this quest (5-10 players)
           </p>
 
@@ -100,7 +100,7 @@ export function CreateRoomModal({
                 type="button"
                 onClick={() => handlePlayerCountChange(num)}
                 className={`
-                  py-3 px-4 rounded-lg font-display text-lg transition-all
+                  py-3 px-4 rounded-lg font-display text-xl font-bold transition-all
                   ${expectedPlayers === num
                     ? 'bg-avalon-gold text-avalon-midnight ring-2 ring-avalon-gold ring-offset-2 ring-offset-avalon-navy'
                     : 'bg-avalon-midnight border border-avalon-silver/30 text-avalon-silver hover:border-avalon-gold/50'
@@ -115,17 +115,17 @@ export function CreateRoomModal({
 
         {/* Team Composition Summary */}
         <div className="p-4 bg-avalon-midnight/50 rounded-lg border border-avalon-silver/20">
-          <div className="flex justify-between items-center mb-2">
-            <h4 className="font-display text-avalon-gold text-sm">Team Composition</h4>
+          <div className="flex justify-between items-center mb-3">
+            <h4 className="font-display text-avalon-gold text-base font-bold">Team Composition</h4>
             <button
               type="button"
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="text-xs text-avalon-silver hover:text-avalon-gold transition-colors"
+              className="text-sm font-semibold text-avalon-silver hover:text-avalon-gold transition-colors"
             >
               {showAdvanced ? '▼ Hide Advanced' : '▶ Advanced Options'}
             </button>
           </div>
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-base font-bold">
             <span className="text-good-light">
               Good: {ROLE_RATIOS[expectedPlayers]?.good ?? 0}
             </span>
@@ -148,7 +148,7 @@ export function CreateRoomModal({
         {/* Advanced Role Configuration */}
         {showAdvanced && (
           <div className="border border-avalon-silver/20 rounded-lg p-4 bg-avalon-midnight/30">
-            <h4 className="font-display text-avalon-parchment text-sm mb-4">
+            <h4 className="font-display text-avalon-parchment text-lg font-bold mb-4">
               Configure Special Roles
             </h4>
             <RoleConfigPanel

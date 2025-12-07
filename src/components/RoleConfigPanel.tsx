@@ -58,9 +58,9 @@ export function RoleConfigPanel({
     <div className={`space-y-6 ${className}`}>
       {/* Good Team Roles */}
       <div>
-        <h4 className="font-display text-sm text-good-light mb-3 flex items-center gap-2">
+        <h4 className="font-display text-base font-bold text-good-light mb-3 flex items-center gap-2">
           ⚔️ Good Team Roles
-          <span className="text-xs text-avalon-silver/60">
+          <span className="text-sm font-medium text-avalon-silver/70">
             ({roleDetails.goodSpecialCount}/{roleDetails.goodCount} special)
           </span>
         </h4>
@@ -90,9 +90,9 @@ export function RoleConfigPanel({
 
       {/* Evil Team Roles */}
       <div>
-        <h4 className="font-display text-sm text-evil-light mb-3 flex items-center gap-2">
+        <h4 className="font-display text-base font-bold text-evil-light mb-3 flex items-center gap-2">
           🗡️ Evil Team Roles
-          <span className="text-xs text-avalon-silver/60">
+          <span className="text-sm font-medium text-avalon-silver/70">
             ({roleDetails.evilSpecialCount}/{roleDetails.evilCount} special)
           </span>
         </h4>
@@ -131,21 +131,21 @@ export function RoleConfigPanel({
           {/* T028: Oberon with mode toggle */}
           <div className="p-3 rounded-lg border border-avalon-silver/20 bg-avalon-midnight/30">
             <div className="flex items-start gap-3">
-              <span className="text-xl">{SPECIAL_ROLES.oberon_standard.emoji}</span>
+              <span className="text-2xl">{SPECIAL_ROLES.oberon_standard.emoji}</span>
               <div className="flex-1">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-avalon-parchment">Oberon</span>
+                  <span className="font-semibold text-base text-avalon-parchment">Oberon</span>
                   <select
                     value={config.oberon || ''}
                     onChange={(e) => handleOberonChange(e.target.value as OberonMode | '' || false)}
-                    className="text-xs bg-avalon-midnight border border-avalon-silver/30 rounded px-2 py-1 text-avalon-silver"
+                    className="text-sm font-medium bg-avalon-midnight border border-avalon-silver/30 rounded px-2 py-1.5 text-avalon-silver"
                   >
                     <option value="">Disabled</option>
                     <option value="standard">Standard (Visible to Merlin)</option>
                     <option value="chaos">Chaos (Hidden from Everyone)</option>
                   </select>
                 </div>
-                <p className="text-xs text-avalon-silver/60 mt-1">
+                <p className="text-sm text-avalon-silver/70 mt-1">
                   {config.oberon === 'chaos' 
                     ? SPECIAL_ROLES.oberon_chaos.description
                     : SPECIAL_ROLES.oberon_standard.description}
@@ -158,7 +158,7 @@ export function RoleConfigPanel({
 
       {/* Lady of the Lake */}
       <div>
-        <h4 className="font-display text-sm text-blue-300 mb-3 flex items-center gap-2">
+        <h4 className="font-display text-base font-bold text-blue-300 mb-3 flex items-center gap-2">
           🌊 Game Options
         </h4>
         
@@ -173,7 +173,7 @@ export function RoleConfigPanel({
         
         {/* T044: Warning for small games */}
         {config.ladyOfLake && expectedPlayers < LADY_OF_LAKE_MIN_RECOMMENDED && (
-          <p className="text-xs text-yellow-400 mt-2 flex items-center gap-1">
+          <p className="text-sm font-medium text-yellow-400 mt-2 flex items-center gap-1">
             ⚠️ Recommended for {LADY_OF_LAKE_MIN_RECOMMENDED}+ players
           </p>
         )}
@@ -182,8 +182,8 @@ export function RoleConfigPanel({
       {/* T029: Validation warnings */}
       {validation.warnings.length > 0 && (
         <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
-          <h5 className="text-sm font-medium text-yellow-400 mb-1">Suggestions</h5>
-          <ul className="text-xs text-yellow-300/80 space-y-1">
+          <h5 className="text-base font-bold text-yellow-400 mb-1">Suggestions</h5>
+          <ul className="text-sm text-yellow-300/80 space-y-1">
             {validation.warnings.map((warning, i) => (
               <li key={i}>• {warning}</li>
             ))}
@@ -194,8 +194,8 @@ export function RoleConfigPanel({
       {/* Validation errors */}
       {validation.errors.length > 0 && (
         <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
-          <h5 className="text-sm font-medium text-red-400 mb-1">Configuration Error</h5>
-          <ul className="text-xs text-red-300/80 space-y-1">
+          <h5 className="text-base font-bold text-red-400 mb-1">Configuration Error</h5>
+          <ul className="text-sm text-red-300/80 space-y-1">
             {validation.errors.map((error, i) => (
               <li key={i}>• {error}</li>
             ))}
@@ -236,10 +236,10 @@ function RoleToggle({
         }
       `}
     >
-      <span className="text-xl">{emoji}</span>
+      <span className="text-2xl">{emoji}</span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
-          <span className={`font-medium ${enabled ? 'text-avalon-gold' : 'text-avalon-parchment'}`}>
+          <span className={`font-semibold text-base ${enabled ? 'text-avalon-gold' : 'text-avalon-parchment'}`}>
             {label}
           </span>
           <input
@@ -250,16 +250,16 @@ function RoleToggle({
             className="sr-only"
           />
           <div className={`
-            w-8 h-5 rounded-full transition-colors
+            w-10 h-6 rounded-full transition-colors
             ${locked ? 'bg-avalon-silver/30' : enabled ? 'bg-avalon-gold' : 'bg-avalon-silver/30'}
           `}>
             <div className={`
-              w-4 h-4 rounded-full bg-white transition-transform mt-0.5
-              ${enabled ? 'translate-x-3.5' : 'translate-x-0.5'}
+              w-5 h-5 rounded-full bg-white transition-transform mt-0.5
+              ${enabled ? 'translate-x-4' : 'translate-x-0.5'}
             `} />
           </div>
         </div>
-        <p className="text-xs text-avalon-silver/60 mt-1">{description}</p>
+        <p className="text-sm text-avalon-silver/70 mt-1">{description}</p>
       </div>
     </label>
   );

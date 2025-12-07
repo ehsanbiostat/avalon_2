@@ -25,8 +25,8 @@ export function PlayerCard({ player, isCurrentPlayer = false }: PlayerCardProps)
       {/* Avatar placeholder */}
       <div
         className={`
-          w-10 h-10 rounded-full flex items-center justify-center
-          font-display text-lg
+          w-12 h-12 rounded-full flex items-center justify-center
+          font-display text-xl font-bold
           ${player.is_manager
             ? 'bg-avalon-gold text-avalon-midnight'
             : 'bg-avalon-navy text-avalon-silver'
@@ -41,7 +41,7 @@ export function PlayerCard({ player, isCurrentPlayer = false }: PlayerCardProps)
         <div className="flex items-center gap-2">
           <span
             className={`
-              font-medium truncate
+              font-semibold text-base truncate
               ${isCurrentPlayer ? 'text-avalon-gold' : 'text-avalon-parchment'}
             `}
           >
@@ -49,20 +49,20 @@ export function PlayerCard({ player, isCurrentPlayer = false }: PlayerCardProps)
           </span>
 
           {isCurrentPlayer && (
-            <span className="text-xs text-avalon-silver">(You)</span>
+            <span className="text-sm font-medium text-avalon-silver">(You)</span>
           )}
         </div>
 
         {/* Badges */}
         <div className="flex items-center gap-2 mt-0.5">
           {player.is_manager && (
-            <span className="badge badge-manager text-xs">
+            <span className="badge badge-manager text-sm font-semibold">
               👑 Manager
             </span>
           )}
 
           {!player.is_connected && (
-            <span className="badge bg-avalon-silver/20 text-avalon-silver text-xs">
+            <span className="badge bg-avalon-silver/20 text-avalon-silver text-sm font-medium">
               Disconnected
             </span>
           )}

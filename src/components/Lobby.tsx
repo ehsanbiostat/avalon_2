@@ -58,19 +58,19 @@ export function Lobby({
       {/* Room Header */}
       <div className="text-center space-y-4">
         <div>
-          <p className="text-avalon-silver text-sm uppercase tracking-wider">
+          <p className="text-avalon-silver text-base font-semibold uppercase tracking-wider">
             Room Code
           </p>
           <button
             onClick={handleCopyCode}
             className="group flex items-center justify-center gap-2 mx-auto mt-1"
           >
-            <span className="text-3xl font-mono font-bold text-avalon-gold tracking-widest">
+            <span className="text-4xl font-mono font-bold text-avalon-gold tracking-widest">
               {room.room.code}
             </span>
             <span
               className={`
-                text-sm transition-all
+                text-base font-medium transition-all
                 ${copied
                   ? 'text-good'
                   : 'text-avalon-silver/50 group-hover:text-avalon-gold'
@@ -103,14 +103,14 @@ export function Lobby({
           {/* Real-time Connection Status */}
           <span
             className={`
-              flex items-center gap-1 text-xs
+              flex items-center gap-1.5 text-sm font-semibold
               ${isConnected ? 'text-good' : 'text-avalon-silver/50'}
             `}
             title={isConnected ? 'Real-time sync active' : 'Reconnecting...'}
           >
             <span
               className={`
-                w-2 h-2 rounded-full
+                w-2.5 h-2.5 rounded-full
                 ${isConnected ? 'bg-good animate-pulse' : 'bg-avalon-silver/50'}
               `}
             />
@@ -148,14 +148,14 @@ export function Lobby({
       {room.room.status === 'roles_distributed' && room.confirmations && (
         <div className="card">
           <div className="text-center space-y-2">
-            <p className="text-avalon-silver text-sm">Role Confirmations</p>
-            <p className="text-2xl font-display text-avalon-gold">
+            <p className="text-avalon-silver text-base font-semibold">Role Confirmations</p>
+            <p className="text-3xl font-display font-bold text-avalon-gold">
               {room.confirmations.confirmed} / {room.confirmations.total}
             </p>
             {room.confirmations.confirmed === room.confirmations.total ? (
-              <p className="text-good text-sm">All players confirmed!</p>
+              <p className="text-good text-base font-semibold">All players confirmed!</p>
             ) : (
-              <p className="text-avalon-silver/70 text-sm">
+              <p className="text-avalon-silver/80 text-base font-medium">
                 Waiting for all players to confirm their roles...
               </p>
             )}
@@ -191,7 +191,7 @@ export function Lobby({
           )}
 
           {!isFull && room.room.status === 'waiting' && (
-            <p className="text-center text-avalon-silver/70 text-sm">
+            <p className="text-center text-avalon-silver/80 text-base font-medium">
               Waiting for {room.room.expected_players - room.players.length} more{' '}
               {room.room.expected_players - room.players.length === 1
                 ? 'player'
