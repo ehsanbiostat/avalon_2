@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
-import { getGameById, updateGame, updateLadyHolder, rotateLeader } from '@/lib/supabase/games';
+import { getGameById } from '@/lib/supabase/games';
 import { getPlayerRole } from '@/lib/supabase/roles';
 import { 
   createInvestigation, 
@@ -126,17 +126,49 @@ export async function POST(
       result,
     });
 
-    // Transfer Lady to target player
-    await updateLadyHolder(supabase, gameId, target_player_id);
+    // CRITICAL FIX: Use optimistic locking to prevent race condition
+    // Calculate new leader index and quest number
+    const nextLeaderIndex = (game.leader_index + 1) % game.seating_order.length;
+    const nextLeaderId = game.seating_order[nextLeaderIndex];
+    const nextQuest = game.current_quest + 1;
 
-    // Rotate leader for next quest
-    await rotateLeader(supabase, gameId);
+    // Single atomic update with optimistic lock
+    const { data: updateResult, error: updateError } = await supabase
+      .from('games')
+      .update({
+        phase: 'team_building',
+        current_quest: nextQuest,
+        leader_index: nextLeaderIndex,
+        current_leader_id: nextLeaderId,
+        lady_holder_id: target_player_id, // Transfer Lady to target
+      })
+      .eq('id', gameId)
+      .eq('phase', 'lady_of_lake') // Optimistic lock - only update if phase unchanged
+      .select()
+      .single();
+    
+    if (updateError || !updateResult) {
+      // Another request already processed this - still return investigation result
+      // but with current game state
+      const currentGame = await getGameById(supabase, gameId);
+      
+      // Get target player's nickname for response
+      const { data: targetData } = await supabase
+        .from('players')
+        .select('nickname')
+        .eq('id', target_player_id)
+        .single();
 
-    // Transition to team_building phase for NEXT quest (increment quest number)
-    await updateGame(supabase, gameId, {
-      phase: 'team_building',
-      current_quest: game.current_quest + 1,
-    });
+      const response: LadyInvestigateResponse = {
+        success: true,
+        result,
+        new_holder_id: target_player_id,
+        new_holder_nickname: targetData?.nickname || 'Unknown',
+        next_quest: currentGame?.current_quest || nextQuest,
+      };
+
+      return NextResponse.json({ data: response });
+    }
 
     // Get target player's nickname for response
     const { data: targetData } = await supabase
@@ -150,7 +182,7 @@ export async function POST(
       result,
       new_holder_id: target_player_id,
       new_holder_nickname: targetData?.nickname || 'Unknown',
-      next_quest: game.current_quest + 1,
+      next_quest: nextQuest,
     };
 
     return NextResponse.json({ data: response });

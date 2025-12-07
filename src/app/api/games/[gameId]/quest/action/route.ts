@@ -6,7 +6,7 @@
 import { NextResponse } from 'next/server';
 import { createServerClient, getPlayerIdFromRequest } from '@/lib/supabase/server';
 import { findPlayerByPlayerId } from '@/lib/supabase/players';
-import { getGameById, updateGame, addQuestResult, endGame, rotateLeader } from '@/lib/supabase/games';
+import { getGameById } from '@/lib/supabase/games';
 import { getActiveProposalForQuest } from '@/lib/supabase/proposals';
 import { getPlayerRole } from '@/lib/supabase/roles';
 import { submitQuestAction, getActionCount, calculateQuestResult } from '@/lib/supabase/quest-actions';
@@ -181,27 +181,53 @@ export async function POST(request: Request, { params }: RouteParams) {
       const hasMerlin = !!merlinCheck;
       const winCheck = checkWinConditions(updatedResults, 0, hasMerlin);
 
+      // CRITICAL FIX: Use optimistic locking to prevent race condition
+      // Multiple quest actions could arrive simultaneously
       if (winCheck.assassinPhase) {
         // Good won 3 quests but Assassin gets a chance to find Merlin
-        await updateGame(supabase, gameId, {
-          quest_results: updatedResults,
-          phase: 'assassin',
-        });
+        const { error: updateError } = await supabase
+          .from('games')
+          .update({
+            quest_results: updatedResults,
+            phase: 'assassin',
+          })
+          .eq('id', gameId)
+          .eq('phase', 'quest'); // Only update if still in quest phase
+        
+        if (updateError) {
+          console.log('Quest result already processed by another request');
+        }
       } else if (winCheck.gameOver) {
         // Game over!
-        await updateGame(supabase, gameId, {
-          quest_results: updatedResults,
-          phase: 'game_over',
-          winner: winCheck.winner,
-          win_reason: winCheck.reason,
-          ended_at: new Date().toISOString(),
-        });
+        const { error: updateError } = await supabase
+          .from('games')
+          .update({
+            quest_results: updatedResults,
+            phase: 'game_over',
+            winner: winCheck.winner,
+            win_reason: winCheck.reason,
+            ended_at: new Date().toISOString(),
+          })
+          .eq('id', gameId)
+          .eq('phase', 'quest'); // Only update if still in quest phase
+        
+        if (updateError) {
+          console.log('Quest result already processed by another request');
+        }
       } else {
         // Move to quest_result phase for display, then continue
-        await updateGame(supabase, gameId, {
-          quest_results: updatedResults,
-          phase: 'quest_result',
-        });
+        const { error: updateError } = await supabase
+          .from('games')
+          .update({
+            quest_results: updatedResults,
+            phase: 'quest_result',
+          })
+          .eq('id', gameId)
+          .eq('phase', 'quest'); // Only update if still in quest phase
+        
+        if (updateError) {
+          console.log('Quest result already processed by another request');
+        }
       }
     }
 

@@ -6,7 +6,7 @@
 import { NextResponse } from 'next/server';
 import { createServerClient, getPlayerIdFromRequest } from '@/lib/supabase/server';
 import { findPlayerByPlayerId } from '@/lib/supabase/players';
-import { getGameById, updateGame, rotateLeader } from '@/lib/supabase/games';
+import { getGameById } from '@/lib/supabase/games';
 import { getInvestigatedPlayerIds, getPreviousLadyHolderIds } from '@/lib/supabase/lady-investigations';
 import { isShowingResults, isTerminalPhase } from '@/lib/domain/game-state-machine';
 import { shouldTriggerLadyPhase } from '@/lib/domain/lady-of-lake';
@@ -76,6 +76,10 @@ export async function POST(request: Request, { params }: RouteParams) {
       );
     }
 
+    // CRITICAL FIX: Use optimistic locking to prevent race condition
+    // If multiple players press "Continue" simultaneously, only the first one should succeed
+    // We do this by atomically updating the phase only if it's still 'quest_result'
+    
     // Check if Lady phase should trigger (after Quest 2, 3, 4)
     // Only if migration 009 applied (lady_enabled exists and is true)
     let shouldGoToLadyPhase = false;
@@ -100,10 +104,25 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
 
     if (shouldGoToLadyPhase) {
-      // Move to Lady of the Lake phase
-      await updateGame(supabase, gameId, {
-        phase: 'lady_of_lake',
-      });
+      // ATOMIC UPDATE: Only update if phase is still 'quest_result'
+      const { data: updateResult, error: updateError } = await supabase
+        .from('games')
+        .update({ phase: 'lady_of_lake' })
+        .eq('id', gameId)
+        .eq('phase', 'quest_result') // Optimistic lock - only update if phase unchanged
+        .select()
+        .single();
+      
+      if (updateError || !updateResult) {
+        // Another request already processed this - return current state
+        const currentGame = await getGameById(supabase, gameId);
+        const response: ContinueGameResponse = {
+          phase: currentGame?.phase || 'team_building',
+          current_quest: currentGame?.current_quest || game.current_quest,
+          current_leader_id: currentGame?.current_leader_id || game.current_leader_id,
+        };
+        return NextResponse.json({ data: response });
+      }
 
       const response: ContinueGameResponse = {
         phase: 'lady_of_lake',
@@ -114,25 +133,42 @@ export async function POST(request: Request, { params }: RouteParams) {
       return NextResponse.json({ data: response });
     }
 
-    // Rotate leader for next quest
-    await rotateLeader(supabase, gameId);
+    // ATOMIC UPDATE: Only update if phase is still 'quest_result' (prevents double rotation)
+    // Calculate new leader index first (before any state changes)
+    const nextLeaderIndex = (game.leader_index + 1) % game.seating_order.length;
+    const nextLeaderId = game.seating_order[nextLeaderIndex];
+    const nextQuest = game.current_quest + 1;
 
-    // Get updated game
-    const updatedGame = await getGameById(supabase, gameId);
-    if (!updatedGame) {
-      throw new Error('Game disappeared after update');
+    // Single atomic update with optimistic lock
+    const { data: updateResult, error: updateError } = await supabase
+      .from('games')
+      .update({
+        phase: 'team_building',
+        current_quest: nextQuest,
+        leader_index: nextLeaderIndex,
+        current_leader_id: nextLeaderId,
+      })
+      .eq('id', gameId)
+      .eq('phase', 'quest_result') // Optimistic lock - only update if phase unchanged
+      .select()
+      .single();
+    
+    if (updateError || !updateResult) {
+      // Another request already processed this - return current state
+      const currentGame = await getGameById(supabase, gameId);
+      const response: ContinueGameResponse = {
+        phase: currentGame?.phase || 'team_building',
+        current_quest: currentGame?.current_quest || game.current_quest + 1,
+        current_leader_id: currentGame?.current_leader_id || nextLeaderId,
+      };
+      return NextResponse.json({ data: response });
     }
 
-    // Move to team_building for next quest
-    await updateGame(supabase, gameId, {
-      phase: 'team_building',
-      current_quest: game.current_quest + 1,
-    });
-
+    // Successfully updated - return new state
     const response: ContinueGameResponse = {
       phase: 'team_building',
-      current_quest: game.current_quest + 1,
-      current_leader_id: updatedGame.current_leader_id,
+      current_quest: nextQuest,
+      current_leader_id: nextLeaderId,
     };
 
     return NextResponse.json({ data: response });

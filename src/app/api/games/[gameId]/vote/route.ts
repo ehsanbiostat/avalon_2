@@ -6,7 +6,7 @@
 import { NextResponse } from 'next/server';
 import { createServerClient, getPlayerIdFromRequest } from '@/lib/supabase/server';
 import { findPlayerByPlayerId } from '@/lib/supabase/players';
-import { getGameById, updateGame, rotateLeader, endGame } from '@/lib/supabase/games';
+import { getGameById, endGame } from '@/lib/supabase/games';
 import { getCurrentProposal, resolveProposal } from '@/lib/supabase/proposals';
 import { submitVote, getVoteCount, calculateVoteTotals } from '@/lib/supabase/votes';
 import { logVotesRevealed } from '@/lib/supabase/game-events';
@@ -155,10 +155,20 @@ export async function POST(request: Request, { params }: RouteParams) {
 
       if (result.isApproved) {
         // Team approved - reset vote track and move to quest phase
-        await updateGame(supabase, gameId, {
-          phase: 'quest',
-          vote_track: 0,
-        });
+        // CRITICAL FIX: Use optimistic locking to prevent race condition
+        const { error: updateError } = await supabase
+          .from('games')
+          .update({
+            phase: 'quest',
+            vote_track: 0,
+          })
+          .eq('id', gameId)
+          .eq('phase', 'voting'); // Only update if still in voting phase
+        
+        // If update failed, another request already processed this - that's OK
+        if (updateError) {
+          console.log('Vote result already processed by another request');
+        }
       } else {
         // Team rejected
         const newVoteTrack = game.vote_track + 1;
@@ -167,12 +177,26 @@ export async function POST(request: Request, { params }: RouteParams) {
           // 5th rejection - Evil wins!
           await endGame(supabase, gameId, 'evil', '5_rejections');
         } else {
-          // Rotate leader and return to team building
-          await updateGame(supabase, gameId, {
-            phase: 'team_building',
-            vote_track: newVoteTrack,
-          });
-          await rotateLeader(supabase, gameId);
+          // CRITICAL FIX: Use optimistic locking to prevent race condition
+          // Calculate new leader index and update atomically
+          const nextLeaderIndex = (game.leader_index + 1) % game.seating_order.length;
+          const nextLeaderId = game.seating_order[nextLeaderIndex];
+          
+          const { error: updateError } = await supabase
+            .from('games')
+            .update({
+              phase: 'team_building',
+              vote_track: newVoteTrack,
+              leader_index: nextLeaderIndex,
+              current_leader_id: nextLeaderId,
+            })
+            .eq('id', gameId)
+            .eq('phase', 'voting'); // Only update if still in voting phase
+          
+          // If update failed, another request already processed this - that's OK
+          if (updateError) {
+            console.log('Vote result already processed by another request');
+          }
         }
       }
     }
