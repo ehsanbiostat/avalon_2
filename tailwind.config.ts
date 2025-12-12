@@ -52,8 +52,8 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ["Cinzel", "serif"],
-        body: ["Crimson Text", "serif"],
+        display: ["Inter", "sans-serif"],
+        body: ["Inter", "sans-serif"],
       },
       animation: {
         "fade-in": "fadeIn 0.5s ease-out",
