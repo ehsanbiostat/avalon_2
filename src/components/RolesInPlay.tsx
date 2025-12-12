@@ -85,22 +85,35 @@ export function RolesInPlay({
         )}
       </div>
 
-      {/* T035: Oberon mode indicator */}
-      {hasOberon && oberonMode && (
-        <div className="mt-3 pt-3 border-t border-avalon-dark-border">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            {oberonMode === 'chaos' ? (
-              <>
-                <span className="text-purple-400">👻</span>
-                <span className="text-purple-300 font-semibold">Chaos Mode: Oberon is hidden from everyone!</span>
-              </>
-            ) : (
-              <>
-                <span className="text-slate-400">👤</span>
-                <span className="text-slate-300 font-medium">Standard Mode: Oberon visible to Merlin</span>
-              </>
-            )}
-          </div>
+      {/* Game Mode Indicators */}
+      {(hasOberon || roleConfig?.merlin_decoy_enabled) && (
+        <div className="mt-3 pt-3 border-t border-avalon-dark-border space-y-2">
+          {/* T035: Oberon mode indicator */}
+          {hasOberon && oberonMode && (
+            <div className="flex items-center gap-2 text-sm font-medium">
+              {oberonMode === 'chaos' ? (
+                <>
+                  <span className="text-purple-400">👻</span>
+                  <span className="text-purple-300 font-semibold">Chaos Mode: Oberon is hidden from everyone!</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-slate-400">👤</span>
+                  <span className="text-slate-300 font-medium">Standard Mode: Oberon visible to Merlin</span>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Feature 009: Merlin Decoy indicator */}
+          {roleConfig?.merlin_decoy_enabled && (
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <span className="text-amber-400">🎭</span>
+              <span className="text-amber-300 font-semibold">
+                Merlin Decoy Mode: One good player appears evil to Merlin!
+              </span>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -119,8 +132,8 @@ function RoleBadge({ name, team, small }: RoleBadgeProps) {
   const emoji = roleInfo?.emoji || '❓';
   const actualTeam = team || roleInfo?.team || 'good';
 
-  const sizeClasses = small 
-    ? 'px-2.5 py-1 text-sm' 
+  const sizeClasses = small
+    ? 'px-2.5 py-1 text-sm'
     : 'px-3 py-1.5 text-base';
 
   return (
@@ -150,15 +163,14 @@ function normalizeRoleName(name: string): keyof typeof SPECIAL_ROLES {
     .toLowerCase()
     .replace(' (chaos)', '_chaos')
     .replace(/\s+/g, '_');
-  
+
   // Handle special cases for display name -> key mapping
   if (normalized === 'oberon') return 'oberon_standard';
   if (normalized === 'loyal_servant_of_arthur') return 'servant';
   if (normalized === 'loyal_servant') return 'servant';
   if (normalized === 'the_assassin') return 'assassin';
   if (normalized === 'minion_of_mordred') return 'minion';
-  
+
   // Cast to SpecialRole key after special case handling
   return normalized as keyof typeof SPECIAL_ROLES;
 }
-

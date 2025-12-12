@@ -1,7 +1,7 @@
 /**
  * Visibility Matrix Logic
  * Pure functions for determining what each role can see
- * 
+ *
  * Visibility Matrix:
  * -----------------
  * Merlin:          Sees all evil EXCEPT Mordred and Oberon (Chaos)
@@ -17,6 +17,7 @@
 
 import type { SpecialRole } from '@/types/database';
 import type { RoleConfig } from '@/types/role-config';
+import { shuffleArray } from './decoy-selection';
 
 /**
  * Role assignment for visibility calculations
@@ -36,20 +37,25 @@ export interface VisibilityResult {
   knownPlayersLabel: string;
   hiddenEvilCount: number;
   abilityNote?: string;
+  // Feature 009: Decoy-specific fields
+  hasDecoy?: boolean;
+  decoyWarning?: string;
 }
 
 /**
  * T012: Main visibility function - determines what a role can see
+ * Feature 009: Added optional decoyPlayerId for Merlin Decoy Mode
  */
 export function getVisibilityForRole(
   myPlayerId: string,
   mySpecialRole: SpecialRole,
   allAssignments: RoleAssignment[],
-  roleConfig: RoleConfig
+  roleConfig: RoleConfig,
+  decoyPlayerId?: string | null
 ): VisibilityResult {
   switch (mySpecialRole) {
     case 'merlin':
-      return getMerlinVisibility(allAssignments, roleConfig);
+      return getMerlinVisibility(allAssignments, roleConfig, decoyPlayerId);
     case 'percival':
       return getPercivalVisibility(allAssignments, roleConfig);
     case 'servant':
@@ -74,36 +80,79 @@ export function getVisibilityForRole(
 
 /**
  * T013: Merlin's visibility - sees evil except Mordred and Oberon Chaos
+ * Feature 009: Added optional decoyPlayerId for Merlin Decoy Mode
  */
 export function getMerlinVisibility(
   allAssignments: RoleAssignment[],
-  roleConfig: RoleConfig
+  roleConfig: RoleConfig,
+  decoyPlayerId?: string | null
 ): VisibilityResult {
   // Merlin sees evil players except Mordred and Oberon Chaos
-  const visibleEvil = allAssignments.filter(a => 
+  const visibleEvil = allAssignments.filter(a =>
     a.role === 'evil' &&
     a.specialRole !== 'mordred' &&
     a.specialRole !== 'oberon_chaos'
   );
 
   // Count hidden evil (Mordred + Oberon Chaos if present)
-  const hiddenCount = 
-    (roleConfig.mordred ? 1 : 0) + 
+  const hiddenCount =
+    (roleConfig.mordred ? 1 : 0) +
     (roleConfig.oberon === 'chaos' ? 1 : 0);
 
+  // Build the known players list
+  let knownPlayers = visibleEvil.map(a => ({ id: a.playerId, name: a.playerName }));
+
+  // Feature 009: Inject decoy if enabled
+  const hasDecoy = roleConfig.merlin_decoy_enabled && !!decoyPlayerId;
+  let decoyWarning: string | undefined;
+
+  if (hasDecoy) {
+    // Find the decoy player's name
+    const decoyPlayer = allAssignments.find(a => a.playerId === decoyPlayerId);
+    if (decoyPlayer) {
+      // T015: Add decoy to the list
+      knownPlayers.push({ id: decoyPlayer.playerId, name: decoyPlayer.playerName });
+      // T016: Shuffle to prevent position-based detection
+      knownPlayers = shuffleArray(knownPlayers);
+    }
+    // T013: Generate warning message
+    decoyWarning = generateDecoyWarning(hiddenCount);
+  }
+
+  // Base ability note for non-decoy mode
   let abilityNote: string | undefined;
-  if (hiddenCount === 1) {
-    abilityNote = 'One evil player is hidden from you!';
-  } else if (hiddenCount >= 2) {
-    abilityNote = `${hiddenCount} evil players are hidden from you!`;
+  if (!hasDecoy) {
+    if (hiddenCount === 1) {
+      abilityNote = 'One evil player is hidden from you!';
+    } else if (hiddenCount >= 2) {
+      abilityNote = `${hiddenCount} evil players are hidden from you!`;
+    }
   }
 
   return {
-    knownPlayers: visibleEvil.map(a => ({ id: a.playerId, name: a.playerName })),
+    knownPlayers,
     knownPlayersLabel: 'Evil Players Known to You',
     hiddenEvilCount: hiddenCount,
     abilityNote,
+    hasDecoy,
+    decoyWarning,
   };
+}
+
+/**
+ * T013: Generate warning message for Merlin with decoy mode
+ * Combines decoy warning with hidden evil count information
+ */
+export function generateDecoyWarning(hiddenCount: number): string {
+  const baseWarning = '⚠️ One of these players is actually good!';
+
+  if (hiddenCount === 0) {
+    return baseWarning;
+  } else if (hiddenCount === 1) {
+    return `${baseWarning} Also, 1 evil player is hidden from you.`;
+  } else {
+    return `${baseWarning} Also, ${hiddenCount} evil players are hidden from you.`;
+  }
 }
 
 /**
@@ -127,8 +176,8 @@ export function getPercivalVisibility(
 
   return {
     knownPlayers: merlinCandidates.map(a => ({ id: a.playerId, name: a.playerName })),
-    knownPlayersLabel: merlinCandidates.length > 1 
-      ? 'One of These is Merlin' 
+    knownPlayersLabel: merlinCandidates.length > 1
+      ? 'One of These is Merlin'
       : 'Merlin',
     hiddenEvilCount: 0,
     abilityNote,
@@ -220,7 +269,7 @@ export function getPlayersVisibleToMerlin(
   assignments: RoleAssignment[]
 ): Array<{ id: string; name: string }> {
   return assignments
-    .filter(a => 
+    .filter(a =>
       a.role === 'evil' &&
       a.specialRole !== 'mordred' &&
       a.specialRole !== 'oberon_chaos'
@@ -294,4 +343,3 @@ export function isVisibleToMerlin(specialRole: SpecialRole): boolean {
 export function appearsAsMerlinToPercival(specialRole: SpecialRole): boolean {
   return specialRole === 'merlin' || specialRole === 'morgana';
 }
-

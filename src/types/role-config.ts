@@ -26,12 +26,18 @@ export interface RoleConfig {
 
   // Game options
   ladyOfLake?: boolean;
+
+  // Feature 009: Merlin Decoy Mode
+  // When enabled, one random good player (not Merlin) appears evil to Merlin
+  merlin_decoy_enabled?: boolean;
 }
 
 /**
  * Default role configuration (MVP behavior)
  */
-export const DEFAULT_ROLE_CONFIG: RoleConfig = {};
+export const DEFAULT_ROLE_CONFIG: RoleConfig = {
+  merlin_decoy_enabled: false,
+};
 
 /**
  * Role configuration validation result
@@ -48,11 +54,11 @@ export interface RoleConfigValidation {
 export interface RoleConfigDetails extends RoleConfig {
   // Computed: list of all roles that will be in play
   rolesInPlay: string[];
-  
+
   // Computed: counts by team
   goodSpecialCount: number;  // Merlin + Percival (if enabled)
   evilSpecialCount: number;  // Assassin + Morgana + Mordred + Oberon
-  
+
   // Computed: total slots needed
   goodSlotsNeeded: number;
   evilSlotsNeeded: number;
@@ -94,18 +100,18 @@ export function isValidRoleConfig(config: unknown): config is RoleConfig {
   if (typeof config !== 'object' || config === null) {
     return false;
   }
-  
+
   const c = config as Record<string, unknown>;
-  
+
   // Check optional boolean fields
   if (c.percival !== undefined && typeof c.percival !== 'boolean') return false;
   if (c.morgana !== undefined && typeof c.morgana !== 'boolean') return false;
   if (c.mordred !== undefined && typeof c.mordred !== 'boolean') return false;
   if (c.ladyOfLake !== undefined && typeof c.ladyOfLake !== 'boolean') return false;
-  
+  if (c.merlin_decoy_enabled !== undefined && typeof c.merlin_decoy_enabled !== 'boolean') return false;
+
   // Check oberon mode
   if (c.oberon !== undefined && !isValidOberonMode(c.oberon)) return false;
-  
+
   return true;
 }
-

@@ -41,12 +41,12 @@ export function GameOver({
   currentPlayerId,
 }: GameOverProps) {
   const router = useRouter();
-  
+
   const isWinner = playerRole === winner;
   const score = countQuestResults(questResults);
   const announcement = getWinnerAnnouncement(winner, winReason as '3_quest_successes' | '3_quest_failures' | '5_rejections' | 'assassin_found_merlin');
   const reasonText = getWinReasonText(winReason as '3_quest_successes' | '3_quest_failures' | '5_rejections' | 'assassin_found_merlin');
-  
+
   // Get role display info
   const getRoleDisplay = (specialRole?: string, role?: 'good' | 'evil') => {
     if (specialRole && ROLE_DISPLAY[specialRole]) {
@@ -57,7 +57,7 @@ export function GameOver({
     }
     return ROLE_DISPLAY.servant;
   };
-  
+
   // Sort players: Good first, then Evil
   const sortedPlayers = [...players].sort((a, b) => {
     if (a.revealed_role === 'good' && b.revealed_role === 'evil') return -1;
@@ -80,19 +80,19 @@ export function GameOver({
         <div className="text-7xl mb-4 animate-bounce">
           {winner === 'good' ? '🏆' : '💀'}
         </div>
-        
+
         {/* Winner Text */}
         <h1
           className={`text-3xl font-bold mb-2 ${winner === 'good' ? 'text-emerald-400' : 'text-red-400'}`}
         >
           {winner === 'good' ? 'Good Wins!' : 'Evil Wins!'}
         </h1>
-        
+
         {/* Announcement */}
         <p className="text-xl text-avalon-silver/90 mb-3">
           {announcement}
         </p>
-        
+
         {/* Reason */}
         <p className="text-avalon-silver/70">
           {reasonText}
@@ -164,7 +164,7 @@ export function GameOver({
           <h3 className="text-lg font-bold text-avalon-silver text-center mb-4">
             🎭 Role Reveal
           </h3>
-          
+
           <div className="grid grid-cols-2 gap-3">
             {/* Good Team */}
             <div className="space-y-2">
@@ -182,6 +182,7 @@ export function GameOver({
                       className={`
                         flex items-center gap-2 p-2 rounded-lg bg-slate-800/50
                         ${isCurrentPlayer ? 'ring-2 ring-avalon-gold' : ''}
+                        ${player.was_decoy ? 'ring-1 ring-amber-400/50' : ''}
                       `}
                     >
                       <span className="text-xl">{roleDisplay.emoji}</span>
@@ -189,9 +190,19 @@ export function GameOver({
                         <div className={`font-medium truncate ${isCurrentPlayer ? 'text-avalon-gold' : 'text-slate-200'}`}>
                           {player.nickname}
                           {isCurrentPlayer && ' (You)'}
+                          {/* Feature 009: Decoy indicator */}
+                          {player.was_decoy && (
+                            <span className="ml-1 text-amber-400" title="This player appeared evil to Merlin">
+                              🎭
+                            </span>
+                          )}
                         </div>
-                        <div className={`text-xs ${roleDisplay.color}`}>
+                        <div className={`text-xs ${roleDisplay.color} flex items-center gap-1`}>
                           {roleDisplay.label}
+                          {/* Feature 009: Decoy label */}
+                          {player.was_decoy && (
+                            <span className="text-amber-400 font-medium">(Decoy)</span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -253,4 +264,3 @@ export function GameOver({
     </div>
   );
 }
-

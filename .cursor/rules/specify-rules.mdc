@@ -29,7 +29,6 @@ TypeScript 5.x, Node.js 20.x: Follow standard conventions
 - 008-center-game-messages: Added TypeScript 5.x with Next.js 14 (App Router) + React 18, Tailwind CSS 3.x, Next.js 14.2+
 - 007-realtime-team-selection: Added TypeScript 5.x, Node.js (via Next.js 14.2.21) + Next.js (App Router), React 18, Supabase JS Client, Tailwind CSS
 
-- 001-avalon-mvp-lobby: Added TypeScript 5.x, Node.js 20.x + Next.js 14+ (App Router), React 18+, Supabase JS Client v2, Tailwind CSS 3.x
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

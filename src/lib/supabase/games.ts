@@ -231,7 +231,7 @@ export async function updateLadyHolder(
 
 /**
  * Update the leader's draft team selection
- * 
+ *
  * @param client - Supabase client
  * @param gameId - Game identifier
  * @param playerIds - Array of player database IDs (0 to quest_size)
@@ -250,7 +250,7 @@ export async function updateDraftTeam(
 /**
  * Clear the draft team selection
  * Called when proposal is submitted or quest advances
- * 
+ *
  * @param client - Supabase client
  * @param gameId - Game identifier
  * @returns Updated game record
@@ -264,3 +264,41 @@ export async function clearDraftTeam(
   });
 }
 
+// ============================================
+// FEATURE 009: MERLIN DECOY MODE
+// ============================================
+
+/**
+ * Set the Merlin Decoy player for a game
+ * Called during role distribution if merlin_decoy_enabled is true
+ *
+ * @param client - Supabase client
+ * @param gameId - Game identifier
+ * @param playerId - Player ID selected as decoy (must be good player, not Merlin)
+ * @returns Updated game record
+ */
+export async function setMerlinDecoyPlayer(
+  client: SupabaseClient,
+  gameId: string,
+  playerId: string
+): Promise<Game> {
+  return updateGame(client, gameId, {
+    merlin_decoy_player_id: playerId,
+  });
+}
+
+/**
+ * Get the Merlin Decoy player ID for a game
+ * Returns null if decoy mode is disabled or not yet selected
+ *
+ * @param client - Supabase client
+ * @param gameId - Game identifier
+ * @returns Player ID or null
+ */
+export async function getMerlinDecoyPlayer(
+  client: SupabaseClient,
+  gameId: string
+): Promise<string | null> {
+  const game = await getGameById(client, gameId);
+  return game?.merlin_decoy_player_id ?? null;
+}

@@ -58,6 +58,8 @@ export interface Game {
   lady_holder_id: string | null;
   lady_enabled: boolean;
   draft_team: string[] | null;  // Feature 007: Leader's current draft team selection
+  // Feature 009: Merlin Decoy Mode
+  merlin_decoy_player_id: string | null;  // Good player appearing as evil to Merlin
   created_at: string;
   updated_at: string;
   ended_at: string | null;
@@ -78,6 +80,7 @@ export interface GameInsert {
   win_reason?: string | null;
   lady_holder_id?: string | null;
   lady_enabled?: boolean;
+  merlin_decoy_player_id?: string | null;  // Feature 009
   created_at?: string;
   updated_at?: string;
   ended_at?: string | null;
@@ -96,6 +99,7 @@ export interface GameUpdate {
   lady_holder_id?: string | null;
   lady_enabled?: boolean;
   draft_team?: string[] | null;  // Feature 007: Update draft team selection
+  merlin_decoy_player_id?: string | null;  // Feature 009
   ended_at?: string | null;
 }
 
@@ -254,6 +258,8 @@ export interface GamePlayer {
   // Only populated during game_over phase
   revealed_role?: 'good' | 'evil';
   revealed_special_role?: string;
+  // Feature 009: Merlin Decoy indicator (only shown at game_over)
+  was_decoy?: boolean;
 }
 
 /**
@@ -468,4 +474,3 @@ export interface GameScore {
   good: number;  // Successful quests
   evil: number;  // Failed quests
 }
-

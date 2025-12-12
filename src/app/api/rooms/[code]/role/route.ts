@@ -8,14 +8,17 @@ import { NextResponse } from 'next/server';
 import { createServerClient, getPlayerIdFromRequest } from '@/lib/supabase/server';
 import { findPlayerByPlayerId } from '@/lib/supabase/players';
 import { findRoomByCode, isPlayerInRoom } from '@/lib/supabase/rooms';
-import { 
-  getPlayerRole, 
+import {
+  getPlayerRole,
   getEvilTeammates,
   getPlayersVisibleToMerlin,
-  getPlayersVisibleToPercival 
+  getPlayersVisibleToPercival,
+  getRoleAssignments
 } from '@/lib/supabase/roles';
+import { getGameByRoomId } from '@/lib/supabase/games';
 import { getRoleInfo } from '@/lib/domain/roles';
-import { countHiddenEvilFromMerlin } from '@/lib/domain/visibility';
+import { countHiddenEvilFromMerlin, generateDecoyWarning, type RoleAssignment } from '@/lib/domain/visibility';
+import { shuffleArray } from '@/lib/domain/decoy-selection';
 import { validateRoomCode } from '@/lib/domain/validation';
 import { errors, handleError } from '@/lib/utils/errors';
 import type { RoleConfig } from '@/types/role-config';
@@ -94,17 +97,47 @@ export async function GET(request: Request, { params }: RouteParams) {
     let knownPlayersLabel: string | undefined;
     let hiddenEvilCount: number | undefined;
     let abilityNote: string | undefined;
+    // Feature 009: Merlin Decoy fields
+    let hasDecoy: boolean | undefined;
+    let decoyWarning: string | undefined;
 
     switch (playerRole.special_role) {
       // T064-T068: US8 - Merlin visibility with hidden count
-      case 'merlin':
+      // Feature 009: Updated for Merlin Decoy Mode
+      case 'merlin': {
         knownPlayers = await getPlayersVisibleToMerlin(supabase, room.id);
         knownPlayersLabel = 'The Evil Among You';
         hiddenEvilCount = countHiddenEvilFromMerlin(roleConfig);
-        if (hiddenEvilCount > 0) {
+
+        // Feature 009: Handle Merlin Decoy Mode
+        if (roleConfig.merlin_decoy_enabled) {
+          const game = await getGameByRoomId(supabase, room.id);
+          if (game?.merlin_decoy_player_id) {
+            // Get decoy player's nickname
+            const { data: decoyPlayer } = await supabase
+              .from('players')
+              .select('nickname')
+              .eq('id', game.merlin_decoy_player_id)
+              .single();
+
+            if (decoyPlayer) {
+              // Add decoy to known players list
+              knownPlayers = [...knownPlayers, decoyPlayer.nickname];
+              // Shuffle to prevent position-based detection
+              knownPlayers = shuffleArray(knownPlayers);
+              // Set decoy flags
+              hasDecoy = true;
+              decoyWarning = generateDecoyWarning(hiddenEvilCount || 0);
+            }
+          }
+        }
+
+        // Standard ability note (only if no decoy)
+        if (!hasDecoy && hiddenEvilCount && hiddenEvilCount > 0) {
           abilityNote = `${hiddenEvilCount} evil ${hiddenEvilCount === 1 ? 'player is' : 'players are'} hidden from you!`;
         }
         break;
+      }
 
       // T047-T051: US4 - Percival sees Merlin candidates
       case 'percival':
@@ -188,6 +221,9 @@ export async function GET(request: Request, { params }: RouteParams) {
         known_players_label: knownPlayersLabel,
         hidden_evil_count: hiddenEvilCount,
         ability_note: abilityNote,
+        // Feature 009: Merlin Decoy fields
+        has_decoy: hasDecoy,
+        decoy_warning: decoyWarning,
       },
     });
   } catch (error) {

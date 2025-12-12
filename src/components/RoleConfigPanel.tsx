@@ -64,7 +64,7 @@ export function RoleConfigPanel({
             ({roleDetails.goodSpecialCount}/{roleDetails.goodCount} special)
           </span>
         </h4>
-        
+
         <div className="space-y-2">
           {/* Merlin - Always included */}
           <RoleToggle
@@ -75,7 +75,7 @@ export function RoleConfigPanel({
             description={SPECIAL_ROLES.merlin.description}
             emoji={SPECIAL_ROLES.merlin.emoji}
           />
-          
+
           {/* Percival - Optional */}
           <RoleToggle
             role="percival"
@@ -96,7 +96,7 @@ export function RoleConfigPanel({
             ({roleDetails.evilSpecialCount}/{roleDetails.evilCount} special)
           </span>
         </h4>
-        
+
         <div className="space-y-2">
           {/* Assassin - Always included */}
           <RoleToggle
@@ -107,7 +107,7 @@ export function RoleConfigPanel({
             description={SPECIAL_ROLES.assassin.description}
             emoji={SPECIAL_ROLES.assassin.emoji}
           />
-          
+
           {/* Morgana - Optional */}
           <RoleToggle
             role="morgana"
@@ -117,7 +117,7 @@ export function RoleConfigPanel({
             description={SPECIAL_ROLES.morgana.description}
             emoji={SPECIAL_ROLES.morgana.emoji}
           />
-          
+
           {/* Mordred - Optional */}
           <RoleToggle
             role="mordred"
@@ -127,7 +127,7 @@ export function RoleConfigPanel({
             description={SPECIAL_ROLES.mordred.description}
             emoji={SPECIAL_ROLES.mordred.emoji}
           />
-          
+
           {/* T028: Oberon with mode toggle */}
           <div className="p-3 rounded-lg border border-avalon-silver/20 bg-avalon-midnight/30">
             <div className="flex items-start gap-3">
@@ -146,7 +146,7 @@ export function RoleConfigPanel({
                   </select>
                 </div>
                 <p className="text-sm text-avalon-silver/70 mt-1">
-                  {config.oberon === 'chaos' 
+                  {config.oberon === 'chaos'
                     ? SPECIAL_ROLES.oberon_chaos.description
                     : SPECIAL_ROLES.oberon_standard.description}
                 </p>
@@ -156,27 +156,40 @@ export function RoleConfigPanel({
         </div>
       </div>
 
-      {/* Lady of the Lake */}
+      {/* Game Options */}
       <div>
         <h4 className="font-display text-base font-bold text-blue-300 mb-3 flex items-center gap-2">
-          🌊 Game Options
+          🎮 Game Options
         </h4>
-        
-        <RoleToggle
-          role="ladyOfLake"
-          enabled={config.ladyOfLake || false}
-          onChange={(v) => handleToggle('ladyOfLake', v)}
-          label="Lady of the Lake"
-          description="Investigate player loyalties after Quest 2, 3, 4"
-          emoji="🌊"
-        />
-        
-        {/* T044: Warning for small games */}
-        {config.ladyOfLake && expectedPlayers < LADY_OF_LAKE_MIN_RECOMMENDED && (
-          <p className="text-sm font-medium text-yellow-400 mt-2 flex items-center gap-1">
-            ⚠️ Recommended for {LADY_OF_LAKE_MIN_RECOMMENDED}+ players
-          </p>
-        )}
+
+        <div className="space-y-2">
+          {/* Lady of the Lake */}
+          <RoleToggle
+            role="ladyOfLake"
+            enabled={config.ladyOfLake || false}
+            onChange={(v) => handleToggle('ladyOfLake', v)}
+            label="Lady of the Lake"
+            description="Investigate player loyalties after Quest 2, 3, 4"
+            emoji="🌊"
+          />
+
+          {/* T044: Warning for small games */}
+          {config.ladyOfLake && expectedPlayers < LADY_OF_LAKE_MIN_RECOMMENDED && (
+            <p className="text-sm font-medium text-yellow-400 mt-2 flex items-center gap-1">
+              ⚠️ Recommended for {LADY_OF_LAKE_MIN_RECOMMENDED}+ players
+            </p>
+          )}
+
+          {/* Feature 009: Merlin Decoy Mode */}
+          <RoleToggle
+            role="merlin_decoy"
+            enabled={config.merlin_decoy_enabled || false}
+            onChange={(v) => handleToggle('merlin_decoy_enabled', v)}
+            label="Merlin Decoy Mode"
+            description="One random good player appears evil to Merlin, creating uncertainty"
+            emoji="🎭"
+          />
+        </div>
       </div>
 
       {/* T029: Validation warnings */}
@@ -225,13 +238,13 @@ function RoleToggle({
   emoji,
 }: RoleToggleProps) {
   return (
-    <label 
+    <label
       className={`
         flex items-start gap-3 p-3 rounded-lg border transition-all
-        ${locked 
-          ? 'border-avalon-silver/10 bg-avalon-midnight/20 cursor-not-allowed opacity-70' 
-          : enabled 
-            ? 'border-avalon-gold/50 bg-avalon-gold/10 cursor-pointer' 
+        ${locked
+          ? 'border-avalon-silver/10 bg-avalon-midnight/20 cursor-not-allowed opacity-70'
+          : enabled
+            ? 'border-avalon-gold/50 bg-avalon-gold/10 cursor-pointer'
             : 'border-avalon-silver/20 bg-avalon-midnight/30 cursor-pointer hover:border-avalon-silver/40'
         }
       `}
@@ -264,4 +277,3 @@ function RoleToggle({
     </label>
   );
 }
-

@@ -4,15 +4,15 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 
 // Special role type (Phase 2: includes oberon variants)
-type SpecialRole = 
-  | 'merlin' 
-  | 'percival' 
-  | 'servant' 
-  | 'assassin' 
-  | 'morgana' 
-  | 'mordred' 
-  | 'oberon_standard' 
-  | 'oberon_chaos' 
+type SpecialRole =
+  | 'merlin'
+  | 'percival'
+  | 'servant'
+  | 'assassin'
+  | 'morgana'
+  | 'mordred'
+  | 'oberon_standard'
+  | 'oberon_chaos'
   | 'minion';
 
 interface RoleRevealModalProps {
@@ -28,6 +28,9 @@ interface RoleRevealModalProps {
   hasLadyOfLake?: boolean;
   isConfirmed: boolean;
   onConfirm: () => Promise<void>;
+  // Feature 009: Merlin Decoy Mode
+  hasDecoy?: boolean;
+  decoyWarning?: string;
 }
 
 // Role-specific icons (Phase 2: added oberon variants)
@@ -60,6 +63,8 @@ export function RoleRevealModal({
   hasLadyOfLake,
   isConfirmed,
   onConfirm,
+  hasDecoy,
+  decoyWarning,
 }: RoleRevealModalProps) {
   const isEvil = role === 'evil';
   const icon = specialRole ? ROLE_ICONS[specialRole] : (isEvil ? '🗡️' : '🛡️');
@@ -102,8 +107,8 @@ export function RoleRevealModal({
             <span
               className={`
                 px-3 py-1 rounded-full text-xs uppercase tracking-wider font-bold
-                ${isEvil 
-                  ? 'bg-evil/30 text-evil-light border border-evil/50' 
+                ${isEvil
+                  ? 'bg-evil/30 text-evil-light border border-evil/50'
                   : 'bg-good/30 text-good-light border border-good/50'
                 }
               `}
@@ -125,7 +130,7 @@ export function RoleRevealModal({
 
         {/* Known Players Section (for Merlin, Percival, Evil) */}
         {knownPlayers && knownPlayers.length > 0 && knownPlayersLabel && (
-          <div 
+          <div
             className={`
               p-4 rounded-lg border
               ${specialRole === 'merlin' || specialRole === 'percival'
@@ -134,11 +139,11 @@ export function RoleRevealModal({
               }
             `}
           >
-            <h3 
+            <h3
               className={`
                 font-display text-sm uppercase tracking-wider mb-3
-                ${specialRole === 'merlin' 
-                  ? 'text-evil-light' 
+                ${specialRole === 'merlin'
+                  ? 'text-evil-light'
                   : specialRole === 'percival'
                     ? 'text-good-light'
                     : 'text-evil-light'
@@ -179,8 +184,21 @@ export function RoleRevealModal({
           </div>
         )}
 
-        {/* Hidden Evil Warning (for Merlin) */}
-        {specialRole === 'merlin' && hiddenEvilCount && hiddenEvilCount > 0 && (
+        {/* Feature 009: Merlin Decoy Warning */}
+        {specialRole === 'merlin' && hasDecoy && decoyWarning && (
+          <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/40 text-center">
+            <span className="text-2xl mb-2 block">🎭</span>
+            <p className="text-amber-300 text-sm font-medium">
+              {decoyWarning}
+            </p>
+            <p className="text-amber-300/60 text-xs mt-2">
+              One player in the list above is actually on your side!
+            </p>
+          </div>
+        )}
+
+        {/* Hidden Evil Warning (for Merlin without decoy mode) */}
+        {specialRole === 'merlin' && !hasDecoy && hiddenEvilCount && hiddenEvilCount > 0 && (
           <div className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/30 text-center">
             <p className="text-yellow-300 text-sm">
               ⚠️ <strong>{hiddenEvilCount} evil {hiddenEvilCount === 1 ? 'player is' : 'players are'} hidden from you!</strong>

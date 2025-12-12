@@ -126,7 +126,7 @@ export function getRolesForConfig(
   // Build good team roles
   const goodRoles: SpecialRole[] = ['merlin']; // Always included
   if (config.percival) goodRoles.push('percival');
-  
+
   // Fill remaining good slots with servants
   while (goodRoles.length < ratio.good) {
     goodRoles.push('servant');
@@ -138,7 +138,7 @@ export function getRolesForConfig(
   if (config.mordred) evilRoles.push('mordred');
   if (config.oberon === 'standard') evilRoles.push('oberon_standard');
   if (config.oberon === 'chaos') evilRoles.push('oberon_chaos');
-  
+
   // Fill remaining evil slots with minions
   while (evilRoles.length < ratio.evil) {
     evilRoles.push('minion');
@@ -189,7 +189,7 @@ export function getRoleDetails(
 
   // Count special roles
   const goodSpecialCount = 1 + (config.percival ? 1 : 0); // Merlin + optional Percival
-  const evilSpecialCount = 
+  const evilSpecialCount =
     1 + // Assassin
     (config.morgana ? 1 : 0) +
     (config.mordred ? 1 : 0) +
@@ -221,7 +221,8 @@ export function isDefaultConfig(config: RoleConfig): boolean {
     !config.morgana &&
     !config.mordred &&
     !config.oberon &&
-    !config.ladyOfLake
+    !config.ladyOfLake &&
+    !config.merlin_decoy_enabled
   );
 }
 
@@ -255,4 +256,3 @@ export function designateLadyOfLakeHolder(
 export function getSpecialRoleInfo(role: SpecialRole) {
   return SPECIAL_ROLES[role];
 }
-

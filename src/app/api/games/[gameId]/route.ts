@@ -192,6 +192,8 @@ export async function GET(request: Request, { params }: RouteParams) {
         // Reveal roles only at game_over
         revealed_role: game.phase === 'game_over' ? (roleInfo?.role as 'good' | 'evil') : undefined,
         revealed_special_role: game.phase === 'game_over' ? roleInfo?.special_role ?? undefined : undefined,
+        // Feature 009: Merlin Decoy indicator (only at game_over)
+        was_decoy: game.phase === 'game_over' && game.merlin_decoy_player_id === pid ? true : undefined,
       };
     });
 

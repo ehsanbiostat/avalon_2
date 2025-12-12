@@ -270,3 +270,23 @@ export async function rolesDistributed(
 
   return (count ?? 0) > 0;
 }
+
+/**
+ * Feature 009: Get all role assignments for a room
+ * Used for decoy selection after role distribution
+ */
+export async function getRoleAssignments(
+  client: SupabaseClient,
+  roomId: string
+): Promise<PlayerRole[]> {
+  const { data, error } = await client
+    .from('player_roles')
+    .select('*')
+    .eq('room_id', roomId);
+
+  if (error) {
+    throw error;
+  }
+
+  return (data || []) as PlayerRole[];
+}
