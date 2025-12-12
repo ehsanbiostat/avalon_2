@@ -16,10 +16,10 @@ const ROLE_DISPLAY: Record<string, { emoji: string; label: string; color: string
   percival: { emoji: '🛡️', label: 'Percival', color: 'text-sky-400' },
   servant: { emoji: '⚔️', label: 'Loyal Servant', color: 'text-emerald-400' },
   assassin: { emoji: '🗡️', label: 'Assassin', color: 'text-red-400' },
-  morgana: { emoji: '🦹‍♀️', label: 'Morgana', color: 'text-purple-400' },
-  mordred: { emoji: '👿', label: 'Mordred', color: 'text-red-500' },
+  morgana: { emoji: '🧙‍♀️', label: 'Morgana', color: 'text-purple-400' },
+  mordred: { emoji: '🐍', label: 'Mordred', color: 'text-red-500' },
   oberon_standard: { emoji: '👤', label: 'Oberon', color: 'text-gray-400' },
-  oberon_chaos: { emoji: '🎭', label: 'Oberon (Chaos)', color: 'text-gray-500' },
+  oberon_chaos: { emoji: '👻', label: 'Oberon (Chaos)', color: 'text-gray-500' },
   minion: { emoji: '😈', label: 'Minion of Mordred', color: 'text-red-300' },
 };
 
@@ -162,7 +162,7 @@ export function GameOver({
       {players.length > 0 && players[0].revealed_role && (
         <div className="w-full max-w-2xl bg-avalon-dark-blue/50 rounded-xl p-6 border border-avalon-silver/20">
           <h3 className="text-lg font-bold text-avalon-silver text-center mb-4">
-            🎭 Role Reveal
+            📜 Role Reveal
           </h3>
 
           <div className="grid grid-cols-2 gap-3">
@@ -193,7 +193,7 @@ export function GameOver({
                           {/* Feature 009: Decoy indicator */}
                           {player.was_decoy && (
                             <span className="ml-1 text-amber-400" title="This player appeared evil to Merlin">
-                              🎭
+                              🃏
                             </span>
                           )}
                         </div>

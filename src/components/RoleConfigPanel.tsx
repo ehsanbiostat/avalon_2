@@ -187,7 +187,7 @@ export function RoleConfigPanel({
             onChange={(v) => handleToggle('merlin_decoy_enabled', v)}
             label="Merlin Decoy Mode"
             description="One random good player appears evil to Merlin, creating uncertainty"
-            emoji="🎭"
+            emoji="🃏"
           />
         </div>
       </div>

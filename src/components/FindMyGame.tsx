@@ -171,7 +171,7 @@ export function FindMyGame() {
 
           {result.game.is_manager && (
             <div className="flex items-center gap-2 text-sm text-yellow-400">
-              <span>👑</span>
+              <span>🏠</span>
               <span>You are the room manager</span>
             </div>
           )}

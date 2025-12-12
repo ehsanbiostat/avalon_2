@@ -33,7 +33,7 @@ export function RoomCard({ room, onJoin, isJoining = false }: RoomCardProps) {
 
           <div className="flex items-center gap-4 text-sm text-avalon-silver">
             <span className="flex items-center gap-1">
-              <span>👑</span>
+              <span>🏠</span>
               <span className="truncate">{room.manager_nickname}</span>
             </span>
             <span className="flex items-center gap-1">

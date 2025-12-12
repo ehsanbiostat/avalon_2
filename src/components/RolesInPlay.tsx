@@ -55,7 +55,7 @@ export function RolesInPlay({
     <div className={`p-4 bg-avalon-navy rounded-lg border border-avalon-dark-border ${className}`}>
       {showTitle && (
         <h4 className="font-display text-avalon-gold text-base font-bold mb-3">
-          🎭 Roles in This Game
+          🎲 Roles in This Game
         </h4>
       )}
 
@@ -108,7 +108,7 @@ export function RolesInPlay({
           {/* Feature 009: Merlin Decoy indicator */}
           {roleConfig?.merlin_decoy_enabled && (
             <div className="flex items-center gap-2 text-sm font-medium">
-              <span className="text-amber-400">🎭</span>
+              <span className="text-amber-400">🃏</span>
               <span className="text-amber-300 font-semibold">
                 Merlin Decoy Mode: One good player appears evil to Merlin!
               </span>

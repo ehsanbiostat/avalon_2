@@ -57,7 +57,7 @@ export function PlayerCard({ player, isCurrentPlayer = false }: PlayerCardProps)
         <div className="flex items-center gap-2 mt-0.5">
           {player.is_manager && (
             <span className="badge badge-manager text-sm font-semibold">
-              👑 Manager
+              🏠 Manager
             </span>
           )}
 

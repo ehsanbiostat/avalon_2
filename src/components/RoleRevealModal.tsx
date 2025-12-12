@@ -36,14 +36,14 @@ interface RoleRevealModalProps {
 // Role-specific icons (Phase 2: added oberon variants)
 const ROLE_ICONS: Record<SpecialRole, string> = {
   merlin: '🧙',
-  percival: '⚔️',
-  servant: '🛡️',
+  percival: '🛡️',
+  servant: '⚔️',
   assassin: '🗡️',
-  morgana: '🔮',
-  mordred: '👑',
+  morgana: '🧙‍♀️',
+  mordred: '🐍',
   oberon_standard: '👤',
   oberon_chaos: '👻',
-  minion: '⚫',
+  minion: '😈',
 };
 
 /**
@@ -187,7 +187,7 @@ export function RoleRevealModal({
         {/* Feature 009: Merlin Decoy Warning */}
         {specialRole === 'merlin' && hasDecoy && decoyWarning && (
           <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/40 text-center">
-            <span className="text-2xl mb-2 block">🎭</span>
+            <span className="text-2xl mb-2 block">🃏</span>
             <p className="text-amber-300 text-sm font-medium">
               {decoyWarning}
             </p>
@@ -226,12 +226,12 @@ export function RoleRevealModal({
               </>
             ) : specialRole === 'morgana' ? (
               <>
-                🔮 <strong>Deceive Percival!</strong> Appear as Merlin to confuse
+                🧙‍♀️ <strong>Deceive Percival!</strong> Appear as Merlin to confuse
                 the good team. Sow chaos and sabotage!
               </>
             ) : specialRole === 'mordred' ? (
               <>
-                👑 <strong>Hidden from Merlin!</strong> Even the wizard cannot
+                🐍 <strong>Hidden from Merlin!</strong> Even the wizard cannot
                 see your evil nature. Lead from the shadows!
               </>
             ) : specialRole === 'oberon_standard' ? (
