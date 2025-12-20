@@ -35,6 +35,9 @@ export default function RoomPage() {
     known_players_label?: string;
     hidden_evil_count?: number;
     ability_note?: string;
+    // Feature 009: Merlin Decoy Mode
+    has_decoy?: boolean;
+    decoy_warning?: string;
   } | null>(null);
   const [roleError, setRoleError] = useState<string | null>(null);
 
@@ -288,6 +291,8 @@ export default function RoomPage() {
             hasLadyOfLake={roleData.has_lady_of_lake}
             isConfirmed={roleData.is_confirmed}
             onConfirm={handleConfirmRole}
+            hasDecoy={roleData.has_decoy}
+            decoyWarning={roleData.decoy_warning}
           />
         )}
 

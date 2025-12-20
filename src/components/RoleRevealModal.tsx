@@ -209,7 +209,7 @@ export function RoleRevealModal({
         )}
 
         {/* Hidden Evil Warning (for Merlin without decoy mode) */}
-        {specialRole === 'merlin' && !hasDecoy && hiddenEvilCount && hiddenEvilCount > 0 && (
+        {specialRole === 'merlin' && !hasDecoy && hiddenEvilCount !== undefined && hiddenEvilCount > 0 && (
           <div className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/30 text-center">
             <p className="text-yellow-300 text-sm">
               ⚠️ <strong>{hiddenEvilCount} evil {hiddenEvilCount === 1 ? 'player is' : 'players are'} hidden from you!</strong>
