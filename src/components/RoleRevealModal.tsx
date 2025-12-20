@@ -184,32 +184,17 @@ export function RoleRevealModal({
           </div>
         )}
 
-        {/* Feature 009: Merlin Decoy Warning - Prominent display */}
+        {/* Feature 009: Merlin Decoy Warning */}
         {specialRole === 'merlin' && hasDecoy && (
-          <div className="p-4 bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded-xl border-2 border-amber-400/50 text-center shadow-lg">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <span className="text-2xl">🃏</span>
-              <span className="text-lg font-bold text-amber-300">Decoy Mode Active</span>
-              <span className="text-2xl">🃏</span>
-            </div>
-            <p className="text-amber-200 font-semibold text-base mb-2">
-              ⚠️ One of the players shown is actually <span className="text-green-400">GOOD</span>!
+          <div className="p-3 bg-amber-500/10 rounded-lg border border-amber-500/30 text-center">
+            <p className="text-amber-300 text-sm">
+              🃏 <strong>1 good player is hidden among the suspects!</strong>
             </p>
-            <p className="text-amber-300/80 text-sm">
-              Not everyone in that list is evil. One good player has been added as a decoy.
-              <br />
-              Use your judgment carefully — trust no one completely!
-            </p>
-            {decoyWarning && decoyWarning.includes('hidden') && (
-              <p className="text-yellow-300/70 text-xs mt-2 italic">
-                {decoyWarning.split('Also, ')[1]}
-              </p>
-            )}
           </div>
         )}
 
-        {/* Hidden Evil Warning (for Merlin without decoy mode) */}
-        {specialRole === 'merlin' && !hasDecoy && hiddenEvilCount !== undefined && hiddenEvilCount > 0 && (
+        {/* Hidden Evil Warning (for Merlin) */}
+        {specialRole === 'merlin' && hiddenEvilCount !== undefined && hiddenEvilCount > 0 && (
           <div className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/30 text-center">
             <p className="text-yellow-300 text-sm">
               ⚠️ <strong>{hiddenEvilCount} evil {hiddenEvilCount === 1 ? 'player is' : 'players are'} hidden from you!</strong>
