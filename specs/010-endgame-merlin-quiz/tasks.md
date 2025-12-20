@@ -142,7 +142,7 @@
 - [x] T025 [P] Add mobile responsive styles to MerlinQuiz and MerlinQuizResults components
 - [x] T026 Handle edge case: single player connected at game end (auto-complete after their vote/skip)
 - [x] T027 Handle edge case: player reconnects during quiz (allow them to vote if not already voted)
-- [ ] T028 Run full integration test: Game with Merlin ends → Quiz appears → All vote → Results show → Role reveal displays
+- [x] T028 Run full integration test: Game with Merlin ends → Quiz appears → All vote → Results show → Role reveal displays
 
 **Checkpoint**: Feature complete and polished
 
