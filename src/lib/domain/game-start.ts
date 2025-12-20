@@ -5,7 +5,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Game, GameInsert } from '@/types/game';
-import { createGame, gameExistsForRoom } from '@/lib/supabase/games';
+import { createGame, gameExistsForRoom, setMerlinDecoyPlayer } from '@/lib/supabase/games';
 import { logGameStarted } from '@/lib/supabase/game-events';
 import { updateRoomStatus } from '@/lib/supabase/rooms';
 import { initializeSeating } from './seating';
@@ -68,7 +68,7 @@ export async function initializeGame(
   try {
     const { data: roomData } = await client
       .from('rooms')
-      .select('lady_of_lake_enabled, lady_of_lake_holder_id')
+      .select('lady_of_lake_enabled, lady_of_lake_holder_id, role_config')
       .eq('id', roomId)
       .single();
     
@@ -81,9 +81,18 @@ export async function initializeGame(
         })
         .eq('id', game.id);
     }
-  } catch {
+
+    // Feature 009: Copy Merlin Decoy player ID from role_config to game
+    const roleConfig = roomData?.role_config as Record<string, unknown> || {};
+    if (roleConfig.merlin_decoy_enabled && roleConfig._merlin_decoy_player_id) {
+      // Copy the decoy player ID that was selected during distribution
+      const decoyPlayerId = roleConfig._merlin_decoy_player_id as string;
+      await setMerlinDecoyPlayer(client, game.id, decoyPlayerId);
+      console.log(`Merlin Decoy copied to game: ${decoyPlayerId}`);
+    }
+  } catch (error) {
     // Migration 009 not applied yet - Lady of the Lake features disabled
-    console.log('Lady of the Lake columns not available - skipping');
+    console.log('Lady of the Lake or Merlin Decoy columns not available - skipping', error);
   }
   
   // Update room status to 'started'

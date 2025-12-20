@@ -111,13 +111,28 @@ export async function GET(request: Request, { params }: RouteParams) {
 
         // Feature 009: Handle Merlin Decoy Mode
         if (roleConfig.merlin_decoy_enabled) {
-          const game = await getGameByRoomId(supabase, room.id);
-          if (game?.merlin_decoy_player_id) {
+          // Check for decoy player ID - first from role_config (pre-game), then from game
+          // The decoy ID is stored in role_config during distribution (before game exists)
+          // and copied to the game when the game starts
+          let decoyPlayerId: string | null = null;
+          
+          // Try role_config first (works before game is created)
+          if ((roleConfig as Record<string, unknown>)._merlin_decoy_player_id) {
+            decoyPlayerId = (roleConfig as Record<string, unknown>)._merlin_decoy_player_id as string;
+          } else {
+            // Fall back to game (for after game is created)
+            const game = await getGameByRoomId(supabase, room.id);
+            if (game?.merlin_decoy_player_id) {
+              decoyPlayerId = game.merlin_decoy_player_id;
+            }
+          }
+          
+          if (decoyPlayerId) {
             // Get decoy player's nickname
             const { data: decoyPlayer } = await supabase
               .from('players')
               .select('nickname')
-              .eq('id', game.merlin_decoy_player_id)
+              .eq('id', decoyPlayerId)
               .single();
 
             if (decoyPlayer) {

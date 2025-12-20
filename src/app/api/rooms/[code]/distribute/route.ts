@@ -9,7 +9,6 @@ import { createServerClient, getPlayerIdFromRequest } from '@/lib/supabase/serve
 import { findPlayerByPlayerId } from '@/lib/supabase/players';
 import { findRoomByCode, getRoomPlayerCount, updateRoomStatus, updateLadyOfLakeHolder } from '@/lib/supabase/rooms';
 import { insertRoleAssignments, rolesDistributed, setLadyOfLakeForPlayer, getRoleAssignments } from '@/lib/supabase/roles';
-import { getGameByRoomId, setMerlinDecoyPlayer } from '@/lib/supabase/games';
 import { distributeRoles, getRoleRatio } from '@/lib/domain/roles';
 import { computeRolesInPlay, designateLadyOfLakeHolder } from '@/lib/domain/role-config';
 import { selectDecoyPlayer } from '@/lib/domain/decoy-selection';
@@ -115,24 +114,25 @@ export async function POST(request: Request, { params }: RouteParams) {
       await setLadyOfLakeForPlayer(supabase, room.id, ladyOfLakeHolderId, true);
     }
 
-    // Feature 009: Handle Merlin Decoy selection
-    let merlinDecoyPlayerId: string | null = null;
+    // Feature 009: Handle Merlin Decoy selection during distribution
+    // We store the decoy player ID in role_config so the /role API can use it
+    // (since the game doesn't exist yet until all players confirm)
     if (roleConfig.merlin_decoy_enabled) {
       // Get role assignments for decoy selection
-      const roleAssignments = await getRoleAssignments(supabase, room.id);
+      const roleAssignmentsData = await getRoleAssignments(supabase, room.id);
 
       // Get player nicknames for the role assignments
       const { data: playerData } = await supabase
         .from('players')
         .select('id, nickname')
-        .in('id', roleAssignments.map(a => a.player_id));
+        .in('id', roleAssignmentsData.map(a => a.player_id));
 
       const nicknameMap = new Map(
         (playerData || []).map((p: { id: string; nickname: string }) => [p.id, p.nickname])
       );
 
       // Convert to RoleAssignment format for decoy selection
-      const visibilityAssignments: RoleAssignment[] = roleAssignments.map(a => ({
+      const visibilityAssignments: RoleAssignment[] = roleAssignmentsData.map(a => ({
         playerId: a.player_id,
         playerName: nicknameMap.get(a.player_id) || 'Unknown',
         role: a.role as 'good' | 'evil',
@@ -141,13 +141,18 @@ export async function POST(request: Request, { params }: RouteParams) {
 
       // Select decoy player
       const decoyResult = selectDecoyPlayer(visibilityAssignments);
-      merlinDecoyPlayerId = decoyResult.playerId;
 
-      // Update game with decoy player
-      const game = await getGameByRoomId(supabase, room.id);
-      if (game) {
-        await setMerlinDecoyPlayer(supabase, game.id, merlinDecoyPlayerId);
-      }
+      // Store decoy player ID in role_config for the /role API to use
+      // (we'll also copy it to the game when game starts)
+      const updatedRoleConfig = {
+        ...roleConfig,
+        _merlin_decoy_player_id: decoyResult.playerId,
+      };
+
+      await supabase
+        .from('rooms')
+        .update({ role_config: updatedRoleConfig })
+        .eq('id', room.id);
     }
 
     // Update room status
