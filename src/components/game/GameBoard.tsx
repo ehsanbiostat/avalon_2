@@ -147,17 +147,23 @@ export function GameBoard({ gameId }: GameBoardProps) {
   const isLeader = currentPlayer?.is_leader || false;
   const ladyHolderId = lady_of_lake?.holder_id || game.lady_holder_id || null;
 
-  // Game Over
+  // Game Over - Feature 010: Check if Merlin was in game for quiz
+  // Merlin exists if any player has revealed_special_role === 'merlin'
+  const hasMerlin = players.some(p => p.revealed_special_role === 'merlin');
+
   if (game.phase === 'game_over' && game.winner) {
     return (
       <div className="max-w-2xl mx-auto">
         <GameOver
+          gameId={gameId}
           winner={game.winner}
           winReason={game.win_reason || ''}
           questResults={game.quest_results}
           playerRole={playerRole}
           players={players}
           currentPlayerId={currentPlayerId ?? undefined}
+          currentPlayerDbId={currentPlayerId ?? undefined}
+          hasMerlin={hasMerlin}
         />
       </div>
     );

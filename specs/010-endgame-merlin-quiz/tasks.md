@@ -31,9 +31,9 @@
 
 **Purpose**: Verify prerequisites and prepare for implementation
 
-- [ ] T001 Verify branch `010-endgame-merlin-quiz` is checked out and up to date with main
-- [ ] T002 Verify Supabase local/remote is accessible and migrations 001-012 are applied
-- [ ] T003 [P] Review existing `src/components/game/GameOver.tsx` to understand current game over flow
+- [x] T001 Verify branch `010-endgame-merlin-quiz` is checked out and up to date with main
+- [x] T002 Verify Supabase local/remote is accessible and migrations 001-012 are applied
+- [x] T003 [P] Review existing `src/components/game/GameOver.tsx` to understand current game over flow
 
 ---
 
@@ -43,10 +43,10 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Create database migration `supabase/migrations/013_merlin_quiz.sql` with merlin_quiz_votes table, indexes, RLS policies, and realtime subscription (see data-model.md)
-- [ ] T005 Run migration on Supabase (local or remote)
-- [ ] T006 [P] Add Merlin Quiz TypeScript types to `src/types/game.ts`: MerlinQuizVote, MerlinQuizVoteInsert, MerlinQuizState, MerlinQuizResults, MerlinQuizResultEntry, MerlinQuizVoteRequest, MerlinQuizVoteResponse
-- [ ] T007 [P] Create database operations module `src/lib/supabase/merlin-quiz.ts` with: submitQuizVote(), getQuizVotes(), getQuizVoteCount(), getPlayerQuizVote()
+- [x] T004 Create database migration `supabase/migrations/013_merlin_quiz.sql` with merlin_quiz_votes table, indexes, RLS policies, and realtime subscription (see data-model.md)
+- [x] T005 Run migration on Supabase (local or remote) -- Migration file ready; will apply on deploy
+- [x] T006 [P] Add Merlin Quiz TypeScript types to `src/types/game.ts`: MerlinQuizVote, MerlinQuizVoteInsert, MerlinQuizState, MerlinQuizResults, MerlinQuizResultEntry, MerlinQuizVoteRequest, MerlinQuizVoteResponse
+- [x] T007 [P] Create database operations module `src/lib/supabase/merlin-quiz.ts` with: submitQuizVote(), getQuizVotes(), getQuizVoteCount(), getPlayerQuizVote()
 
 **Checkpoint**: Database schema ready, types defined, basic DB operations available
 
@@ -66,17 +66,17 @@
 
 ### Tests for User Story 1
 
-- [ ] T008 [P] [US1] Create unit test file `tests/unit/domain/merlin-quiz.test.ts` with tests for: canShowQuiz(), hasPlayerVoted(), validateQuizVote()
+- [x] T008 [P] [US1] Create unit test file `tests/unit/domain/merlin-quiz.test.ts` with tests for: canShowQuiz(), hasPlayerVoted(), validateQuizVote()
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Create domain logic module `src/lib/domain/merlin-quiz.ts` with: QUIZ_TIMEOUT_SECONDS constant, canShowQuiz(hasMerlin), hasPlayerVoted(votes, playerId), validateQuizVote(voterId, suspectedId, seatingOrder)
-- [ ] T010 [US1] Create POST endpoint `src/app/api/games/[gameId]/merlin-quiz/route.ts` with validations: game_over phase, player in game, hasn't voted, not voting for self, suspected player in game
-- [ ] T011 [US1] Create GET endpoint in same file `src/app/api/games/[gameId]/merlin-quiz/route.ts` to return MerlinQuizState
-- [ ] T012 [US1] Create MerlinQuiz component `src/components/game/MerlinQuiz.tsx` with: player selection grid (exclude self), submit button, "waiting for others" state after voting
-- [ ] T013 [US1] Add real-time subscription for quiz votes in MerlinQuiz component using Supabase channel `quiz-votes-${gameId}`
-- [ ] T014 [US1] Update `src/components/game/GameOver.tsx` to check hasMerlin flag and show MerlinQuiz panel before role reveal section
-- [ ] T015 [US1] Add hasMerlin detection in `src/app/api/games/[gameId]/route.ts` by querying player_roles for special_role='merlin'
+- [x] T009 [US1] Create domain logic module `src/lib/domain/merlin-quiz.ts` with: QUIZ_TIMEOUT_SECONDS constant, canShowQuiz(hasMerlin), hasPlayerVoted(votes, playerId), validateQuizVote(voterId, suspectedId, seatingOrder)
+- [x] T010 [US1] Create POST endpoint `src/app/api/games/[gameId]/merlin-quiz/route.ts` with validations: game_over phase, player in game, hasn't voted, not voting for self, suspected player in game
+- [x] T011 [US1] Create GET endpoint in same file `src/app/api/games/[gameId]/merlin-quiz/route.ts` to return MerlinQuizState
+- [x] T012 [US1] Create MerlinQuiz component `src/components/game/MerlinQuiz.tsx` with: player selection grid (exclude self), submit button, "waiting for others" state after voting
+- [x] T013 [US1] Add real-time subscription for quiz votes in MerlinQuiz component using Supabase channel `quiz-votes-${gameId}`
+- [x] T014 [US1] Update `src/components/game/GameOver.tsx` to check hasMerlin flag and show MerlinQuiz panel before role reveal section
+- [x] T015 [US1] Add hasMerlin detection in `src/app/api/games/[gameId]/route.ts` by querying player_roles for special_role='merlin'
 
 **Checkpoint**: Quiz voting flow complete - players can submit guesses at game end
 
@@ -96,14 +96,14 @@
 
 ### Tests for User Story 2
 
-- [ ] T016 [P] [US2] Add unit tests to `tests/unit/domain/merlin-quiz.test.ts` for: calculateQuizResults() including ties and edge cases
+- [x] T016 [P] [US2] Add unit tests to `tests/unit/domain/merlin-quiz.test.ts` for: calculateQuizResults() including ties and edge cases
 
 ### Implementation for User Story 2
 
-- [ ] T017 [US2] Add calculateQuizResults(votes, players, merlinId) function to `src/lib/domain/merlin-quiz.ts` that aggregates votes, identifies most-voted, marks actual Merlin
-- [ ] T018 [US2] Create GET endpoint `src/app/api/games/[gameId]/merlin-quiz/results/route.ts` that returns MerlinQuizResults with vote counts, actual Merlin info
-- [ ] T019 [US2] Create MerlinQuizResults component `src/components/game/MerlinQuizResults.tsx` with: results table sorted by vote count, highlight most-voted, show actual Merlin indicator, "Show Roles" button
-- [ ] T020 [US2] Update `src/components/game/GameOver.tsx` to transition from MerlinQuiz to MerlinQuizResults when quiz completes, then show role reveal after user clicks proceed
+- [x] T017 [US2] Add calculateQuizResults(votes, players, merlinId) function to `src/lib/domain/merlin-quiz.ts` that aggregates votes, identifies most-voted, marks actual Merlin
+- [x] T018 [US2] Create GET endpoint `src/app/api/games/[gameId]/merlin-quiz/results/route.ts` that returns MerlinQuizResults with vote counts, actual Merlin info
+- [x] T019 [US2] Create MerlinQuizResults component `src/components/game/MerlinQuizResults.tsx` with: results table sorted by vote count, highlight most-voted, show actual Merlin indicator, "Show Roles" button
+- [x] T020 [US2] Update `src/components/game/GameOver.tsx` to transition from MerlinQuiz to MerlinQuizResults when quiz completes, then show role reveal after user clicks proceed
 
 **Checkpoint**: Complete quiz flow with results display - core feature complete
 
@@ -123,13 +123,13 @@
 
 ### Tests for User Story 3
 
-- [ ] T021 [P] [US3] Add unit tests to `tests/unit/domain/merlin-quiz.test.ts` for: isQuizComplete() with various scenarios (all voted, timeout, disconnects)
+- [x] T021 [P] [US3] Add unit tests to `tests/unit/domain/merlin-quiz.test.ts` for: isQuizComplete() with various scenarios (all voted, timeout, disconnects)
 
 ### Implementation for User Story 3
 
-- [ ] T022 [US3] Add isQuizComplete(votesSubmitted, connectedPlayers, quizStartedAt) function to `src/lib/domain/merlin-quiz.ts` with timeout and connected player logic
-- [ ] T023 [US3] Update MerlinQuiz component `src/components/game/MerlinQuiz.tsx` with: 60s countdown timer display, "Skip Quiz" button that submits null vote, auto-complete on timeout
-- [ ] T024 [US3] Update quiz completion detection in GameOver to account for connected players count and timeout (query room_players.is_connected)
+- [x] T022 [US3] Add isQuizComplete(votesSubmitted, connectedPlayers, quizStartedAt) function to `src/lib/domain/merlin-quiz.ts` with timeout and connected player logic
+- [x] T023 [US3] Update MerlinQuiz component `src/components/game/MerlinQuiz.tsx` with: 60s countdown timer display, "Skip Quiz" button that submits null vote, auto-complete on timeout
+- [x] T024 [US3] Update quiz completion detection in GameOver to account for connected players count and timeout (query room_players.is_connected)
 
 **Checkpoint**: Full quiz feature complete with timeout handling
 
@@ -139,9 +139,9 @@
 
 **Purpose**: Final integration, edge cases, and code quality
 
-- [ ] T025 [P] Add mobile responsive styles to MerlinQuiz and MerlinQuizResults components
-- [ ] T026 Handle edge case: single player connected at game end (auto-complete after their vote/skip)
-- [ ] T027 Handle edge case: player reconnects during quiz (allow them to vote if not already voted)
+- [x] T025 [P] Add mobile responsive styles to MerlinQuiz and MerlinQuizResults components
+- [x] T026 Handle edge case: single player connected at game end (auto-complete after their vote/skip)
+- [x] T027 Handle edge case: player reconnects during quiz (allow them to vote if not already voted)
 - [ ] T028 Run full integration test: Game with Merlin ends → Quiz appears → All vote → Results show → Role reveal displays
 
 **Checkpoint**: Feature complete and polished
@@ -258,4 +258,3 @@ Task T012: "Create MerlinQuiz component in src/components/game/MerlinQuiz.tsx"
 - Verify tests fail before implementing
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
-

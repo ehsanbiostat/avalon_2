@@ -3,12 +3,20 @@
 /**
  * GameOver Component
  * Shows final game result with all player roles revealed
+ * Feature 010: Now includes Merlin Quiz before role reveal
  */
 
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import type { GameWinner, QuestResult, GamePlayer } from '@/types/game';
+import { MerlinQuiz } from './MerlinQuiz';
+import { MerlinQuizResults } from './MerlinQuizResults';
+import type { GameWinner, QuestResult, GamePlayer, MerlinQuizState } from '@/types/game';
 import { getWinnerAnnouncement, getWinReasonText, countQuestResults } from '@/lib/domain/win-conditions';
+import { getPlayerId } from '@/lib/utils/player-id';
+
+// Quiz display states
+type QuizDisplayState = 'quiz' | 'results' | 'roles';
 
 // Role display config
 const ROLE_DISPLAY: Record<string, { emoji: string; label: string; color: string }> = {
@@ -24,23 +32,80 @@ const ROLE_DISPLAY: Record<string, { emoji: string; label: string; color: string
 };
 
 interface GameOverProps {
+  gameId: string;
   winner: GameWinner;
   winReason: string;
   questResults: QuestResult[];
   playerRole?: 'good' | 'evil';
   players: GamePlayer[];
   currentPlayerId?: string;
+  currentPlayerDbId?: string;
+  hasMerlin?: boolean;
 }
 
 export function GameOver({
+  gameId,
   winner,
   winReason,
   questResults,
   playerRole,
   players,
   currentPlayerId,
+  currentPlayerDbId,
+  hasMerlin = false,
 }: GameOverProps) {
   const router = useRouter();
+
+  // Feature 010: Get localStorage playerId for API calls
+  const localStoragePlayerId = useMemo(() => {
+    if (typeof window === 'undefined') return '';
+    return getPlayerId();
+  }, []);
+
+  // Feature 010: Quiz state management
+  const [quizDisplayState, setQuizDisplayState] = useState<QuizDisplayState>(
+    hasMerlin ? 'quiz' : 'roles'
+  );
+  const [quizState, setQuizState] = useState<MerlinQuizState | null>(null);
+
+  // Fetch initial quiz state to check if quiz is already complete
+  const checkQuizState = useCallback(async () => {
+    if (!hasMerlin || !gameId || !localStoragePlayerId) return;
+
+    try {
+      const response = await fetch(`/api/games/${gameId}/merlin-quiz`, {
+        headers: { 'x-player-id': localStoragePlayerId },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setQuizState(data.data);
+
+        // If quiz is already complete, skip to results
+        if (data.data.quiz_complete) {
+          setQuizDisplayState('results');
+        }
+      }
+    } catch (error) {
+      console.error('Failed to check quiz state:', error);
+      // On error, skip to roles
+      setQuizDisplayState('roles');
+    }
+  }, [gameId, localStoragePlayerId, hasMerlin]);
+
+  useEffect(() => {
+    checkQuizState();
+  }, [checkQuizState]);
+
+  // Handle quiz completion
+  const handleQuizComplete = useCallback(() => {
+    setQuizDisplayState('results');
+  }, []);
+
+  // Handle showing roles after results
+  const handleShowRoles = useCallback(() => {
+    setQuizDisplayState('roles');
+  }, []);
 
   const isWinner = playerRole === winner;
   const score = countQuestResults(questResults);
@@ -65,6 +130,88 @@ export function GameOver({
     return 0;
   });
 
+  // Feature 010: Show quiz before role reveal
+  if (quizDisplayState === 'quiz' && hasMerlin && localStoragePlayerId && currentPlayerId) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-8">
+        {/* Winner Banner (compact) */}
+        <div
+          className={`
+            w-full max-w-md text-center p-4 rounded-xl
+            ${winner === 'good'
+              ? 'bg-gradient-to-br from-emerald-500/20 to-emerald-900/20 border border-emerald-500/30'
+              : 'bg-gradient-to-br from-red-500/20 to-red-900/20 border border-red-500/30'}
+          `}
+        >
+          <div className="text-4xl mb-2">
+            {winner === 'good' ? '🏆' : '💀'}
+          </div>
+          <h1
+            className={`text-xl font-bold ${winner === 'good' ? 'text-emerald-400' : 'text-red-400'}`}
+          >
+            {winner === 'good' ? 'Good Wins!' : 'Evil Wins!'}
+          </h1>
+        </div>
+
+        {/* Merlin Quiz */}
+        <div className="w-full max-w-md">
+          <MerlinQuiz
+            gameId={gameId}
+            players={players}
+            currentPlayerId={localStoragePlayerId}
+            currentPlayerDbId={currentPlayerId}
+            onQuizComplete={handleQuizComplete}
+            onSkip={handleQuizComplete}
+          />
+        </div>
+
+        {/* Skip to results button */}
+        <button
+          onClick={handleQuizComplete}
+          className="text-sm text-slate-400 hover:text-slate-300 underline"
+        >
+          Skip to results →
+        </button>
+      </div>
+    );
+  }
+
+  // Feature 010: Show quiz results before role reveal
+  if (quizDisplayState === 'results' && hasMerlin && localStoragePlayerId) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-8">
+        {/* Winner Banner (compact) */}
+        <div
+          className={`
+            w-full max-w-md text-center p-4 rounded-xl
+            ${winner === 'good'
+              ? 'bg-gradient-to-br from-emerald-500/20 to-emerald-900/20 border border-emerald-500/30'
+              : 'bg-gradient-to-br from-red-500/20 to-red-900/20 border border-red-500/30'}
+          `}
+        >
+          <div className="text-4xl mb-2">
+            {winner === 'good' ? '🏆' : '💀'}
+          </div>
+          <h1
+            className={`text-xl font-bold ${winner === 'good' ? 'text-emerald-400' : 'text-red-400'}`}
+          >
+            {winner === 'good' ? 'Good Wins!' : 'Evil Wins!'}
+          </h1>
+        </div>
+
+        {/* Merlin Quiz Results */}
+        <div className="w-full max-w-lg">
+          <MerlinQuizResults
+            gameId={gameId}
+            currentPlayerId={localStoragePlayerId}
+            onShowRoles={handleShowRoles}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Original game over view with role reveal
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-8">
       {/* Winner Banner */}

@@ -474,3 +474,84 @@ export interface GameScore {
   good: number;  // Successful quests
   evil: number;  // Failed quests
 }
+
+// ============================================
+// FEATURE 010: MERLIN QUIZ TYPES
+// ============================================
+
+/**
+ * A single quiz vote record
+ */
+export interface MerlinQuizVote {
+  id: string;
+  game_id: string;
+  voter_player_id: string;
+  suspected_player_id: string | null;  // null = skipped
+  submitted_at: string;
+}
+
+/**
+ * Insert type for creating a quiz vote
+ */
+export interface MerlinQuizVoteInsert {
+  game_id: string;
+  voter_player_id: string;
+  suspected_player_id: string | null;
+}
+
+/**
+ * Quiz state for client display
+ */
+export interface MerlinQuizState {
+  quiz_enabled: boolean;          // True if Merlin was in game
+  quiz_active: boolean;           // True if quiz is in progress
+  quiz_complete: boolean;         // True if all voted or timeout
+  my_vote: string | null;         // Current player's vote (null if not voted, 'skipped' if skipped)
+  has_voted: boolean;             // Whether current player has voted
+  has_skipped: boolean;           // Whether current player skipped
+  votes_submitted: number;        // Count of votes submitted
+  total_players: number;          // Total players in game
+  connected_players: number;      // Currently connected players
+  quiz_started_at: string | null; // First vote timestamp for timeout calc
+  timeout_seconds: number;        // Quiz timeout (60)
+}
+
+/**
+ * Quiz results for display
+ */
+export interface MerlinQuizResults {
+  quiz_complete: boolean;
+  results: MerlinQuizResultEntry[] | null;
+  actual_merlin_id: string;
+  actual_merlin_nickname: string;
+  total_votes: number;
+  skipped_count: number;
+}
+
+/**
+ * Single entry in quiz results table
+ */
+export interface MerlinQuizResultEntry {
+  player_id: string;
+  nickname: string;
+  vote_count: number;
+  is_most_voted: boolean;
+  is_actual_merlin: boolean;
+}
+
+/**
+ * API request for submitting a quiz vote
+ */
+export interface MerlinQuizVoteRequest {
+  suspected_player_id: string | null;  // null = skip
+}
+
+/**
+ * API response for submitting a quiz vote
+ */
+export interface MerlinQuizVoteResponse {
+  success: boolean;
+  votes_submitted: number;
+  total_players: number;
+  quiz_complete: boolean;
+}
