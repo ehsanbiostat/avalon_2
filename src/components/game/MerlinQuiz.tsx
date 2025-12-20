@@ -9,7 +9,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient } from '@/lib/supabase/client';
 import type { GamePlayer, MerlinQuizState, MerlinQuizVote } from '@/types/game';
 import { QUIZ_TIMEOUT_SECONDS, getRemainingSeconds } from '@/lib/domain/merlin-quiz';
 
@@ -93,7 +93,7 @@ export function MerlinQuiz({
 
   // Real-time subscription for quiz votes
   useEffect(() => {
-    const supabase = createClient();
+    const supabase = createBrowserClient();
 
     const channel = supabase
       .channel(`quiz-votes-${gameId}`)
