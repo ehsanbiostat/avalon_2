@@ -9,8 +9,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient, getPlayerIdFromRequest } from '@/lib/supabase/server';
 import { findPlayerByPlayerId } from '@/lib/supabase/players';
 import { getGameById } from '@/lib/supabase/games';
-import { getQuizVotes, getQuizStartTime } from '@/lib/supabase/merlin-quiz';
-import { calculateQuizResults, isQuizComplete } from '@/lib/domain/merlin-quiz';
+import { getQuizVotes } from '@/lib/supabase/merlin-quiz';
+import { calculateQuizResults } from '@/lib/domain/merlin-quiz';
 import { errors, handleError } from '@/lib/utils/errors';
 import type { GamePlayer } from '@/types/game';
 
@@ -75,38 +75,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Get votes and check if quiz is complete
-    const [votes, quizStartTime] = await Promise.all([
-      getQuizVotes(supabase, gameId),
-      getQuizStartTime(supabase, gameId),
-    ]);
-
-    // Get connected players count
-    const { data: roomPlayers } = await supabase
-      .from('room_players')
-      .select('player_id, players!inner(last_activity_at)')
-      .eq('room_id', game.room_id);
-
-    const connectedCount = (roomPlayers || []).filter(rp => {
-      const lastActivity = (rp.players as { last_activity_at?: string })?.last_activity_at;
-      if (!lastActivity) return true;
-      const timeSince = Date.now() - new Date(lastActivity).getTime();
-      return timeSince < 60000; // 60 seconds threshold
-    }).length;
-
-    const quizComplete = isQuizComplete(votes.length, connectedCount, quizStartTime);
-
-    // If quiz not complete, return partial response
-    if (!quizComplete) {
-      return NextResponse.json({
-        data: {
-          quiz_complete: false,
-          results: null,
-          votes_submitted: votes.length,
-          total_players: game.player_count,
-        },
-      });
-    }
+    // Get votes - always return results since client decides when quiz is over
+    // (either all players voted, timeout expired, or user skipped)
+    const votes = await getQuizVotes(supabase, gameId);
 
     // Get player data for nicknames
     const { data: playersData } = await supabase
