@@ -106,7 +106,6 @@ export async function GET(request: Request, { params }: RouteParams) {
       // Feature 009: Updated for Merlin Decoy Mode
       case 'merlin': {
         knownPlayers = await getPlayersVisibleToMerlin(supabase, room.id);
-        knownPlayersLabel = 'The Evil Among You';
         hiddenEvilCount = countHiddenEvilFromMerlin(roleConfig);
 
         // Feature 009: Handle Merlin Decoy Mode
@@ -145,6 +144,14 @@ export async function GET(request: Request, { params }: RouteParams) {
               decoyWarning = generateDecoyWarning(hiddenEvilCount || 0);
             }
           }
+        }
+
+        // Set label based on whether decoy mode is active
+        if (hasDecoy) {
+          // When decoy is active, the list contains evil + 1 good, so use a cautious label
+          knownPlayersLabel = 'Suspected Evil Players';
+        } else {
+          knownPlayersLabel = 'The Evil Among You';
         }
 
         // Standard ability note (only if no decoy)

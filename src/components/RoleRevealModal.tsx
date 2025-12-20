@@ -184,16 +184,27 @@ export function RoleRevealModal({
           </div>
         )}
 
-        {/* Feature 009: Merlin Decoy Warning */}
-        {specialRole === 'merlin' && hasDecoy && decoyWarning && (
-          <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/40 text-center">
-            <span className="text-2xl mb-2 block">🃏</span>
-            <p className="text-amber-300 text-sm font-medium">
-              {decoyWarning}
+        {/* Feature 009: Merlin Decoy Warning - Prominent display */}
+        {specialRole === 'merlin' && hasDecoy && (
+          <div className="p-4 bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded-xl border-2 border-amber-400/50 text-center shadow-lg">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <span className="text-2xl">🃏</span>
+              <span className="text-lg font-bold text-amber-300">Decoy Mode Active</span>
+              <span className="text-2xl">🃏</span>
+            </div>
+            <p className="text-amber-200 font-semibold text-base mb-2">
+              ⚠️ One of the players shown is actually <span className="text-green-400">GOOD</span>!
             </p>
-            <p className="text-amber-300/60 text-xs mt-2">
-              One player in the list above is actually on your side!
+            <p className="text-amber-300/80 text-sm">
+              Not everyone in that list is evil. One good player has been added as a decoy.
+              <br />
+              Use your judgment carefully — trust no one completely!
             </p>
+            {decoyWarning && decoyWarning.includes('hidden') && (
+              <p className="text-yellow-300/70 text-xs mt-2 italic">
+                {decoyWarning.split('Also, ')[1]}
+              </p>
+            )}
           </div>
         )}
 
