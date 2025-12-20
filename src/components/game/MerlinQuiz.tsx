@@ -34,6 +34,7 @@ export function MerlinQuiz({
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [remainingSeconds, setRemainingSeconds] = useState(QUIZ_TIMEOUT_SECONDS);
 
   // Fetch quiz state
@@ -48,6 +49,7 @@ export function MerlinQuiz({
       if (response.ok) {
         const data = await response.json();
         setQuizState(data.data);
+        setLoadError(null);
 
         // Update remaining time
         if (data.data.quiz_started_at) {
@@ -58,9 +60,13 @@ export function MerlinQuiz({
         if (data.data.quiz_complete) {
           onQuizComplete();
         }
+      } else {
+        const data = await response.json();
+        setLoadError(data.error?.message || 'Failed to load quiz');
       }
     } catch (err) {
       console.error('Failed to fetch quiz state:', err);
+      setLoadError('Quiz feature unavailable');
     }
   }, [gameId, currentPlayerId, onQuizComplete]);
 
@@ -171,12 +177,31 @@ export function MerlinQuiz({
     handleSubmitVote(null);
   };
 
+  // Loading error state - allow skip to role reveal
+  if (loadError) {
+    return (
+      <div className="bg-gradient-to-br from-slate-900 to-indigo-900 rounded-xl p-6 shadow-2xl border border-indigo-500/30">
+        <div className="text-center">
+          <div className="text-4xl mb-3">🔮</div>
+          <p className="text-slate-400 mb-4 text-sm">{loadError}</p>
+          <button
+            onClick={onSkip}
+            className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
+          >
+            Skip to Role Reveal →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Loading state
   if (!quizState) {
     return (
       <div className="bg-gradient-to-br from-slate-900 to-indigo-900 rounded-xl p-6 shadow-2xl border border-indigo-500/30">
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin text-4xl">🔮</div>
+        <div className="flex flex-col items-center justify-center py-8">
+          <div className="animate-spin text-4xl mb-3">🔮</div>
+          <p className="text-slate-400 text-sm">Loading quiz...</p>
         </div>
       </div>
     );

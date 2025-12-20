@@ -161,16 +161,16 @@ export function GameOver({
             currentPlayerId={localStoragePlayerId}
             currentPlayerDbId={currentPlayerId}
             onQuizComplete={handleQuizComplete}
-            onSkip={handleQuizComplete}
+            onSkip={handleShowRoles}
           />
         </div>
 
-        {/* Skip to results button */}
+        {/* Skip directly to role reveal */}
         <button
-          onClick={handleQuizComplete}
+          onClick={handleShowRoles}
           className="text-sm text-slate-400 hover:text-slate-300 underline"
         >
-          Skip to results →
+          Skip to role reveal →
         </button>
       </div>
     );
