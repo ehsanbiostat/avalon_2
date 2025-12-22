@@ -8,6 +8,14 @@
 
 ---
 
+## Clarifications
+
+### Session 2025-12-22
+
+- Q: When Split Intel Mode is enabled but role combination (e.g., Mordred + Oberon Chaos) makes it impossible (0 visible evil), what should happen? → A: Block game start - require user to disable Split Intel Mode or change role configuration.
+
+---
+
 ## Problem Statement
 
 The existing Merlin Decoy Mode adds uncertainty by mixing one good player into Merlin's entire evil list. However, this can make the game frustrating as Merlin has NO certain information - any player they see could be the decoy.
@@ -160,6 +168,7 @@ As the **system**, I want to distribute players into groups fairly so that the g
 - With Oberon Chaos: -1 evil available for distribution
 - With both: -2 evil available for distribution
 - Minimum requirement: At least 1 evil must be visible to use Split Intel Mode
+- **Conflict behavior**: If Split Intel is enabled but 0 visible evil exist, game start is blocked with an error requiring configuration change
 
 ---
 
@@ -185,7 +194,7 @@ As the **system**, I want to distribute players into groups fairly so that the g
 
 | Visible Evil | Certain Evil Group | Mixed Group Evil | Mixed Group Good | Notes |
 |--------------|-------------------|------------------|------------------|-------|
-| 0 | - | - | - | Mode cannot activate (show warning) |
+| 0 | - | - | - | **Game start blocked** - requires config change |
 | 1 | 0 | 1 | 1 | Only mixed group shown |
 | 2 | 1 | 1 | 1 | Like base 2 evil |
 
@@ -222,7 +231,7 @@ As the **system**, I want to distribute players into groups fairly so that the g
 - **FR-018**: System MUST exclude Oberon Chaos from both groups (Oberon Chaos remains hidden from Merlin).
 - **FR-019**: System MUST show Oberon Standard in the appropriate group (visible to Merlin).
 - **FR-020**: If only 1 visible evil player exists, System MUST show only the Mixed Intel Group (no Certain group).
-- **FR-021**: If 0 visible evil players exist, System MUST disable Split Intel Mode with a warning.
+- **FR-021**: If 0 visible evil players exist (due to Mordred + Oberon Chaos), System MUST block game start with an error message requiring the room manager to either disable Split Intel Mode or change the role configuration.
 
 **Game End Reveal**:
 - **FR-022**: System MUST reveal the Mixed Intel Group composition at game end.
