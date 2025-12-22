@@ -2,6 +2,7 @@
 
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import type { SplitIntelVisibility } from '@/types/game';
 
 // Special role type (Phase 2: includes oberon variants)
 type SpecialRole =
@@ -31,6 +32,8 @@ interface RoleRevealModalProps {
   // Feature 009: Merlin Decoy Mode
   hasDecoy?: boolean;
   decoyWarning?: string;
+  // Feature 011: Merlin Split Intel Mode
+  splitIntel?: SplitIntelVisibility;
 }
 
 // Role-specific icons (Phase 2: added oberon variants)
@@ -65,6 +68,7 @@ export function RoleRevealModal({
   onConfirm,
   hasDecoy,
   decoyWarning,
+  splitIntel,
 }: RoleRevealModalProps) {
   const isEvil = role === 'evil';
   const icon = specialRole ? ROLE_ICONS[specialRole] : (isEvil ? '🗡️' : '🛡️');
@@ -128,8 +132,62 @@ export function RoleRevealModal({
           </p>
         </div>
 
-        {/* Known Players Section (for Merlin, Percival, Evil) */}
-        {knownPlayers && knownPlayers.length > 0 && knownPlayersLabel && (
+        {/* Feature 011: Split Intel Two-Group Display (Merlin only) */}
+        {specialRole === 'merlin' && splitIntel?.enabled && (
+          <div className="space-y-4">
+            {/* T023: Certain Evil Group */}
+            {splitIntel.certainEvil.length > 0 && (
+              <div className="p-4 rounded-lg bg-red-950/50 border border-red-500/40">
+                <h3 className="font-display text-sm uppercase tracking-wider mb-3 text-red-300 flex items-center gap-2">
+                  <span>🎯</span>
+                  <span>{splitIntel.certainLabel}</span>
+                </h3>
+                <p className="text-red-300/70 text-xs mb-3">{splitIntel.certainDescription}</p>
+                <div className="flex flex-wrap gap-2">
+                  {splitIntel.certainEvil.map((player) => (
+                    <span
+                      key={player.id}
+                      className="px-3 py-1.5 rounded-full text-sm bg-red-500/20 text-red-200 border border-red-500/30 font-medium"
+                    >
+                      {player.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* T024: Mixed Intel Group */}
+            <div className="p-4 rounded-lg bg-amber-950/50 border border-amber-500/40">
+              <h3 className="font-display text-sm uppercase tracking-wider mb-3 text-amber-300 flex items-center gap-2">
+                <span>❓</span>
+                <span>{splitIntel.mixedLabel}</span>
+              </h3>
+              <p className="text-amber-300/70 text-xs mb-3">{splitIntel.mixedDescription}</p>
+              <div className="flex flex-wrap gap-2">
+                {splitIntel.mixedIntel.map((player) => (
+                  <span
+                    key={player.id}
+                    className="px-3 py-1.5 rounded-full text-sm bg-amber-500/20 text-amber-200 border border-amber-500/30 font-medium"
+                  >
+                    {player.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* T025: Hidden Evil Warning (for Split Intel) */}
+            {splitIntel.hiddenWarning && (
+              <div className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/30 text-center">
+                <p className="text-yellow-300 text-sm">
+                  ⚠️ <strong>{splitIntel.hiddenWarning}</strong>
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Known Players Section (for Merlin without Split Intel, Percival, Evil) */}
+        {knownPlayers && knownPlayers.length > 0 && knownPlayersLabel && !splitIntel?.enabled && (
           <div
             className={`
               p-4 rounded-lg border
@@ -184,8 +242,8 @@ export function RoleRevealModal({
           </div>
         )}
 
-        {/* Feature 009: Merlin Decoy Warning */}
-        {specialRole === 'merlin' && hasDecoy && (
+        {/* Feature 009: Merlin Decoy Warning (only when NOT using split intel) */}
+        {specialRole === 'merlin' && hasDecoy && !splitIntel?.enabled && (
           <div className="p-3 bg-amber-500/10 rounded-lg border border-amber-500/30 text-center">
             <p className="text-amber-300 text-sm">
               🃏 <strong>1 good player is hidden among the suspects!</strong>
@@ -193,8 +251,8 @@ export function RoleRevealModal({
           </div>
         )}
 
-        {/* Hidden Evil Warning (for Merlin) */}
-        {specialRole === 'merlin' && hiddenEvilCount !== undefined && hiddenEvilCount > 0 && (
+        {/* Hidden Evil Warning (for Merlin without split intel) */}
+        {specialRole === 'merlin' && hiddenEvilCount !== undefined && hiddenEvilCount > 0 && !splitIntel?.enabled && (
           <div className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/30 text-center">
             <p className="text-yellow-300 text-sm">
               ⚠️ <strong>{hiddenEvilCount} evil {hiddenEvilCount === 1 ? 'player is' : 'players are'} hidden from you!</strong>
@@ -205,7 +263,13 @@ export function RoleRevealModal({
         {/* Instructions */}
         <div className="p-4 bg-avalon-midnight/50 rounded-lg border border-avalon-silver/20">
           <p className="text-avalon-parchment/70 text-sm text-center">
-            {specialRole === 'merlin' ? (
+            {specialRole === 'merlin' && splitIntel?.enabled ? (
+              <>
+                🧙 <strong>You see players divided into two groups!</strong> The Certain Evil
+                group is guaranteed evil, but the Mixed Intel group contains one evil and one good
+                player — you must deduce which is which. Be careful, the Assassin is hunting you!
+              </>
+            ) : specialRole === 'merlin' ? (
               <>
                 🧙 <strong>Use your knowledge wisely!</strong> Guide your team
                 but beware — if the Assassin discovers you, all is lost!

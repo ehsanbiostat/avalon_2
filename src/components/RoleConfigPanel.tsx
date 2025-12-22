@@ -184,11 +184,49 @@ export function RoleConfigPanel({
           <RoleToggle
             role="merlin_decoy"
             enabled={config.merlin_decoy_enabled || false}
-            onChange={(v) => handleToggle('merlin_decoy_enabled', v)}
+            onChange={(v) => {
+              // T018: Mutual exclusivity - disable Split Intel when enabling Decoy
+              if (v && config.merlin_split_intel_enabled) {
+                onChange({ ...config, merlin_decoy_enabled: true, merlin_split_intel_enabled: undefined });
+              } else {
+                handleToggle('merlin_decoy_enabled', v);
+              }
+            }}
             label="Merlin Decoy Mode"
             description="One random good player appears evil to Merlin, creating uncertainty"
             emoji="🃏"
+            disabled={config.merlin_split_intel_enabled}
+            disabledReason="Cannot use with Split Intel Mode"
           />
+
+          {/* Feature 011: Merlin Split Intel Mode */}
+          <RoleToggle
+            role="merlin_split_intel"
+            enabled={config.merlin_split_intel_enabled || false}
+            onChange={(v) => {
+              // T018: Mutual exclusivity - disable Decoy when enabling Split Intel
+              if (v && config.merlin_decoy_enabled) {
+                onChange({ ...config, merlin_split_intel_enabled: true, merlin_decoy_enabled: undefined });
+              } else {
+                handleToggle('merlin_split_intel_enabled', v);
+              }
+            }}
+            label="Merlin Split Intel Mode"
+            description="Merlin sees two groups: certain evil players, and a mixed group with one evil and one good"
+            emoji="🔀"
+            disabled={config.merlin_decoy_enabled}
+            disabledReason="Cannot use with Decoy Mode"
+          />
+
+          {/* T019: Warning for Mordred + Oberon Chaos with Split Intel */}
+          {config.merlin_split_intel_enabled && config.mordred && config.oberon === 'chaos' && (
+            <div className="p-2 rounded-lg bg-red-500/10 border border-red-500/30">
+              <p className="text-sm font-medium text-red-400">
+                ⚠️ With Mordred + Oberon Chaos, all evil may be hidden from Merlin. 
+                Split Intel Mode will be blocked if no visible evil players exist.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -223,6 +261,8 @@ interface RoleToggleProps {
   role: string;
   enabled: boolean;
   locked?: boolean;
+  disabled?: boolean;
+  disabledReason?: string;
   onChange?: (enabled: boolean) => void;
   label: string;
   description: string;
@@ -232,22 +272,27 @@ interface RoleToggleProps {
 function RoleToggle({
   enabled,
   locked,
+  disabled,
+  disabledReason,
   onChange,
   label,
   description,
   emoji,
 }: RoleToggleProps) {
+  const isDisabled = locked || disabled;
+
   return (
     <label
       className={`
         flex items-start gap-3 p-3 rounded-lg border transition-all
-        ${locked
+        ${isDisabled
           ? 'border-avalon-silver/10 bg-avalon-midnight/20 cursor-not-allowed opacity-70'
           : enabled
             ? 'border-avalon-gold/50 bg-avalon-gold/10 cursor-pointer'
             : 'border-avalon-silver/20 bg-avalon-midnight/30 cursor-pointer hover:border-avalon-silver/40'
         }
       `}
+      title={disabled ? disabledReason : undefined}
     >
       <span className="text-2xl">{emoji}</span>
       <div className="flex-1 min-w-0">
@@ -259,12 +304,12 @@ function RoleToggle({
             type="checkbox"
             checked={enabled}
             onChange={(e) => onChange?.(e.target.checked)}
-            disabled={locked}
+            disabled={isDisabled}
             className="sr-only"
           />
           <div className={`
             w-10 h-6 rounded-full transition-colors
-            ${locked ? 'bg-avalon-silver/30' : enabled ? 'bg-avalon-gold' : 'bg-avalon-silver/30'}
+            ${isDisabled ? 'bg-avalon-silver/30' : enabled ? 'bg-avalon-gold' : 'bg-avalon-silver/30'}
           `}>
             <div className={`
               w-5 h-5 rounded-full bg-white transition-transform mt-0.5
@@ -273,6 +318,9 @@ function RoleToggle({
           </div>
         </div>
         <p className="text-sm text-avalon-silver/70 mt-1">{description}</p>
+        {disabled && disabledReason && (
+          <p className="text-xs text-amber-400/70 mt-1 italic">{disabledReason}</p>
+        )}
       </div>
     </label>
   );

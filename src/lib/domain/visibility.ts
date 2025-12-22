@@ -17,7 +17,9 @@
 
 import type { SpecialRole } from '@/types/database';
 import type { RoleConfig } from '@/types/role-config';
+import type { SplitIntelGroups, SplitIntelVisibility } from '@/types/game';
 import { shuffleArray } from './decoy-selection';
+import { countHiddenEvil } from './split-intel';
 
 /**
  * Role assignment for visibility calculations
@@ -153,6 +155,55 @@ export function generateDecoyWarning(hiddenCount: number): string {
   } else {
     return `${baseWarning} Also, ${hiddenCount} evil players are hidden from you.`;
   }
+}
+
+/**
+ * T008: Get Split Intel visibility for Merlin
+ * Feature 011: Returns two-group visibility structure
+ */
+export function getSplitIntelVisibility(
+  allAssignments: RoleAssignment[],
+  roleConfig: RoleConfig,
+  splitIntelGroups: SplitIntelGroups
+): SplitIntelVisibility {
+  const hiddenCount = countHiddenEvil(roleConfig);
+
+  // Build Certain Evil group with names
+  const certainEvil = splitIntelGroups.certainEvilIds.map((id) => {
+    const player = allAssignments.find((a) => a.playerId === id);
+    return { id, name: player?.playerName || 'Unknown' };
+  });
+
+  // Build Mixed Intel group (1 evil + 1 good, shuffled to hide which is which)
+  const mixedPlayers = [
+    splitIntelGroups.mixedEvilId,
+    splitIntelGroups.mixedGoodId,
+  ].map((id) => {
+    const player = allAssignments.find((a) => a.playerId === id);
+    return { id, name: player?.playerName || 'Unknown' };
+  });
+  // Shuffle to hide order (evil vs good)
+  const mixedIntel = shuffleArray([...mixedPlayers]);
+
+  // Generate hidden warning if applicable
+  let hiddenWarning: string | undefined;
+  if (hiddenCount === 1) {
+    hiddenWarning = '1 evil player is hidden from you';
+  } else if (hiddenCount >= 2) {
+    hiddenWarning = `${hiddenCount} evil players are hidden from you`;
+  }
+
+  return {
+    enabled: true,
+    certainEvil,
+    mixedIntel,
+    hiddenCount,
+    certainLabel: '🎯 Certain Evil',
+    certainDescription: 'These players are definitely evil',
+    mixedLabel: '❓ Mixed Intel',
+    mixedDescription: "One is evil, one is good - you don't know which",
+    hiddenWarning,
+  };
 }
 
 /**

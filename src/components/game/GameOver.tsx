@@ -330,6 +330,7 @@ export function GameOver({
                         flex items-center gap-2 p-2 rounded-lg bg-slate-800/50
                         ${isCurrentPlayer ? 'ring-2 ring-avalon-gold' : ''}
                         ${player.was_decoy ? 'ring-1 ring-amber-400/50' : ''}
+                        ${player.was_mixed_group ? 'ring-1 ring-cyan-400/50' : ''}
                       `}
                     >
                       <span className="text-xl">{roleDisplay.emoji}</span>
@@ -343,12 +344,22 @@ export function GameOver({
                               🃏
                             </span>
                           )}
+                          {/* Feature 011: Mixed Group indicator */}
+                          {player.was_mixed_group && (
+                            <span className="ml-1 text-cyan-400" title="This player was in Merlin's mixed intel group">
+                              🔀
+                            </span>
+                          )}
                         </div>
                         <div className={`text-xs ${roleDisplay.color} flex items-center gap-1`}>
                           {roleDisplay.label}
                           {/* Feature 009: Decoy label */}
                           {player.was_decoy && (
                             <span className="text-amber-400 font-medium">(Decoy)</span>
+                          )}
+                          {/* Feature 011: Mixed Group label */}
+                          {player.was_mixed_group && (
+                            <span className="text-cyan-400 font-medium">(Mixed Group)</span>
                           )}
                         </div>
                       </div>
@@ -373,6 +384,7 @@ export function GameOver({
                       className={`
                         flex items-center gap-2 p-2 rounded-lg bg-slate-800/50
                         ${isCurrentPlayer ? 'ring-2 ring-avalon-gold' : ''}
+                        ${player.was_mixed_group ? 'ring-1 ring-cyan-400/50' : ''}
                       `}
                     >
                       <span className="text-xl">{roleDisplay.emoji}</span>
@@ -380,9 +392,19 @@ export function GameOver({
                         <div className={`font-medium truncate ${isCurrentPlayer ? 'text-avalon-gold' : 'text-slate-200'}`}>
                           {player.nickname}
                           {isCurrentPlayer && ' (You)'}
+                          {/* Feature 011: Mixed Group indicator */}
+                          {player.was_mixed_group && (
+                            <span className="ml-1 text-cyan-400" title="This player was in Merlin's mixed intel group">
+                              🔀
+                            </span>
+                          )}
                         </div>
-                        <div className={`text-xs ${roleDisplay.color}`}>
+                        <div className={`text-xs ${roleDisplay.color} flex items-center gap-1`}>
                           {roleDisplay.label}
+                          {/* Feature 011: Mixed Group label */}
+                          {player.was_mixed_group && (
+                            <span className="text-cyan-400 font-medium">(Mixed Group)</span>
+                          )}
                         </div>
                       </div>
                     </div>

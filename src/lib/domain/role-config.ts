@@ -39,6 +39,11 @@ export function validateRoleConfig(
     return { valid: false, errors, warnings };
   }
 
+  // Feature 011: Check mutual exclusivity of Merlin modes
+  if (config.merlin_decoy_enabled && config.merlin_split_intel_enabled) {
+    errors.push('Cannot enable both Merlin Decoy Mode and Split Intel Mode. Choose one.');
+  }
+
   // Count special roles by team
   const goodSpecials = countGoodSpecials(config);
   const evilSpecials = countEvilSpecials(config);
@@ -81,6 +86,11 @@ export function validateRoleConfig(
   const hiddenFromMerlin = (config.mordred ? 1 : 0) + (config.oberon === 'chaos' ? 1 : 0);
   if (hiddenFromMerlin >= 2) {
     warnings.push('Multiple evil players hidden from Merlin may make the game very difficult for Good.');
+  }
+
+  // Feature 011: Warning for Split Intel Mode with hidden evil configuration
+  if (config.merlin_split_intel_enabled && hiddenFromMerlin >= 2) {
+    warnings.push('Split Intel Mode with multiple hidden evil players means fewer players in Certain Evil group.');
   }
 
   return {
@@ -222,7 +232,8 @@ export function isDefaultConfig(config: RoleConfig): boolean {
     !config.mordred &&
     !config.oberon &&
     !config.ladyOfLake &&
-    !config.merlin_decoy_enabled
+    !config.merlin_decoy_enabled &&
+    !config.merlin_split_intel_enabled
   );
 }
 

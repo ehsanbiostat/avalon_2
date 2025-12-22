@@ -181,6 +181,11 @@ export async function GET(request: Request, { params }: RouteParams) {
         ? getConnectionStatus(lastActivity)
         : { is_connected: true, seconds_since_activity: 0 };
 
+      // Feature 011: Check if player was in split intel mixed group
+      const wasMixedGroup = game.phase === 'game_over' && (
+        game.split_intel_mixed_evil_id === pid || game.split_intel_mixed_good_id === pid
+      ) ? true : undefined;
+
       return {
         id: pid,
         nickname: nicknameMap.get(pid) || 'Unknown',
@@ -194,6 +199,8 @@ export async function GET(request: Request, { params }: RouteParams) {
         revealed_special_role: game.phase === 'game_over' ? roleInfo?.special_role ?? undefined : undefined,
         // Feature 009: Merlin Decoy indicator (only at game_over)
         was_decoy: game.phase === 'game_over' && game.merlin_decoy_player_id === pid ? true : undefined,
+        // Feature 011: Split Intel mixed group indicator (only at game_over)
+        was_mixed_group: wasMixedGroup,
       };
     });
 

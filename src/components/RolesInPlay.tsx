@@ -86,7 +86,7 @@ export function RolesInPlay({
       </div>
 
       {/* Game Mode Indicators */}
-      {(hasOberon || roleConfig?.merlin_decoy_enabled) && (
+      {(hasOberon || roleConfig?.merlin_decoy_enabled || roleConfig?.merlin_split_intel_enabled) && (
         <div className="mt-3 pt-3 border-t border-avalon-dark-border space-y-2">
           {/* T035: Oberon mode indicator */}
           {hasOberon && oberonMode && (
@@ -111,6 +111,16 @@ export function RolesInPlay({
               <span className="text-amber-400">🃏</span>
               <span className="text-amber-300 font-semibold">
                 Merlin Decoy Mode: One good player appears evil to Merlin!
+              </span>
+            </div>
+          )}
+
+          {/* Feature 011: Merlin Split Intel indicator */}
+          {roleConfig?.merlin_split_intel_enabled && (
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <span className="text-cyan-400">🔀</span>
+              <span className="text-cyan-300 font-semibold">
+                Split Intel Mode: Merlin sees two groups with different certainty!
               </span>
             </div>
           )}

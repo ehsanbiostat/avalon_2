@@ -60,6 +60,10 @@ export interface Game {
   draft_team: string[] | null;  // Feature 007: Leader's current draft team selection
   // Feature 009: Merlin Decoy Mode
   merlin_decoy_player_id: string | null;  // Good player appearing as evil to Merlin
+  // Feature 011: Merlin Split Intel Mode
+  split_intel_certain_evil_ids: string[] | null;  // Array of guaranteed evil player IDs
+  split_intel_mixed_evil_id: string | null;       // Evil player in mixed group
+  split_intel_mixed_good_id: string | null;       // Good player in mixed group
   created_at: string;
   updated_at: string;
   ended_at: string | null;
@@ -81,6 +85,10 @@ export interface GameInsert {
   lady_holder_id?: string | null;
   lady_enabled?: boolean;
   merlin_decoy_player_id?: string | null;  // Feature 009
+  // Feature 011: Merlin Split Intel Mode
+  split_intel_certain_evil_ids?: string[] | null;
+  split_intel_mixed_evil_id?: string | null;
+  split_intel_mixed_good_id?: string | null;
   created_at?: string;
   updated_at?: string;
   ended_at?: string | null;
@@ -100,6 +108,10 @@ export interface GameUpdate {
   lady_enabled?: boolean;
   draft_team?: string[] | null;  // Feature 007: Update draft team selection
   merlin_decoy_player_id?: string | null;  // Feature 009
+  // Feature 011: Merlin Split Intel Mode
+  split_intel_certain_evil_ids?: string[] | null;
+  split_intel_mixed_evil_id?: string | null;
+  split_intel_mixed_good_id?: string | null;
   ended_at?: string | null;
 }
 
@@ -260,6 +272,8 @@ export interface GamePlayer {
   revealed_special_role?: string;
   // Feature 009: Merlin Decoy indicator (only shown at game_over)
   was_decoy?: boolean;
+  // Feature 011: Split Intel mixed group indicator (only shown at game_over)
+  was_mixed_group?: boolean;
 }
 
 /**
@@ -554,4 +568,41 @@ export interface MerlinQuizVoteResponse {
   votes_submitted: number;
   total_players: number;
   quiz_complete: boolean;
+}
+
+// ============================================
+// FEATURE 011: MERLIN SPLIT INTEL TYPES
+// ============================================
+
+/**
+ * Split Intel group assignments (server-side)
+ */
+export interface SplitIntelGroups {
+  certainEvilIds: string[];   // 0-2 guaranteed evil players
+  mixedEvilId: string;        // 1 evil player in mixed group
+  mixedGoodId: string;        // 1 good player in mixed group
+}
+
+/**
+ * Split Intel visibility data for Merlin's role reveal
+ */
+export interface SplitIntelVisibility {
+  enabled: true;
+  certainEvil: Array<{ id: string; name: string }>;  // Guaranteed evil
+  mixedIntel: Array<{ id: string; name: string }>;   // 1 evil + 1 good (shuffled)
+  hiddenCount: number;  // Mordred + Oberon Chaos count
+  certainLabel: string;  // "🎯 Certain Evil"
+  certainDescription: string;  // "These players are definitely evil"
+  mixedLabel: string;    // "❓ Mixed Intel"
+  mixedDescription: string;  // "One is evil, one is good - you don't know which"
+  hiddenWarning?: string;  // "X evil player(s) hidden from you" (if applicable)
+}
+
+/**
+ * Split Intel viability check result
+ */
+export interface SplitIntelViability {
+  viable: boolean;
+  visibleEvilCount: number;
+  reason?: string;
 }

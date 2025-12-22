@@ -30,6 +30,11 @@ export interface RoleConfig {
   // Feature 009: Merlin Decoy Mode
   // When enabled, one random good player (not Merlin) appears evil to Merlin
   merlin_decoy_enabled?: boolean;
+
+  // Feature 011: Merlin Split Intel Mode
+  // When enabled, Merlin sees two groups: Certain Evil (guaranteed evil) and Mixed Intel (1 evil + 1 good)
+  // Mutually exclusive with merlin_decoy_enabled
+  merlin_split_intel_enabled?: boolean;
 }
 
 /**
@@ -37,6 +42,7 @@ export interface RoleConfig {
  */
 export const DEFAULT_ROLE_CONFIG: RoleConfig = {
   merlin_decoy_enabled: false,
+  merlin_split_intel_enabled: false,
 };
 
 /**
@@ -109,6 +115,7 @@ export function isValidRoleConfig(config: unknown): config is RoleConfig {
   if (c.mordred !== undefined && typeof c.mordred !== 'boolean') return false;
   if (c.ladyOfLake !== undefined && typeof c.ladyOfLake !== 'boolean') return false;
   if (c.merlin_decoy_enabled !== undefined && typeof c.merlin_decoy_enabled !== 'boolean') return false;
+  if (c.merlin_split_intel_enabled !== undefined && typeof c.merlin_split_intel_enabled !== 'boolean') return false;
 
   // Check oberon mode
   if (c.oberon !== undefined && !isValidOberonMode(c.oberon)) return false;

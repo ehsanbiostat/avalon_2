@@ -12,6 +12,7 @@ import { insertRoleAssignments, rolesDistributed, setLadyOfLakeForPlayer, getRol
 import { distributeRoles, getRoleRatio } from '@/lib/domain/roles';
 import { computeRolesInPlay, designateLadyOfLakeHolder } from '@/lib/domain/role-config';
 import { selectDecoyPlayer } from '@/lib/domain/decoy-selection';
+import { canUseSplitIntelMode, distributeSplitIntelGroups } from '@/lib/domain/split-intel';
 import { validateRoomCode } from '@/lib/domain/validation';
 import { errors, handleError } from '@/lib/utils/errors';
 import type { RoleConfig } from '@/types/role-config';
@@ -153,6 +154,65 @@ export async function POST(request: Request, { params }: RouteParams) {
         .from('rooms')
         .update({ role_config: updatedRoleConfig })
         .eq('id', room.id);
+    }
+
+    // Feature 011: Handle Merlin Split Intel selection during distribution
+    // Store split intel group data in role_config for the /role API to use
+    if (roleConfig.merlin_split_intel_enabled) {
+      // Get role assignments for split intel
+      const roleAssignmentsData = await getRoleAssignments(supabase, room.id);
+
+      // Get player nicknames for the role assignments
+      const { data: playerData } = await supabase
+        .from('players')
+        .select('id, nickname')
+        .in('id', roleAssignmentsData.map(a => a.player_id));
+
+      const nicknameMap = new Map(
+        (playerData || []).map((p: { id: string; nickname: string }) => [p.id, p.nickname])
+      );
+
+      // Convert to RoleAssignment format for split intel
+      const visibilityAssignments: RoleAssignment[] = roleAssignmentsData.map(a => ({
+        playerId: a.player_id,
+        playerName: nicknameMap.get(a.player_id) || 'Unknown',
+        role: a.role as 'good' | 'evil',
+        specialRole: a.special_role,
+      }));
+
+      // Check if split intel can be used
+      const viability = canUseSplitIntelMode(visibilityAssignments, roleConfig);
+
+      if (!viability.viable) {
+        // Block game start - return error
+        return NextResponse.json(
+          {
+            error: {
+              code: 'SPLIT_INTEL_BLOCKED',
+              message: viability.reason || 'Cannot use Split Intel Mode with current role configuration.',
+            },
+          },
+          { status: 400 }
+        );
+      }
+
+      // Distribute split intel groups
+      const splitIntelGroups = distributeSplitIntelGroups(visibilityAssignments, roleConfig);
+
+      if (splitIntelGroups) {
+        // Store split intel data in role_config for the /role API to use
+        const updatedRoleConfig = {
+          ...room.role_config,
+          _split_intel_certain_evil_ids: splitIntelGroups.certainEvilIds,
+          _split_intel_mixed_evil_id: splitIntelGroups.mixedEvilId,
+          _split_intel_mixed_good_id: splitIntelGroups.mixedGoodId,
+        };
+
+        await supabase
+          .from('rooms')
+          .update({ role_config: updatedRoleConfig })
+          .eq('id', room.id);
+      }
     }
 
     // Update room status

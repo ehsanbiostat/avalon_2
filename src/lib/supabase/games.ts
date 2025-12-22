@@ -302,3 +302,63 @@ export async function getMerlinDecoyPlayer(
   const game = await getGameById(client, gameId);
   return game?.merlin_decoy_player_id ?? null;
 }
+
+// ============================================
+// FEATURE 011: MERLIN SPLIT INTEL MODE
+// ============================================
+
+/**
+ * Set the Split Intel groups for a game
+ * Called during game creation if merlin_split_intel_enabled is true
+ *
+ * @param client - Supabase client
+ * @param gameId - Game identifier
+ * @param certainEvilIds - Array of player IDs in Certain Evil group
+ * @param mixedEvilId - Evil player ID in Mixed Intel group
+ * @param mixedGoodId - Good player ID in Mixed Intel group
+ * @returns Updated game record
+ */
+export async function setSplitIntelGroups(
+  client: SupabaseClient,
+  gameId: string,
+  certainEvilIds: string[],
+  mixedEvilId: string,
+  mixedGoodId: string
+): Promise<Game> {
+  return updateGame(client, gameId, {
+    split_intel_certain_evil_ids: certainEvilIds,
+    split_intel_mixed_evil_id: mixedEvilId,
+    split_intel_mixed_good_id: mixedGoodId,
+  });
+}
+
+/**
+ * Get the Split Intel groups for a game
+ * Returns null if split intel mode is disabled or not yet configured
+ *
+ * @param client - Supabase client
+ * @param gameId - Game identifier
+ * @returns Split intel groups or null
+ */
+export async function getSplitIntelGroups(
+  client: SupabaseClient,
+  gameId: string
+): Promise<{
+  certainEvilIds: string[];
+  mixedEvilId: string;
+  mixedGoodId: string;
+} | null> {
+  const game = await getGameById(client, gameId);
+  if (
+    !game?.split_intel_certain_evil_ids ||
+    !game?.split_intel_mixed_evil_id ||
+    !game?.split_intel_mixed_good_id
+  ) {
+    return null;
+  }
+  return {
+    certainEvilIds: game.split_intel_certain_evil_ids,
+    mixedEvilId: game.split_intel_mixed_evil_id,
+    mixedGoodId: game.split_intel_mixed_good_id,
+  };
+}

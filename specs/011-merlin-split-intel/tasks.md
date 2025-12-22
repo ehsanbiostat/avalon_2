@@ -19,11 +19,11 @@
 
 **Purpose**: Schema ready, types defined - foundation for all user stories
 
-- [ ] T001 Create migration `supabase/migrations/014_merlin_split_intel.sql` with three new columns: `split_intel_certain_evil_ids UUID[]`, `split_intel_mixed_evil_id UUID`, `split_intel_mixed_good_id UUID`
-- [ ] T002 [P] Update `src/types/role-config.ts` to add `merlin_split_intel_enabled?: boolean` to RoleConfig interface
-- [ ] T003 [P] Update `src/types/game.ts` to add split intel fields: `split_intel_certain_evil_ids`, `split_intel_mixed_evil_id`, `split_intel_mixed_good_id`
-- [ ] T004 [P] Add `SplitIntelGroups` and `SplitIntelVisibility` interfaces to `src/types/game.ts`
-- [ ] T005 Update `src/types/database.ts` to include new game table columns if type generation is manual
+- [x] T001 Create migration `supabase/migrations/014_merlin_split_intel.sql` with three new columns: `split_intel_certain_evil_ids UUID[]`, `split_intel_mixed_evil_id UUID`, `split_intel_mixed_good_id UUID`
+- [x] T002 [P] Update `src/types/role-config.ts` to add `merlin_split_intel_enabled?: boolean` to RoleConfig interface
+- [x] T003 [P] Update `src/types/game.ts` to add split intel fields: `split_intel_certain_evil_ids`, `split_intel_mixed_evil_id`, `split_intel_mixed_good_id`
+- [x] T004 [P] Add `SplitIntelGroups` and `SplitIntelVisibility` interfaces to `src/types/game.ts`
+- [x] T005 Update `src/types/database.ts` to include new game table columns if type generation is manual
 
 **Checkpoint**: Database schema ready, TypeScript compiles with new types
 
@@ -37,26 +37,26 @@
 
 ### Domain Logic
 
-- [ ] T006 Create `src/lib/domain/split-intel.ts` with `SplitIntelGroups` interface and `distributeSplitIntelGroups()` function
-- [ ] T007 Add `canUseSplitIntelMode()` function to `src/lib/domain/split-intel.ts` that checks visible evil count and returns viability
-- [ ] T008 Add `getSplitIntelVisibility()` function to `src/lib/domain/visibility.ts` that returns two-group visibility result
-- [ ] T009 Update `src/lib/domain/role-config.ts` to add validation for `merlin_split_intel_enabled` and mutual exclusivity check with `merlin_decoy_enabled`
+- [x] T006 Create `src/lib/domain/split-intel.ts` with `SplitIntelGroups` interface and `distributeSplitIntelGroups()` function
+- [x] T007 Add `canUseSplitIntelMode()` function to `src/lib/domain/split-intel.ts` that checks visible evil count and returns viability
+- [x] T008 Add `getSplitIntelVisibility()` function to `src/lib/domain/visibility.ts` that returns two-group visibility result
+- [x] T009 Update `src/lib/domain/role-config.ts` to add validation for `merlin_split_intel_enabled` and mutual exclusivity check with `merlin_decoy_enabled`
 
 ### API Updates
 
-- [ ] T010 Update `src/app/api/rooms/[code]/distribute/route.ts` to check `merlin_split_intel_enabled`, block if 0 visible evil, call `distributeSplitIntelGroups()`, and store group IDs in games table
-- [ ] T011 Update `src/app/api/rooms/[code]/role/route.ts` to return `split_intel` object with two groups for Merlin when split intel is enabled
-- [ ] T012 Update `src/app/api/games/[gameId]/route.ts` to include split intel fields in response and add `was_mixed_group` flag to player list
+- [x] T010 Update `src/app/api/rooms/[code]/distribute/route.ts` to check `merlin_split_intel_enabled`, block if 0 visible evil, call `distributeSplitIntelGroups()`, and store group IDs in games table
+- [x] T011 Update `src/app/api/rooms/[code]/role/route.ts` to return `split_intel` object with two groups for Merlin when split intel is enabled
+- [x] T012 Update `src/app/api/games/[gameId]/route.ts` to include split intel fields in response and add `was_mixed_group` flag to player list
 
 ### Supabase Data Layer
 
-- [ ] T013 [P] Update `src/lib/supabase/games.ts` to handle split intel fields when creating/fetching games
-- [ ] T014 [P] Update `src/lib/supabase/roles.ts` to persist group selections during role distribution
+- [x] T013 [P] Update `src/lib/supabase/games.ts` to handle split intel fields when creating/fetching games
+- [x] T014 [P] Update `src/lib/supabase/roles.ts` to persist group selections during role distribution
 
 ### Unit Tests (Domain Logic)
 
-- [ ] T015 [P] Create `tests/unit/domain/split-intel.test.ts` with tests for `distributeSplitIntelGroups()` covering: 1 visible evil, 2 visible evil, 3+ visible evil, 0 visible evil returns null
-- [ ] T016 [P] Add tests to `tests/unit/domain/visibility.test.ts` for `getSplitIntelVisibility()` covering all Mordred/Oberon combinations
+- [x] T015 [P] Create `tests/unit/domain/split-intel.test.ts` with tests for `distributeSplitIntelGroups()` covering: 1 visible evil, 2 visible evil, 3+ visible evil, 0 visible evil returns null
+- [x] T016 [P] Add tests to `tests/unit/domain/visibility.test.ts` for `getSplitIntelVisibility()` covering all Mordred/Oberon combinations
 
 **Checkpoint**: Foundation ready - all domain logic and APIs work, user story implementation can begin
 
@@ -70,11 +70,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T017 [US1] Update `src/components/RoleConfigPanel.tsx` to add "Merlin Split Intel Mode" toggle with description: "Merlin sees two groups: certain evil players, and a mixed group with one evil and one good player"
-- [ ] T018 [US1] Implement mutual exclusivity in `src/components/RoleConfigPanel.tsx`: when Split Intel is enabled, disable Decoy toggle (and vice versa) with tooltip explaining only one mode can be active
-- [ ] T019 [US1] Add warning in `src/components/RoleConfigPanel.tsx` when enabling Split Intel with Mordred + Oberon Chaos (potential 0 visible evil configuration)
-- [ ] T020 [US1] Update `src/components/RolesInPlay.tsx` to show "🔀 Split Intel" indicator when `merlin_split_intel_enabled` is true
-- [ ] T021 [US1] Verify room creation API correctly persists `merlin_split_intel_enabled` in role_config
+- [x] T017 [US1] Update `src/components/RoleConfigPanel.tsx` to add "Merlin Split Intel Mode" toggle with description: "Merlin sees two groups: certain evil players, and a mixed group with one evil and one good player"
+- [x] T018 [US1] Implement mutual exclusivity in `src/components/RoleConfigPanel.tsx`: when Split Intel is enabled, disable Decoy toggle (and vice versa) with tooltip explaining only one mode can be active
+- [x] T019 [US1] Add warning in `src/components/RoleConfigPanel.tsx` when enabling Split Intel with Mordred + Oberon Chaos (potential 0 visible evil configuration)
+- [x] T020 [US1] Update `src/components/RolesInPlay.tsx` to show "🔀 Split Intel" indicator when `merlin_split_intel_enabled` is true
+- [x] T021 [US1] Verify room creation API correctly persists `merlin_split_intel_enabled` in role_config
 
 **Checkpoint**: Room managers can enable Split Intel Mode, mutual exclusivity works, lobby shows indicator
 
@@ -88,12 +88,12 @@
 
 ### Implementation for User Story 2
 
-- [ ] T022 [US2] Update `src/components/RoleRevealModal.tsx` to detect `split_intel` in role data and conditionally render two-group display
-- [ ] T023 [US2] Create Certain Evil group section in `src/components/RoleRevealModal.tsx` with red/dark styling, 🎯 icon, and label "These players are definitely evil"
-- [ ] T024 [US2] Create Mixed Intel group section in `src/components/RoleRevealModal.tsx` with amber/yellow styling, ❓ icon, and label "One is evil, one is good - you don't know which"
-- [ ] T025 [US2] Add hidden evil warning display in `src/components/RoleRevealModal.tsx` when `hidden_count > 0` (e.g., "1 evil player is hidden from you")
-- [ ] T026 [US2] Handle edge case in `src/components/RoleRevealModal.tsx` where Certain Evil group is empty (only 1 visible evil) - show only Mixed Intel group
-- [ ] T027 [US2] Ensure ability note in `src/components/RoleRevealModal.tsx` is updated for Split Intel: "You see players divided into two groups with different certainty levels"
+- [x] T022 [US2] Update `src/components/RoleRevealModal.tsx` to detect `split_intel` in role data and conditionally render two-group display
+- [x] T023 [US2] Create Certain Evil group section in `src/components/RoleRevealModal.tsx` with red/dark styling, 🎯 icon, and label "These players are definitely evil"
+- [x] T024 [US2] Create Mixed Intel group section in `src/components/RoleRevealModal.tsx` with amber/yellow styling, ❓ icon, and label "One is evil, one is good - you don't know which"
+- [x] T025 [US2] Add hidden evil warning display in `src/components/RoleRevealModal.tsx` when `hidden_count > 0` (e.g., "1 evil player is hidden from you")
+- [x] T026 [US2] Handle edge case in `src/components/RoleRevealModal.tsx` where Certain Evil group is empty (only 1 visible evil) - show only Mixed Intel group
+- [x] T027 [US2] Ensure ability note in `src/components/RoleRevealModal.tsx` is updated for Split Intel: "You see players divided into two groups with different certainty levels"
 
 **Checkpoint**: Merlin sees correctly formatted two-group display with all visual requirements
 
@@ -107,10 +107,10 @@
 
 ### Implementation for User Story 3
 
-- [ ] T028 [US3] Verify no changes needed to non-Merlin role reveals in `src/components/RoleRevealModal.tsx` - mixed group player sees normal role (no task if already correct)
-- [ ] T029 [US3] Update `src/components/game/GameOver.tsx` to show "🔀 Mixed Group" badge next to player who was in mixed group when `split_intel_mixed_good_id` or `split_intel_mixed_evil_id` matches player ID
-- [ ] T030 [US3] Style the "🔀 Mixed Group" indicator in `src/components/game/GameOver.tsx` to be clear but not distracting (consistent with "🎭 Decoy" indicator from Feature 009)
-- [ ] T031 [US3] Ensure mixed group reveal only appears when game had `merlin_split_intel_enabled` in role config
+- [x] T028 [US3] Verify no changes needed to non-Merlin role reveals in `src/components/RoleRevealModal.tsx` - mixed group player sees normal role (no task if already correct)
+- [x] T029 [US3] Update `src/components/game/GameOver.tsx` to show "🔀 Mixed Group" badge next to player who was in mixed group when `split_intel_mixed_good_id` or `split_intel_mixed_evil_id` matches player ID
+- [x] T030 [US3] Style the "🔀 Mixed Group" indicator in `src/components/game/GameOver.tsx` to be clear but not distracting (consistent with "🎭 Decoy" indicator from Feature 009)
+- [x] T031 [US3] Ensure mixed group reveal only appears when game had `merlin_split_intel_enabled` in role config
 
 **Checkpoint**: Mixed group player has normal game experience; game over reveals mixed group composition
 
@@ -124,13 +124,13 @@
 
 ### Implementation for User Story 4
 
-- [ ] T032 [US4] Verify `distributeSplitIntelGroups()` in `src/lib/domain/split-intel.ts` correctly excludes Mordred and Oberon Chaos from visible evil count
-- [ ] T033 [US4] Verify `distributeSplitIntelGroups()` correctly assigns: 2 to Certain + 1 to Mixed when 3+ visible evil
-- [ ] T034 [US4] Verify `distributeSplitIntelGroups()` correctly assigns: 1 to Certain + 1 to Mixed when 2 visible evil
-- [ ] T035 [US4] Verify `distributeSplitIntelGroups()` correctly assigns: 0 to Certain + 1 to Mixed when 1 visible evil
-- [ ] T036 [US4] Verify `distributeSplitIntelGroups()` returns null when 0 visible evil (blocked configuration)
-- [ ] T037 [US4] Verify good player selection in `distributeSplitIntelGroups()` excludes Merlin from eligible pool
-- [ ] T038 [US4] Add additional unit tests to `tests/unit/domain/split-intel.test.ts` for edge cases: 5-player with Mordred, 7-player with Mordred + Oberon Chaos
+- [x] T032 [US4] Verify `distributeSplitIntelGroups()` in `src/lib/domain/split-intel.ts` correctly excludes Mordred and Oberon Chaos from visible evil count
+- [x] T033 [US4] Verify `distributeSplitIntelGroups()` correctly assigns: 2 to Certain + 1 to Mixed when 3+ visible evil
+- [x] T034 [US4] Verify `distributeSplitIntelGroups()` correctly assigns: 1 to Certain + 1 to Mixed when 2 visible evil
+- [x] T035 [US4] Verify `distributeSplitIntelGroups()` correctly assigns: 0 to Certain + 1 to Mixed when 1 visible evil
+- [x] T036 [US4] Verify `distributeSplitIntelGroups()` returns null when 0 visible evil (blocked configuration)
+- [x] T037 [US4] Verify good player selection in `distributeSplitIntelGroups()` excludes Merlin from eligible pool
+- [x] T038 [US4] Add additional unit tests to `tests/unit/domain/split-intel.test.ts` for edge cases: 5-player with Mordred, 7-player with Mordred + Oberon Chaos
 
 **Checkpoint**: Algorithm correctly distributes players to groups for all configurations
 
@@ -140,13 +140,13 @@
 
 **Purpose**: Error handling, edge cases, and final validation
 
-- [ ] T039 Verify error message in distribute API is clear when Split Intel blocked: "Cannot use Split Intel Mode with current role configuration. All evil players are hidden from Merlin (Mordred + Oberon Chaos). Please disable Split Intel Mode or change role selection."
-- [ ] T040 [P] Mobile responsiveness check for two-group display in `src/components/RoleRevealModal.tsx`
-- [ ] T041 [P] Mobile responsiveness check for Split Intel toggle in `src/components/RoleConfigPanel.tsx`
+- [x] T039 Verify error message in distribute API is clear when Split Intel blocked: "Cannot use Split Intel Mode with current role configuration. All evil players are hidden from Merlin (Mordred + Oberon Chaos). Please disable Split Intel Mode or change role selection."
+- [x] T040 [P] Mobile responsiveness check for two-group display in `src/components/RoleRevealModal.tsx`
+- [x] T041 [P] Mobile responsiveness check for Split Intel toggle in `src/components/RoleConfigPanel.tsx`
 - [ ] T042 Run full integration test: Enable split intel → Distribute → Verify Merlin sees two groups → Complete game → Verify game over reveals mixed group
 - [ ] T043 Run integration test: Enable Split Intel + Mordred + Oberon Chaos → Attempt distribute → Verify game start blocked with error
 - [ ] T044 Run integration test: Enable Split Intel → Then try to enable Decoy → Verify mutual exclusivity prevents both being enabled
-- [ ] T045 Verify Lady of the Lake investigations show true alignment regardless of split intel group membership (existing behavior should be correct)
+- [x] T045 Verify Lady of the Lake investigations show true alignment regardless of split intel group membership (existing behavior should be correct)
 - [ ] T046 Run quickstart.md validation scenarios to confirm feature complete
 
 ---

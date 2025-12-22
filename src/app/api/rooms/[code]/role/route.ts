@@ -17,11 +17,12 @@ import {
 } from '@/lib/supabase/roles';
 import { getGameByRoomId } from '@/lib/supabase/games';
 import { getRoleInfo } from '@/lib/domain/roles';
-import { countHiddenEvilFromMerlin, generateDecoyWarning, type RoleAssignment } from '@/lib/domain/visibility';
+import { countHiddenEvilFromMerlin, generateDecoyWarning, getSplitIntelVisibility, type RoleAssignment } from '@/lib/domain/visibility';
 import { shuffleArray } from '@/lib/domain/decoy-selection';
 import { validateRoomCode } from '@/lib/domain/validation';
 import { errors, handleError } from '@/lib/utils/errors';
 import type { RoleConfig } from '@/types/role-config';
+import type { SplitIntelGroups, SplitIntelVisibility } from '@/types/game';
 
 interface RouteParams {
   params: Promise<{ code: string }>;
@@ -100,16 +101,76 @@ export async function GET(request: Request, { params }: RouteParams) {
     // Feature 009: Merlin Decoy fields
     let hasDecoy: boolean | undefined;
     let decoyWarning: string | undefined;
+    // Feature 011: Merlin Split Intel fields
+    let splitIntel: SplitIntelVisibility | undefined;
 
     switch (playerRole.special_role) {
       // T064-T068: US8 - Merlin visibility with hidden count
       // Feature 009: Updated for Merlin Decoy Mode
+      // Feature 011: Updated for Merlin Split Intel Mode
       case 'merlin': {
-        knownPlayers = await getPlayersVisibleToMerlin(supabase, room.id);
         hiddenEvilCount = countHiddenEvilFromMerlin(roleConfig);
 
-        // Feature 009: Handle Merlin Decoy Mode
-        if (roleConfig.merlin_decoy_enabled) {
+        // Feature 011: Handle Merlin Split Intel Mode (takes precedence over standard visibility)
+        if (roleConfig.merlin_split_intel_enabled) {
+          // Check for split intel data - first from role_config (pre-game), then from game
+          let splitIntelGroups: SplitIntelGroups | null = null;
+
+          // Try role_config first (works before game is created)
+          const rcData = roleConfig as Record<string, unknown>;
+          if (rcData._split_intel_certain_evil_ids && rcData._split_intel_mixed_evil_id && rcData._split_intel_mixed_good_id) {
+            splitIntelGroups = {
+              certainEvilIds: rcData._split_intel_certain_evil_ids as string[],
+              mixedEvilId: rcData._split_intel_mixed_evil_id as string,
+              mixedGoodId: rcData._split_intel_mixed_good_id as string,
+            };
+          } else {
+            // Fall back to game (for after game is created)
+            const game = await getGameByRoomId(supabase, room.id);
+            if (game?.split_intel_certain_evil_ids && game?.split_intel_mixed_evil_id && game?.split_intel_mixed_good_id) {
+              splitIntelGroups = {
+                certainEvilIds: game.split_intel_certain_evil_ids,
+                mixedEvilId: game.split_intel_mixed_evil_id,
+                mixedGoodId: game.split_intel_mixed_good_id,
+              };
+            }
+          }
+
+          if (splitIntelGroups) {
+            // Get all role assignments for player names
+            const roleAssignmentsData = await getRoleAssignments(supabase, room.id);
+
+            // Get player nicknames
+            const { data: playerData } = await supabase
+              .from('players')
+              .select('id, nickname')
+              .in('id', roleAssignmentsData.map(a => a.player_id));
+
+            const nicknameMap = new Map(
+              (playerData || []).map((p: { id: string; nickname: string }) => [p.id, p.nickname])
+            );
+
+            // Convert to RoleAssignment format
+            const visibilityAssignments: RoleAssignment[] = roleAssignmentsData.map(a => ({
+              playerId: a.player_id,
+              playerName: nicknameMap.get(a.player_id) || 'Unknown',
+              role: a.role as 'good' | 'evil',
+              specialRole: a.special_role,
+            }));
+
+            // Get split intel visibility
+            splitIntel = getSplitIntelVisibility(visibilityAssignments, roleConfig, splitIntelGroups);
+
+            // Set known players to empty (split intel uses separate groups)
+            knownPlayers = [];
+            knownPlayersLabel = '';
+            abilityNote = 'You see players divided into two groups with different certainty levels.';
+          }
+        }
+        // Feature 009: Handle Merlin Decoy Mode (only if split intel not active)
+        else if (roleConfig.merlin_decoy_enabled) {
+          knownPlayers = await getPlayersVisibleToMerlin(supabase, room.id);
+
           // Check for decoy player ID - first from role_config (pre-game), then from game
           // The decoy ID is stored in role_config during distribution (before game exists)
           // and copied to the game when the game starts
@@ -144,19 +205,27 @@ export async function GET(request: Request, { params }: RouteParams) {
               decoyWarning = generateDecoyWarning(hiddenEvilCount || 0);
             }
           }
-        }
 
-        // Set label based on whether decoy mode is active
-        if (hasDecoy) {
-          // When decoy is active, the list contains evil + 1 good, so use a cautious label
-          knownPlayersLabel = 'Suspected Evil Players';
-        } else {
+          // Set label based on whether decoy mode is active
+          if (hasDecoy) {
+            // When decoy is active, the list contains evil + 1 good, so use a cautious label
+            knownPlayersLabel = 'Suspected Evil Players';
+          } else {
+            knownPlayersLabel = 'The Evil Among You';
+          }
+
+          // Standard ability note (only if no decoy)
+          if (!hasDecoy && hiddenEvilCount && hiddenEvilCount > 0) {
+            abilityNote = `${hiddenEvilCount} evil ${hiddenEvilCount === 1 ? 'player is' : 'players are'} hidden from you!`;
+          }
+        }
+        // Standard Merlin visibility (no decoy, no split intel)
+        else {
+          knownPlayers = await getPlayersVisibleToMerlin(supabase, room.id);
           knownPlayersLabel = 'The Evil Among You';
-        }
-
-        // Standard ability note (only if no decoy)
-        if (!hasDecoy && hiddenEvilCount && hiddenEvilCount > 0) {
-          abilityNote = `${hiddenEvilCount} evil ${hiddenEvilCount === 1 ? 'player is' : 'players are'} hidden from you!`;
+          if (hiddenEvilCount && hiddenEvilCount > 0) {
+            abilityNote = `${hiddenEvilCount} evil ${hiddenEvilCount === 1 ? 'player is' : 'players are'} hidden from you!`;
+          }
         }
         break;
       }
@@ -246,6 +315,8 @@ export async function GET(request: Request, { params }: RouteParams) {
         // Feature 009: Merlin Decoy fields
         has_decoy: hasDecoy,
         decoy_warning: decoyWarning,
+        // Feature 011: Merlin Split Intel fields
+        split_intel: splitIntel,
       },
     });
   } catch (error) {

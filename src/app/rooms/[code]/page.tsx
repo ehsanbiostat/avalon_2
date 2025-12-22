@@ -10,6 +10,7 @@ import { useRoom } from '@/hooks/useRoom';
 import { usePlayer } from '@/hooks/usePlayer';
 import { useHeartbeat } from '@/hooks/useHeartbeat';
 import { getPlayerId } from '@/lib/utils/player-id';
+import type { SplitIntelVisibility } from '@/types/game';
 
 export default function RoomPage() {
   const params = useParams();
@@ -38,6 +39,8 @@ export default function RoomPage() {
     // Feature 009: Merlin Decoy Mode
     has_decoy?: boolean;
     decoy_warning?: string;
+    // Feature 011: Merlin Split Intel Mode
+    split_intel?: SplitIntelVisibility;
   } | null>(null);
   const [roleError, setRoleError] = useState<string | null>(null);
 
@@ -293,6 +296,7 @@ export default function RoomPage() {
             onConfirm={handleConfirmRole}
             hasDecoy={roleData.has_decoy}
             decoyWarning={roleData.decoy_warning}
+            splitIntel={roleData.split_intel}
           />
         )}
 
