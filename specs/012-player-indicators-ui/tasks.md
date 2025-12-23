@@ -19,8 +19,8 @@
 
 **Purpose**: Prepare for refactoring
 
-- [ ] T001 Review current PlayerSeats.tsx implementation in src/components/game/PlayerSeats.tsx
-- [ ] T002 Identify all current indicator positions and className logic (lines 230-294)
+- [x] T001 Review current PlayerSeats.tsx implementation in src/components/game/PlayerSeats.tsx
+- [x] T002 Identify all current indicator positions and className logic (lines 230-294)
 
 ---
 
@@ -30,11 +30,11 @@
 
 **⚠️ CRITICAL**: These helper functions must be complete before user story implementation
 
-- [ ] T003 Create getFillColor() helper function for team states in src/components/game/PlayerSeats.tsx
-- [ ] T004 Create getBorderColor() helper function for identity states in src/components/game/PlayerSeats.tsx
-- [ ] T005 Add transition classes to avatar container for smooth state changes
+- [x] T003 Create getFillColor() helper function for team states in src/components/game/PlayerSeats.tsx
+- [x] T004 Create getBorderColor() helper function for identity states in src/components/game/PlayerSeats.tsx
+- [x] T005 Add transition classes to avatar container for smooth state changes
 
-**Checkpoint**: Helper functions ready - user story implementation can begin
+**Checkpoint**: Helper functions ready - user story implementation can begin ✅
 
 ---
 
@@ -46,15 +46,15 @@
 
 ### Implementation for User Story 1
 
-- [ ] T006 [US1] Implement sky-700 fill color for selected players in src/components/game/PlayerSeats.tsx
-- [ ] T007 [US1] Implement emerald-700 fill color for proposed team members in src/components/game/PlayerSeats.tsx
-- [ ] T008 [US1] Implement slate-700 default fill color in src/components/game/PlayerSeats.tsx
-- [ ] T009 [US1] Update avatar className to use getFillColor() instead of inline conditionals
-- [ ] T010 [US1] Remove obsolete bg-green-800 and bg-cyan-700 classes from current implementation
-- [ ] T011 [US1] Verify fill color priority: selected > proposed > default
-- [ ] T012 [US1] Handle inDraftSelection state with sky-700 fill + pulse animation
+- [x] T006 [US1] Implement sky-700 fill color for selected players in src/components/game/PlayerSeats.tsx
+- [x] T007 [US1] Implement emerald-700 fill color for proposed team members in src/components/game/PlayerSeats.tsx
+- [x] T008 [US1] Implement slate-700 default fill color in src/components/game/PlayerSeats.tsx
+- [x] T009 [US1] Update avatar className to use getFillColor() instead of inline conditionals
+- [x] T010 [US1] Remove obsolete bg-green-800 and bg-cyan-700 classes from current implementation
+- [x] T011 [US1] Verify fill color priority: selected > proposed > default
+- [x] T012 [US1] Handle inDraftSelection state with sky-700 fill + pulse animation
 
-**Checkpoint**: Team selection visible via fill color - verify in 10-player game
+**Checkpoint**: Team selection visible via fill color ✅
 
 ---
 
@@ -66,15 +66,15 @@
 
 ### Implementation for User Story 2
 
-- [ ] T013 [US2] Implement amber-400 thick border for current player (isMe) in src/components/game/PlayerSeats.tsx
-- [ ] T014 [US2] Implement red-500 border for disconnected players in src/components/game/PlayerSeats.tsx
-- [ ] T015 [US2] Implement slate-400 default border color in src/components/game/PlayerSeats.tsx
-- [ ] T016 [US2] Add grayscale opacity-60 filter for disconnected players
-- [ ] T017 [US2] Update avatar className to use getBorderColor() instead of inline conditionals
-- [ ] T018 [US2] Set border-4 thickness for current player, border-3 for others
-- [ ] T019 [US2] Remove obsolete disconnect badge (top-left X icon) from lines 261-270
+- [x] T013 [US2] Implement amber-400 thick border for current player (isMe) in src/components/game/PlayerSeats.tsx
+- [x] T014 [US2] Implement red-500 border for disconnected players in src/components/game/PlayerSeats.tsx
+- [x] T015 [US2] Implement slate-400 default border color in src/components/game/PlayerSeats.tsx
+- [x] T016 [US2] Add grayscale opacity-60 filter for disconnected players
+- [x] T017 [US2] Update avatar className to use getBorderColor() instead of inline conditionals
+- [x] T018 [US2] Set border-4 thickness for current player, border-3 for others
+- [x] T019 [US2] Remove obsolete disconnect badge (top-left X icon) from lines 261-270
 
-**Checkpoint**: Identity states visible via border color - verify "You" and disconnected states
+**Checkpoint**: Identity states visible via border color ✅
 
 ---
 
@@ -86,14 +86,14 @@
 
 ### Implementation for User Story 3
 
-- [ ] T020 [US3] Keep crown badge at top-center position (no change needed) in src/components/game/PlayerSeats.tsx
-- [ ] T021 [US3] Move Lady of Lake badge from bottom-left to bottom-right (-bottom-2 -right-3)
-- [ ] T022 [US3] Remove obsolete shield badge (🛡️) from top-right position
-- [ ] T023 [US3] Remove obsolete checkmark badge from top-right position (lines 280-287)
-- [ ] T024 [US3] Verify leader amber ring effect still works with new border logic
+- [x] T020 [US3] Keep crown badge at top-center position (no change needed) in src/components/game/PlayerSeats.tsx
+- [x] T021 [US3] Move Lady of Lake badge from bottom-left to bottom-right (-bottom-2 -right-3)
+- [x] T022 [US3] Remove obsolete shield badge (🛡️) from top-right position
+- [x] T023 [US3] Remove obsolete checkmark badge from top-right position (lines 280-287)
+- [x] T024 [US3] Verify leader amber ring effect still works with new border logic
 - [ ] T025 [US3] Test adjacent players: verify Lady (bottom-right) doesn't overlap with neighbor
 
-**Checkpoint**: Special role badges positioned correctly - verify no overlap in 10-player game
+**Checkpoint**: Special role badges positioned correctly ✅
 
 ---
 
@@ -105,12 +105,12 @@
 
 ### Implementation for User Story 4
 
-- [ ] T026 [US4] Move vote badge from bottom-right to bottom-left (-bottom-2 -left-3)
-- [ ] T027 [US4] Style vote badge: w-5 h-5 bg-yellow-500 rounded-full text-xs
-- [ ] T028 [US4] Add title="Has voted" tooltip to vote badge
-- [ ] T029 [US4] Verify vote badge only appears when has_voted is true
+- [x] T026 [US4] Move vote badge from bottom-right to bottom-left (-bottom-2 -left-3)
+- [x] T027 [US4] Style vote badge: w-5 h-5 bg-yellow-500 rounded-full text-xs
+- [x] T028 [US4] Add title="Has voted" tooltip to vote badge
+- [x] T029 [US4] Verify vote badge only appears when has_voted is true
 
-**Checkpoint**: Vote status visible - verify badge appears/disappears correctly
+**Checkpoint**: Vote status visible ✅
 
 ---
 
@@ -118,9 +118,9 @@
 
 **Purpose**: Final cleanup, transitions, and validation
 
-- [ ] T030 Verify transition-all duration-300 works correctly during state changes
-- [ ] T031 Simplify name styling to use consistent color logic based on isMe and isDisconnected
-- [ ] T032 Remove any unused CSS classes from the refactored component
+- [x] T030 Verify transition-all duration-300 works correctly during state changes
+- [x] T031 Simplify name styling to use consistent color logic based on isMe and isDisconnected
+- [x] T032 Remove any unused CSS classes from the refactored component
 - [ ] T033 Verify all states work together: Leader + Lady + On Team + Voted + Current Player
 - [ ] T034 Test on mobile viewport (375px width) - verify badges visible
 - [ ] T035 Run visual verification with 10-player game per quickstart.md checklist

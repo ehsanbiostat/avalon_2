@@ -4,9 +4,59 @@
  * PlayerSeats Component
  * Circular display of players around a table
  * T042, T043: Updated for Phase 6 to show disconnect status
+ * 012: Refactored indicator system - fill colors for team state, border colors for identity
  */
 
 import type { GamePlayer, CenterMessage, GamePhase } from '@/types/game';
+
+/**
+ * T003: Get fill color based on team selection state
+ * Priority: selected/draft > proposed > default
+ */
+function getFillColor(
+  selected: boolean,
+  inDraftSelection: boolean,
+  isProposed: boolean,
+  isDisconnected: boolean
+): string {
+  if (isDisconnected) return 'bg-slate-800';
+  if (selected || inDraftSelection) return 'bg-sky-700';
+  if (isProposed) return 'bg-emerald-700';
+  return 'bg-slate-700';
+}
+
+/**
+ * T004: Get border color based on identity state
+ * Priority: disconnected > isMe > selected/draft > proposed > default
+ */
+function getBorderColor(
+  isMe: boolean,
+  isDisconnected: boolean,
+  selected: boolean,
+  inDraftSelection: boolean,
+  isProposed: boolean
+): string {
+  if (isDisconnected) return 'border-red-500';
+  if (isMe) return 'border-amber-400';
+  if (selected || inDraftSelection) return 'border-sky-400';
+  if (isProposed) return 'border-emerald-400';
+  return 'border-slate-400';
+}
+
+/**
+ * Get text color for avatar initial
+ */
+function getTextColor(
+  isMe: boolean,
+  selected: boolean,
+  inDraftSelection: boolean,
+  isProposed: boolean
+): string {
+  if (selected || inDraftSelection) return 'text-sky-100';
+  if (isProposed) return 'text-emerald-100';
+  if (isMe) return 'text-amber-200';
+  return 'text-slate-200';
+}
 
 interface PlayerSeatsProps {
   players: GamePlayer[];
@@ -68,15 +118,15 @@ export function PlayerSeats({
     const phase = gamePhase || 'team_building';
     const quest = questNumber || 1;
     const teamSize = questRequirement?.size || 0;
-    
+
     // T020: Safely get leader name
     const leader = players.find((p) => p.is_leader);
     let leaderName = leader?.nickname || 'Leader';
-    
+
     // T020: Safely get Lady holder name
     const ladyHolder = players.find((p) => p.id === ladyHolderId);
     let ladyName = ladyHolder?.nickname || 'Player';
-    
+
     // T012: Truncate long nicknames to 15 chars + "..."
     if (leaderName.length > 15) {
       leaderName = leaderName.slice(0, 15) + '...';
@@ -170,7 +220,7 @@ export function PlayerSeats({
   const isSelected = (playerId: string) => selectedTeam.includes(playerId);
   const canSelect = selectable && selectedTeam.length < maxSelectable;
   const isDisabled = (playerId: string) => disabledPlayerIds.includes(playerId);
-  
+
   // Feature 007: Draft team selection state
   // For leader (selectable=true): use local selectedTeam (handled by isSelected)
   // For other players: show draft_team from server
@@ -206,7 +256,7 @@ export function PlayerSeats({
         const hasLady = ladyHolderId === player.id;
         // T042: Check connection status
         const isDisconnected = !player.is_connected;
-        
+
         // Feature 007: Determine visual state
         const inDraftSelection = isDraftSelected(player.id);
         const isProposed = player.is_on_team; // Officially proposed team
@@ -227,80 +277,52 @@ export function PlayerSeats({
                 ${disabled ? 'opacity-50' : ''}
               `}
             >
-              {/* Avatar */}
+              {/* Avatar - 012: Refactored with fill/border color system */}
               <div
                 className={`
                   w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold
-                  border-3 transition-all duration-300
-                  ${isMe ? 'border-yellow-400 bg-yellow-900 text-yellow-200' : 'border-slate-400 bg-slate-700 text-slate-200'}
+                  transition-all duration-300
+                  ${getFillColor(selected, inDraftSelection, isProposed, isDisconnected)}
+                  ${getBorderColor(isMe, isDisconnected, selected, inDraftSelection, isProposed)}
+                  ${getTextColor(isMe, selected, inDraftSelection, isProposed)}
                   ${player.is_leader ? 'ring-4 ring-amber-400 ring-offset-2 ring-offset-avalon-midnight' : ''}
-                  ${isProposed ? 'border-green-400 bg-green-800 text-green-200' : ''}
-                  ${inDraftSelection ? 'border-cyan-400 bg-cyan-900/30 text-cyan-100 animate-pulse shadow-lg shadow-cyan-400/50' : ''}
-                  ${selected ? 'border-cyan-300 bg-cyan-700 text-cyan-100 shadow-lg shadow-cyan-400/50' : ''}
-                  ${isDisconnected ? 'opacity-50 grayscale' : ''}
+                  ${isDisconnected ? 'grayscale opacity-60' : ''}
+                  ${inDraftSelection && selectable ? 'animate-pulse shadow-lg shadow-sky-400/50' : ''}
                 `}
-                style={{ borderWidth: '4px' }}
+                style={{ borderWidth: isMe ? '4px' : '3px' }}
               >
                 {player.nickname.charAt(0).toUpperCase()}
               </div>
 
-              {/* Crown for leader */}
+              {/* Crown for leader - T020: Keep at top center */}
               {player.is_leader && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-2xl">
                   👑
                 </div>
               )}
 
-              {/* Lady of the Lake token */}
+              {/* Lady of the Lake token - T021: Moved to bottom RIGHT */}
               {hasLady && (
-                <div className="absolute -bottom-2 -left-3 text-2xl" title="Lady of the Lake">
+                <div className="absolute -bottom-2 -right-3 text-xl" title="Lady of the Lake">
                   🌊
                 </div>
               )}
 
-              {/* T042, T043: Disconnect indicator */}
-              {isDisconnected && (
-                <div
-                  className="absolute -top-2 -left-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center"
-                  title="Disconnected"
-                >
-                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </div>
-              )}
-
-              {/* Shield for proposed team member (not draft) */}
-              {isProposed && !selected && !inDraftSelection && (
-                <div className="absolute -top-2 -right-2 text-xl">
-                  🛡️
-                </div>
-              )}
-
-              {/* Checkmark for selection (draft or regular selection) */}
-              {(selected || inDraftSelection) && (
-                <div className={`absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center text-white text-base font-bold ${
-                  inDraftSelection ? 'bg-cyan-400' : 'bg-cyan-500'
-                }`}>
-                  ✓
-                </div>
-              )}
-
-              {/* Vote indicator */}
+              {/* Vote indicator - T026: Moved to bottom LEFT */}
               {player.has_voted && (
-                <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-sm text-black font-bold">
+                <div
+                  className="absolute -bottom-2 -left-3 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center text-xs text-black font-bold"
+                  title="Has voted"
+                >
                   ✓
                 </div>
               )}
 
-              {/* Name - Show full name, no truncation */}
+              {/* Name - T031: Simplified color logic */}
               <span
                 className={`
                   mt-3 text-base font-semibold whitespace-nowrap
-                  ${isMe ? 'text-yellow-300 font-bold' : 'text-slate-100'}
-                  ${isDisconnected ? 'text-red-400' : ''}
-                  ${inDraftSelection ? 'text-cyan-300' : ''}
-                  ${isProposed && !inDraftSelection ? 'text-green-300' : ''}
+                  ${isDisconnected ? 'text-red-400' : isMe ? 'text-amber-300 font-bold' : 'text-slate-100'}
                 `}
               >
                 {isMe ? 'You' : player.nickname}
