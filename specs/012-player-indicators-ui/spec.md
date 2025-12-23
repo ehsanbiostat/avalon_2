@@ -2,8 +2,8 @@
 
 **Feature Branch**: `012-player-indicators-ui`
 **Created**: 2025-12-23
-**Status**: Draft
-**Input**: User description: "This is about the UI part of the game room, right now there are multiple indicators around the avatar/circle of the players, including who is the leader, the lady of the lake token, if a player is disconnected or not, if a player already voted or not, all of these indicators makes the UI quite busy and sometimes the tokens overlap, for example in a game of 10 players, the lady of the lake token of neighboring player overlapped with the token of another player that has been chosen in the mission team. How can we change or improve this situation?"
+**Status**: Ready for Planning
+**Input**: User description: "Improve player indicators UI to prevent overlap and reduce visual clutter"
 
 ---
 
@@ -11,285 +11,253 @@
 
 The current game room UI displays multiple status indicators around player avatars arranged in a circle. With up to 10 players and multiple indicators per player, the interface becomes visually cluttered and indicators from adjacent players can overlap.
 
-### Current Implementation Analysis
+### Current Implementation Issues
 
 **File**: `src/components/game/PlayerSeats.tsx`
 
-**Current Indicators and Positions:**
-| Indicator | Position | Size | Purpose |
-|-----------|----------|------|---------|
-| Crown 👑 | Top center | 24px | Leader indicator |
-| Disconnect ❌ | Top left | 24px | Player offline |
-| Checkmark ✓ | Top right | 28px | Selected for team |
-| Shield 🛡️ | Top right | 20px | On proposed team |
-| Lady of Lake 🌊 | Bottom left | 24px | Holds Lady token |
-| Vote ✓ | Bottom right | 24px | Has submitted vote |
+| Indicator | Current Position | Problem |
+|-----------|------------------|---------|
+| Crown 👑 | Top center | OK |
+| Disconnect ❌ | Top left | Overlaps with neighbor |
+| Checkmark ✓ | Top right | Overlaps with neighbor |
+| Shield 🛡️ | Top right | Same position as checkmark |
+| Lady 🌊 | Bottom left | **Main overlap culprit** |
+| Vote ✓ | Bottom right | Can overlap |
 
-**Layout Constraints:**
-- Circle radius: 210px
-- Avatar size: 80px × 80px (w-20 h-20)
-- Container: 520px × 520px
-- With 10 players, angle between players: 36°
-- Adjacent player distance at edge: ~73px
-
-**Root Causes of Overlap:**
-1. Indicators extend 8-16px beyond avatar bounds
-2. Adjacent players are ~73px apart at 10 players
-3. Lady of Lake (bottom-left) can overlap with neighbor's Checkmark (top-right)
-4. No dynamic adjustment based on player count
+**Root Cause**: With 10 players at 210px radius, adjacent players are ~73px apart at the edge, and badges extending 8-16px beyond 80px avatars create overlap.
 
 ---
 
-## Proposed Solutions
+## Chosen Solution: Fill Color + Border + Strategic Badges
 
-This specification presents **6 solution options** for the user to evaluate and choose from.
+After analysis, the following approach was selected:
 
-### Solution A: Consolidated Status Strip
+### Design Principles
 
-**Concept**: Replace scattered badge positions with a single horizontal strip below the player name containing all status icons in a compact row.
+1. **Inner Fill Color** → Shows team selection state (no badge needed)
+2. **Border Color** → Shows identity states (You, Disconnected)
+3. **Strategic Badge Positions** → Only 3 positions used, no overlap possible
 
-**Visual Mockup:**
+### Badge Positions (3 Total)
+
 ```
-       👑 (leader crown, if applicable)
-     ┌─────────┐
-     │    A    │  ← Avatar
-     └─────────┘
-       PlayerA
-    [👤 🌊 ✓ ✓]  ← Status strip (icons in row)
-```
-
-**Advantages:**
-- All indicators in one predictable location
-- Reduces visual footprint
-- Modern, clean appearance (similar to Slack/Discord)
-- No overlap between adjacent players
-
-**Disadvantages:**
-- May be less visible during quick glances
-- Requires horizontal space below name
-- Multiple icons in strip may still be busy
-
----
-
-### Solution B: Priority-Based Single Badge
-
-**Concept**: Show only the most important indicator as a badge. Use avatar styling (borders, rings, opacity) for other states.
-
-**Priority Order:**
-1. Disconnected (critical - red X badge)
-2. Leader (shown via ring, not separate badge)
-3. Lady of Lake (important - shown as badge if not disconnected)
-4. On Team (shown via border color)
-5. Voted (shown via subtle glow or mini indicator)
-
-**Visual Mockup:**
-```
-     ┌─────────┐
-     │    A    │  ← Green border = on team
-     └─────────┘  ← Amber ring = leader
-       PlayerA
-         🌊     ← Single badge (highest priority)
+              👑
+         (top center)
+              ↓
+    ┌─────────────────┐
+    │                 │
+    │     AVATAR      │  ← Fill color = team state
+    │                 │  ← Border color = identity
+    │                 │
+  ✓ └─────────────────┘ 🌊
+  ↑                     ↑
+ Voted               Lady
+(bottom-left)    (bottom-right)
 ```
 
-**Advantages:**
-- Cleanest visual appearance
-- No overlap possible
-- Focus on most important state
+### Color System
 
-**Disadvantages:**
-- Some information hidden/less visible
-- Players need to learn border color meanings
-- May reduce information density too much
+**Inner Fill Colors (Team States):**
 
----
+| State | Fill Color | CSS Class |
+|-------|------------|-----------|
+| Default | Dark slate gray | `bg-slate-700` |
+| Selected by leader | Sky blue | `bg-sky-700` |
+| On proposed team | Emerald green | `bg-emerald-700` |
 
-### Solution C: Orbital/Clock Position System
+**Border Colors (Identity States):**
 
-**Concept**: Position indicators at fixed "clock face" positions around the avatar, evenly spaced and sized consistently smaller.
+| State | Border Color | CSS Class |
+|-------|--------------|-----------|
+| Default | Slate gray | `border-slate-400` |
+| You (current player) | Amber gold (thick) | `border-amber-400 border-4` |
+| Disconnected | Red + grayscale | `border-red-500` + grayscale filter |
 
-**Clock Positions:**
-- 12 o'clock: Leader crown
-- 2 o'clock: Team selection
-- 4 o'clock: Vote status
-- 8 o'clock: Lady of Lake
-- 10 o'clock: Disconnect status
+**Badges (Only When Needed):**
 
-**Visual Mockup:**
+| Badge | Position | When Shown |
+|-------|----------|------------|
+| 👑 Crown | Top center | Player is leader |
+| 🌊 Lady | Bottom right | Player holds Lady of Lake |
+| ✓ Voted | Bottom left | Player has voted (voting phase only) |
+
+### State Priority
+
+When multiple states apply, this priority determines appearance:
+
+| Priority | State | What Shows |
+|----------|-------|------------|
+| 1 | Disconnected | Red border + grayscale (overrides all) |
+| 2 | You (current player) | Amber border (overrides default border) |
+| 3 | Selected for team | Sky blue fill |
+| 4 | On proposed team | Emerald fill |
+| 5 | Leader | Amber ring + Crown badge |
+| 6 | Lady holder | Lady badge (bottom-right) |
+| 7 | Has voted | Vote badge (bottom-left) |
+
+### Visual Examples
+
+**Default Player:**
 ```
-         👑 (12)
-      ❌    ✓
-    (10)  (2)
-     ┌─────────┐
-     │    A    │
-     └─────────┘
-    (8)    (4)
-     🌊      ✓
-       PlayerA
-```
-
-**Advantages:**
-- Consistent, predictable positions
-- Better spacing reduces overlap
-- All information visible
-
-**Disadvantages:**
-- Still multiple indicators around avatar
-- Requires careful sizing/positioning
-- May still overlap with very close neighbors
-
----
-
-### Solution D: Dynamic Spacing & Sizing
-
-**Concept**: Adjust circle radius and indicator sizes based on player count to maintain minimum spacing.
-
-**Scaling Rules:**
-| Players | Circle Radius | Indicator Size | Avatar Size |
-|---------|---------------|----------------|-------------|
-| 5-6     | 180px         | 22px          | 80px        |
-| 7-8     | 210px         | 18px          | 76px        |
-| 9-10    | 250px         | 16px          | 72px        |
-
-**Advantages:**
-- Maintains existing indicator system
-- Minimal code changes
-- Adapts to player count
-
-**Disadvantages:**
-- Overall layout changes based on player count
-- Smaller indicators harder to see on mobile
-- May not fully solve overlap at 10 players
-
----
-
-### Solution E: Hover/Tap Reveal
-
-**Concept**: Show only the primary state visually; reveal additional indicators on hover (desktop) or tap (mobile).
-
-**Default State**: Avatar + name + primary ring/border styling
-**Hover State**: Tooltip or expanded view shows all status icons
-
-**Visual Mockup:**
-```
-Default:              On Hover:
-     ┌─────────┐      ┌─────────┐
-     │    A    │  →   │    A    │ 👑 Leader
-     └─────────┘      └─────────┘ 🌊 Lady
-       PlayerA          PlayerA   ✓ Voted
+    ┌───────────┐
+    │  ░░░░░░░  │     Fill: slate-700
+    │  ░  A  ░  │     Border: slate-400
+    └───────────┘     Badges: none
+       Alice
 ```
 
-**Advantages:**
-- Cleanest default state
-- All information accessible
-- No overlap
-
-**Disadvantages:**
-- Information hidden by default
-- Requires interaction to see states
-- May slow down gameplay decisions
-- Mobile tap conflicts with selection
-
----
-
-### Solution F: Hybrid Approach (Recommended)
-
-**Concept**: Combine the best aspects of multiple solutions:
-1. **Border styling** for team selection states (no badge needed)
-2. **Avatar ring** for leader (existing, works well)
-3. **Single badge position** (bottom-right) for most important non-border state
-4. **Badge priority**: Disconnect > Lady > Voted
-5. **Smaller badge size** (20px) positioned slightly outward
-
-**Visual Mockup:**
+**You (Current Player):**
 ```
-         👑           (crown stays - top center)
-     ┌─────────┐
-     │    A    │      ← Cyan border = selected
-     └─────────┘      ← Amber ring = leader
-       PlayerA
-              🌊      ← Single badge (bottom-right, small)
+    ╔═══════════╗
+    ║  ░░░░░░░  ║     Fill: slate-700
+    ║  ░  B  ░  ║     Border: amber-400 (thick)
+    ╚═══════════╝     Badges: none
+        You
 ```
 
-**Border Color States:**
-- Default: slate-400
-- Selected/Draft: cyan-400
-- Proposed Team: green-400
-- Disconnected: red-400 + grayscale avatar
+**Leader:**
+```
+         👑
+    ┌───────────┐
+    │  ░░░░░░░  │     Fill: slate-700
+    │  ░  C  ░  │     Border: slate-400 + amber ring
+    └───────────┘     Badges: 👑
+       Chris
+```
 
-**Badge Priority (bottom-right only):**
-1. Disconnect X (if disconnected - critical)
-2. Lady 🌊 (if holder)
-3. Voted ✓ (if has_voted)
+**Selected for Team:**
+```
+    ┌───────────┐
+    │  ▒▒▒▒▒▒▒  │     Fill: sky-700 (BLUE)
+    │  ▒  D  ▒  │     Border: sky-400
+    └───────────┘     Badges: none
+       Diana
+```
 
-**Advantages:**
-- Minimal overlap risk (only 2 badge positions used)
-- Important states clearly visible via borders
-- Maintains familiar crown/ring system
-- Badge position away from neighbors
+**On Proposed Team:**
+```
+    ┌───────────┐
+    │  ███████  │     Fill: emerald-700 (GREEN)
+    │  █  E  █  │     Border: emerald-400
+    └───────────┘     Badges: none
+       Elena
+```
 
-**Disadvantages:**
-- Requires learning border color meanings
-- Some redundancy with grayscale for disconnect
+**Lady of Lake Holder:**
+```
+    ┌───────────┐
+    │  ░░░░░░░  │     Fill: slate-700
+    │  ░  F  ░  │     Border: slate-400
+    └───────────┘ 🌊  Badges: 🌊 (bottom-right)
+       Frank
+```
+
+**Has Voted:**
+```
+    ┌───────────┐
+    │  ░░░░░░░  │     Fill: slate-700
+    │  ░  G  ░  │     Border: slate-400
+  ✓ └───────────┘     Badges: ✓ (bottom-left)
+       Grace
+```
+
+**Disconnected:**
+```
+    ┌▓▓▓▓▓▓▓▓▓▓▓┐
+    ▓  ▒▒▒▒▒▒▒  ▓     Fill: slate-800 + grayscale
+    ▓  ▒  H  ▒  ▓     Border: red-500
+    └▓▓▓▓▓▓▓▓▓▓▓┘     Badges: none
+       Henry
+```
+
+**Complex: You + Leader + On Team + Lady + Voted:**
+```
+         👑
+    ╔═══════════╗
+    ║  ███████  ║     Fill: emerald-700 (on team)
+    ║  █  I  █  ║     Border: amber-400 (You)
+  ✓ ╚═══════════╝ 🌊  Ring: amber (leader)
+        You           Badges: 👑 + 🌊 + ✓
+```
 
 ---
 
 ## User Scenarios & Testing
 
-### User Story 1 - Player Views Clear Status Indicators (Priority: P1)
+### User Story 1 - Clear Team Selection Visibility (Priority: P1)
 
-During an active game, players need to quickly identify key information about other players: who is the leader, who is on the team, who holds Lady of Lake, and who has voted.
+During team building, players need to instantly see who is being selected for the quest.
 
-**Why this priority**: Core gameplay requires quick visual identification of player states. Overlap/clutter directly impacts game experience.
+**Why this priority**: Core gameplay mechanic - leader selects team, all players must see selections clearly.
 
-**Independent Test**: Can be tested by loading a 10-player game and verifying no indicators overlap between adjacent players.
+**Independent Test**: Load a game in team_building phase, have leader select players, verify blue fill is immediately visible.
 
 **Acceptance Scenarios:**
 
-1. **Given** a 10-player game in team_building phase, **When** viewing the player circle, **Then** no indicator from player A overlaps with indicators from adjacent players B or C.
+1. **Given** team_building phase, **When** leader selects a player, **Then** selected player's avatar fills with sky blue color.
 
-2. **Given** a player with multiple states (leader + Lady holder + on team), **When** viewing that player's avatar, **Then** all relevant states are clearly distinguishable without visual clutter.
+2. **Given** voting phase with proposed team, **When** viewing player circle, **Then** team members have emerald green fill, distinguishable from non-team members.
 
-3. **Given** a player is disconnected, **When** viewing the player circle, **Then** the disconnected state is immediately obvious without needing to hover or interact.
+3. **Given** 10-player game, **When** multiple adjacent players are on team, **Then** no visual overlap occurs between their indicators.
 
 ---
 
-### User Story 2 - Quick State Recognition (Priority: P1)
+### User Story 2 - Identity Recognition (Priority: P1)
 
-Players must instantly recognize important game states during time-sensitive phases (voting, quest execution).
+Players must quickly identify themselves and see which players are disconnected.
 
-**Why this priority**: Game flow requires rapid decisions; unclear UI slows gameplay.
+**Why this priority**: Self-identification prevents mistakes; disconnect visibility is critical for game flow.
 
-**Independent Test**: Can be tested by having users identify states within 2 seconds of viewing.
+**Independent Test**: Join a game and verify amber border clearly marks "You" among all players.
 
 **Acceptance Scenarios:**
 
-1. **Given** voting phase, **When** a player has submitted their vote, **Then** the "voted" indicator is visible without overlapping other elements.
+1. **Given** any game phase, **When** viewing player circle, **Then** current player's avatar has distinct amber border.
 
-2. **Given** a proposed team, **When** viewing the player circle, **Then** team members are clearly distinguished from non-team members.
+2. **Given** a player disconnects, **When** viewing player circle, **Then** disconnected player shows red border + grayscale effect.
 
 ---
 
-### User Story 3 - Responsive Display Across Player Counts (Priority: P2)
+### User Story 3 - Special Role Indicators (Priority: P1)
 
-The indicator system should work equally well for 5-player and 10-player games.
+Leader crown and Lady of Lake token must remain visible without causing overlap.
 
-**Why this priority**: Game supports 5-10 players; UI must scale appropriately.
+**Why this priority**: These are game-critical roles that affect gameplay decisions.
 
-**Independent Test**: Can be tested by comparing 5-player vs 10-player games for visual clarity.
+**Independent Test**: Create game with Lady of Lake enabled, verify token visibility throughout game.
 
 **Acceptance Scenarios:**
 
-1. **Given** a 5-player game, **When** viewing the player circle, **Then** indicators are appropriately sized and positioned (not too large/sparse).
+1. **Given** a player is leader, **When** viewing player circle, **Then** crown appears at top center of their avatar.
 
-2. **Given** a 10-player game, **When** viewing the player circle, **Then** indicators are appropriately sized and positioned (not overlapping/cramped).
+2. **Given** a player holds Lady of Lake, **When** viewing player circle, **Then** 🌊 token appears at bottom-right of their avatar.
+
+3. **Given** adjacent players where one has Lady and one has Vote badge, **When** viewing player circle, **Then** badges do not overlap (Lady=bottom-right, Vote=bottom-left).
+
+---
+
+### User Story 4 - Vote Status During Voting Phase (Priority: P2)
+
+During voting, players should see who has already voted.
+
+**Why this priority**: Helps track voting progress, but less critical than team selection.
+
+**Independent Test**: Enter voting phase, submit vote, verify checkmark appears at bottom-left.
+
+**Acceptance Scenarios:**
+
+1. **Given** voting phase, **When** a player submits vote, **Then** ✓ badge appears at bottom-left of their avatar.
+
+2. **Given** voting phase ends, **When** viewing results, **Then** vote badges are cleared.
 
 ---
 
 ### Edge Cases
 
-- **All states active**: One player is leader + Lady holder + on team + voted + disconnected (rare but possible during reconnect scenarios)
-- **Mobile viewport**: Smaller screens may require additional scaling
-- **Very long nicknames**: Names truncated to prevent overlap with badges
+- **All states active**: Player is Leader + Lady holder + On team + Voted + is current player → All indicators visible without overlap
+- **10-player game**: Maximum crowding scenario → Badge positions tested for no overlap
+- **Mobile viewport**: Smaller screens → Indicators remain visible and distinguishable
+- **Rapid state changes**: Player selected/deselected quickly → Fill color transitions smoothly
 
 ---
 
@@ -297,18 +265,23 @@ The indicator system should work equally well for 5-player and 10-player games.
 
 ### Functional Requirements
 
-- **FR-001**: System MUST display player status indicators without overlap between adjacent players in a 10-player game
-- **FR-002**: System MUST clearly distinguish the current leader from other players
-- **FR-003**: System MUST clearly show which players are selected for / proposed on a quest team
-- **FR-004**: System MUST indicate the Lady of the Lake token holder
-- **FR-005**: System MUST show disconnected players distinctly from connected players
-- **FR-006**: System MUST show which players have submitted their vote during voting phase
-- **FR-007**: Indicators MUST be visible and understandable on both desktop and mobile viewports
-- **FR-008**: System MUST handle players with multiple simultaneous states (e.g., leader + Lady holder)
+- **FR-001**: System MUST use avatar inner fill color to indicate team selection states (selected=blue, proposed=green, default=gray)
+- **FR-002**: System MUST use avatar border color to indicate identity states (You=amber, disconnected=red, default=gray)
+- **FR-003**: System MUST display leader crown at top center of leader's avatar
+- **FR-004**: System MUST display Lady of Lake token at bottom-right of holder's avatar
+- **FR-005**: System MUST display vote checkmark at bottom-left of voter's avatar during voting phase
+- **FR-006**: System MUST NOT have any indicator overlap between adjacent players in a 10-player game
+- **FR-007**: System MUST apply grayscale filter to disconnected players in addition to red border
+- **FR-008**: System MUST handle players with multiple simultaneous states using defined priority order
+- **FR-009**: System MUST maintain amber ring effect for leader in addition to crown
+- **FR-010**: Fill and border colors MUST transition smoothly when state changes
 
-### Solution Selection Required
+### Removed Indicators
 
-- **FR-009**: [NEEDS CLARIFICATION: Which solution approach (A through F) should be implemented?]
+The following current indicators will be **removed**:
+- Shield 🛡️ badge (replaced by green fill color)
+- Top-right checkmark (replaced by fill color)
+- Top-left disconnect X badge (replaced by red border + grayscale)
 
 ---
 
@@ -316,42 +289,43 @@ The indicator system should work equally well for 5-player and 10-player games.
 
 ### Measurable Outcomes
 
-- **SC-001**: Zero indicator overlap occurs between adjacent players in a 10-player game
-- **SC-002**: Users can identify all player states within 3 seconds of viewing the game board
-- **SC-003**: UI remains usable on mobile devices (minimum 375px width)
-- **SC-004**: No increase in game decision time compared to current implementation
-- **SC-005**: Players can distinguish 5+ simultaneous player states without confusion
+- **SC-001**: Zero indicator overlap between adjacent players in a 10-player game
+- **SC-002**: Players can identify team selection state within 1 second (color recognition)
+- **SC-003**: Players can identify current player (self) within 1 second (amber border)
+- **SC-004**: Players can identify disconnected players within 1 second (red border + grayscale)
+- **SC-005**: Maximum 3 badge positions used per player (crown, Lady, voted)
+- **SC-006**: UI remains usable on mobile devices (minimum 375px width)
 
 ---
 
-## Appendix: Current Code Reference
+## Technical Notes
 
-**Key File**: `src/components/game/PlayerSeats.tsx`
+### Files to Modify
+
+- `src/components/game/PlayerSeats.tsx` - Main component with indicator logic
+
+### Current Code Reference
 
 ```tsx
-// Current indicator positioning (lines 247-294)
-{/* Crown for leader */}
-{player.is_leader && (
-  <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-2xl">👑</div>
-)}
+// Lines 230-294 in PlayerSeats.tsx - to be refactored
+// Current approach uses many absolute positioned badges
+// New approach uses className conditions for fill/border colors
+```
 
-{/* Lady of the Lake token */}
-{hasLady && (
-  <div className="absolute -bottom-2 -left-3 text-2xl">🌊</div>
-)}
+### Color Classes to Use
 
-{/* Disconnect indicator */}
-{isDisconnected && (
-  <div className="absolute -top-2 -left-2 w-6 h-6 bg-red-500 rounded-full">❌</div>
-)}
+```tsx
+// Fill colors (team states)
+'bg-slate-700'    // default
+'bg-sky-700'      // selected
+'bg-emerald-700'  // proposed
 
-{/* Selection checkmark */}
-{(selected || inDraftSelection) && (
-  <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full">✓</div>
-)}
+// Border colors (identity states)
+'border-slate-400'  // default
+'border-amber-400'  // current player (You)
+'border-red-500'    // disconnected
 
-{/* Vote indicator */}
-{player.has_voted && (
-  <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-yellow-500 rounded-full">✓</div>
-)}
+// Effects
+'grayscale opacity-60'  // disconnected
+'ring-4 ring-amber-400' // leader ring
 ```
