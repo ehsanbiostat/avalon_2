@@ -26,8 +26,8 @@
 
 **Purpose**: Extend interfaces before implementing display logic
 
-- [ ] T001 Add VoteRevealData interface to `src/types/game.ts`
-- [ ] T002 Add voteRevealActive and voteRevealData props to PlayerSeatsProps interface in `src/components/game/PlayerSeats.tsx`
+- [ ] T001 [P] Add VoteRevealData interface to `src/types/game.ts`
+- [ ] T002 [P] Add voteRevealActive and voteRevealData props to PlayerSeatsProps interface in `src/components/game/PlayerSeats.tsx`
 
 **Checkpoint**: Interfaces ready - user story implementation can begin
 
@@ -190,4 +190,4 @@ Task T002: "Add props to PlayerSeatsProps in src/components/game/PlayerSeats.tsx
 - All changes in 3 main files: `PlayerSeats.tsx`, `GameBoard.tsx`, `game.ts`
 - One file deleted: `VoteResultReveal.tsx`
 - Preserve existing avatar features (crown 👑, Lady 🌊, voted ✓, borders)
-- 10-second reveal duration controlled by existing showVoteReveal state
+- 10-second reveal duration controlled by existing showVoteReveal state (FR-003 ✓)
