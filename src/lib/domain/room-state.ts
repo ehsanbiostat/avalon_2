@@ -8,7 +8,7 @@ import type { RoomStatus } from '@/types/database';
 /**
  * Valid room status values
  */
-export const ROOM_STATUSES = ['waiting', 'roles_distributed', 'started'] as const;
+export const ROOM_STATUSES = ['waiting', 'roles_distributed', 'started', 'closed'] as const;
 
 /**
  * State transition map - defines valid transitions
@@ -16,7 +16,8 @@ export const ROOM_STATUSES = ['waiting', 'roles_distributed', 'started'] as cons
 const STATE_TRANSITIONS: Record<RoomStatus, RoomStatus[]> = {
   waiting: ['roles_distributed'],
   roles_distributed: ['started'],
-  started: [], // Terminal state
+  started: [], // Terminal state (game in progress)
+  closed: [], // Terminal state (archived - preserves game history)
 };
 
 /**
@@ -127,6 +128,7 @@ export function getStatusLabel(status: RoomStatus): string {
     waiting: 'Waiting for players',
     roles_distributed: 'Roles distributed',
     started: 'Game in progress',
+    closed: 'Archived',
   };
   return labels[status] ?? 'Unknown';
 }
@@ -139,6 +141,7 @@ export function getStatusColor(status: RoomStatus): string {
     waiting: 'bg-yellow-500/20 text-yellow-400',
     roles_distributed: 'bg-blue-500/20 text-blue-400',
     started: 'bg-green-500/20 text-green-400',
+    closed: 'bg-gray-500/20 text-gray-400',
   };
   return colors[status] ?? 'bg-gray-500/20 text-gray-400';
 }
@@ -186,6 +189,10 @@ export class RoomStateMachine {
 
   get isStarted(): boolean {
     return this.status === 'started';
+  }
+
+  get isClosed(): boolean {
+    return this.status === 'closed';
   }
 
   get isTerminal(): boolean {
