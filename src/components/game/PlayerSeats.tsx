@@ -12,14 +12,13 @@ import type { GamePlayer, CenterMessage, GamePhase } from '@/types/game';
 /**
  * T003: Get fill color based on team selection state
  * Priority: selected/draft > proposed > default
+ * Note: Disconnected state does NOT override fill - use border + grayscale instead
  */
 function getFillColor(
   selected: boolean,
   inDraftSelection: boolean,
-  isProposed: boolean,
-  isDisconnected: boolean
+  isProposed: boolean
 ): string {
-  if (isDisconnected) return 'bg-slate-800';
   if (selected || inDraftSelection) return 'bg-sky-700';
   if (isProposed) return 'bg-emerald-700';
   return 'bg-slate-700';
@@ -282,11 +281,11 @@ export function PlayerSeats({
                 className={`
                   w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold
                   transition-all duration-300
-                  ${getFillColor(selected, inDraftSelection, isProposed, isDisconnected)}
+                  ${getFillColor(selected, inDraftSelection, isProposed)}
                   ${getBorderColor(isMe, isDisconnected, selected, inDraftSelection, isProposed)}
                   ${getTextColor(isMe, selected, inDraftSelection, isProposed)}
                   ${player.is_leader ? 'ring-4 ring-amber-400 ring-offset-2 ring-offset-avalon-midnight' : ''}
-                  ${isDisconnected ? 'grayscale opacity-60' : ''}
+                  ${isDisconnected ? 'opacity-70 saturate-50' : ''}
                   ${inDraftSelection && selectable ? 'animate-pulse shadow-lg shadow-sky-400/50' : ''}
                 `}
                 style={{ borderWidth: isMe ? '4px' : '3px' }}
