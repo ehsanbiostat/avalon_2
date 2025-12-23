@@ -161,7 +161,7 @@ export async function getPlayersByIds(
 
 /**
  * Check if a player is currently in any active room (waiting or roles_distributed)
- * Does NOT block if player is in a 'started' room (game already ended for MVP purposes)
+ * Does NOT block if player is in a 'started' or 'closed' room
  */
 export async function getPlayerCurrentRoom(
   client: SupabaseClient,
@@ -191,10 +191,10 @@ export async function getPlayerCurrentRoom(
   // Type assertion for the joined data
   type RoomPlayerData = { room_id: string; rooms: { code: string; status: string } | { code: string; status: string }[] };
 
-  // Find first active room (not started)
+  // Find first active room (only 'waiting' or 'roles_distributed' block new joins)
   for (const entry of data as unknown as RoomPlayerData[]) {
     const rooms = Array.isArray(entry.rooms) ? entry.rooms[0] : entry.rooms;
-    if (rooms && rooms.status !== 'started') {
+    if (rooms && (rooms.status === 'waiting' || rooms.status === 'roles_distributed')) {
       return {
         room_id: entry.room_id,
         room_code: rooms.code,
@@ -207,7 +207,7 @@ export async function getPlayerCurrentRoom(
 }
 
 /**
- * Remove player from all 'started' rooms (cleanup stale memberships)
+ * Remove player from all 'started' or 'closed' rooms (cleanup stale memberships)
  */
 export async function cleanupPlayerStartedRooms(
   client: SupabaseClient,
@@ -216,7 +216,7 @@ export async function cleanupPlayerStartedRooms(
   const player = await findPlayerByPlayerId(client, playerId);
   if (!player) return 0;
 
-  // Get all room_players entries for this player in 'started' rooms
+  // Get all room_players entries for this player
   const { data: roomEntries, error: selectError } = await client
     .from('room_players')
     .select(`
@@ -234,28 +234,28 @@ export async function cleanupPlayerStartedRooms(
 
   if (!roomEntries || roomEntries.length === 0) return 0;
 
-  // Filter to only started rooms
+  // Filter to 'started' or 'closed' rooms (inactive rooms that should be cleaned up)
   type EntryWithRoom = { id: string; room_id: string; rooms: { status: string } | { status: string }[] };
-  const startedEntryIds = (roomEntries as unknown as EntryWithRoom[])
+  const staleEntryIds = (roomEntries as unknown as EntryWithRoom[])
     .filter((entry) => {
       const rooms = Array.isArray(entry.rooms) ? entry.rooms[0] : entry.rooms;
-      return rooms?.status === 'started';
+      return rooms?.status === 'started' || rooms?.status === 'closed';
     })
     .map((entry) => entry.id);
 
-  if (startedEntryIds.length === 0) return 0;
+  if (staleEntryIds.length === 0) return 0;
 
   // Delete these entries
   const { error: deleteError } = await client
     .from('room_players')
     .delete()
-    .in('id', startedEntryIds);
+    .in('id', staleEntryIds);
 
   if (deleteError) {
     throw deleteError;
   }
 
-  return startedEntryIds.length;
+  return staleEntryIds.length;
 }
 
 // ============================================
@@ -454,7 +454,8 @@ export async function findActiveGameByNickname(
 
   for (const entry of roomData as unknown as RoomPlayerJoin[]) {
     const room = Array.isArray(entry.rooms) ? entry.rooms[0] : entry.rooms;
-    if (room && room.status !== 'expired') {
+    // Only consider 'waiting', 'roles_distributed', or 'started' as active rooms
+    if (room && (room.status === 'waiting' || room.status === 'roles_distributed' || room.status === 'started')) {
       // Get player count
       const { count } = await client
         .from('room_players')
