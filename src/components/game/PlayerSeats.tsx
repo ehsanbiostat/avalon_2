@@ -26,16 +26,15 @@ function getFillColor(
 
 /**
  * T004: Get border color based on identity state
- * Priority: disconnected > isMe > selected/draft > proposed > default
+ * Priority: isMe > selected/draft > proposed > default
+ * Note: Disconnected state shown via red nickname only (not border)
  */
 function getBorderColor(
   isMe: boolean,
-  isDisconnected: boolean,
   selected: boolean,
   inDraftSelection: boolean,
   isProposed: boolean
 ): string {
-  if (isDisconnected) return 'border-red-500';
   if (isMe) return 'border-amber-400';
   if (selected || inDraftSelection) return 'border-sky-400';
   if (isProposed) return 'border-emerald-400';
@@ -282,10 +281,10 @@ export function PlayerSeats({
                   w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold
                   transition-all duration-300
                   ${getFillColor(selected, inDraftSelection, isProposed)}
-                  ${getBorderColor(isMe, isDisconnected, selected, inDraftSelection, isProposed)}
+                  ${getBorderColor(isMe, selected, inDraftSelection, isProposed)}
                   ${getTextColor(isMe, selected, inDraftSelection, isProposed)}
                   ${player.is_leader ? 'ring-4 ring-amber-400 ring-offset-2 ring-offset-avalon-midnight' : ''}
-                  ${isDisconnected ? 'opacity-70 saturate-50' : ''}
+                  ${''/* Disconnected state shown via red nickname only */}
                   ${inDraftSelection && selectable ? 'animate-pulse shadow-lg shadow-sky-400/50' : ''}
                 `}
                 style={{ borderWidth: isMe ? '4px' : '3px' }}
