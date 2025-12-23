@@ -13,7 +13,7 @@ import { TeamProposal } from './TeamProposal';
 import { VotingPanel } from './VotingPanel';
 import { QuestExecution } from './QuestExecution';
 import { QuestResultDisplay } from './QuestResultDisplay';
-import { VoteResultReveal } from './VoteResultReveal';
+import { PlayerSeats } from './PlayerSeats';
 import { LadyOfLakePhase } from './LadyOfLakePhase';
 import { InvestigationResult } from './InvestigationResult';
 import { AssassinPhase } from './AssassinPhase';
@@ -365,15 +365,26 @@ export function GameBoard({ gameId }: GameBoardProps) {
         )}
       </div>
 
-      {/* Vote Result Reveal Overlay */}
+      {/* Feature 013: Inline Vote Result Reveal */}
       {showVoteReveal && gameState.last_vote_result && (
-        <VoteResultReveal
-          votes={gameState.last_vote_result.votes}
-          isApproved={gameState.last_vote_result.is_approved}
-          approveCount={gameState.last_vote_result.approve_count}
-          rejectCount={gameState.last_vote_result.reject_count}
-          onComplete={handleVoteRevealComplete}
-        />
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center animate-fade-in">
+          <div className="relative">
+            <PlayerSeats
+              players={players}
+              currentPlayerId={currentPlayerId}
+              ladyHolderId={ladyHolderId}
+              gamePhase={game.phase}
+              questNumber={game.current_quest}
+              voteRevealActive={true}
+              voteRevealData={{
+                votes: gameState.last_vote_result.votes,
+                isApproved: gameState.last_vote_result.is_approved,
+                approveCount: gameState.last_vote_result.approve_count,
+                rejectCount: gameState.last_vote_result.reject_count,
+              }}
+            />
+          </div>
+        </div>
       )}
 
       {/* Role Modal */}

@@ -571,6 +571,20 @@ export interface MerlinQuizVoteResponse {
 }
 
 // ============================================
+// FEATURE 013: INLINE VOTE REVEAL TYPES
+// ============================================
+
+/**
+ * Vote reveal data for inline display on player avatars
+ */
+export interface VoteRevealData {
+  votes: VoteInfo[];
+  isApproved: boolean;
+  approveCount: number;
+  rejectCount: number;
+}
+
+// ============================================
 // FEATURE 011: MERLIN SPLIT INTEL TYPES
 // ============================================
 

@@ -7,7 +7,7 @@
  * 012: Refactored indicator system - fill colors for team state, border colors for identity
  */
 
-import type { GamePlayer, CenterMessage, GamePhase } from '@/types/game';
+import type { GamePlayer, CenterMessage, GamePhase, VoteRevealData, VoteInfo } from '@/types/game';
 
 /**
  * T003: Get fill color based on team selection state
@@ -56,6 +56,15 @@ function getTextColor(
   return 'text-slate-200';
 }
 
+/**
+ * T003: Find a player's vote from the votes array
+ * Returns the vote info if found, undefined otherwise
+ */
+function findPlayerVote(playerId: string, votes: VoteInfo[] | undefined): VoteInfo | undefined {
+  if (!votes) return undefined;
+  return votes.find(v => v.player_id === playerId);
+}
+
 interface PlayerSeatsProps {
   players: GamePlayer[];
   currentPlayerId: string | null;
@@ -79,6 +88,9 @@ interface PlayerSeatsProps {
   lastQuestResult?: 'success' | 'failed' | null;
   gameWinner?: 'good' | 'evil' | null;
   isAssassin?: boolean;
+  /** Feature 013: Vote reveal inline display */
+  voteRevealActive?: boolean;
+  voteRevealData?: VoteRevealData;
 }
 
 export function PlayerSeats({
@@ -100,6 +112,8 @@ export function PlayerSeats({
   lastQuestResult,
   gameWinner,
   isAssassin = false,
+  voteRevealActive = false,
+  voteRevealData,
 }: PlayerSeatsProps) {
   const angleStep = (2 * Math.PI) / players.length;
   const radius = 210; // Distance from center - scales well for up to 10 players
@@ -233,15 +247,31 @@ export function PlayerSeats({
   return (
     <div className="relative w-[520px] h-[520px] mx-auto">
       {/* Feature 008: Dynamic center messages */}
+      {/* Feature 013: Vote summary display when reveal is active */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 rounded-full bg-gradient-to-br from-amber-800 to-amber-950 border-4 border-amber-700 shadow-lg">
-        <div className="flex flex-col items-center justify-center h-full text-center px-3">
-          <span className="text-xl font-bold text-amber-500 leading-tight">
-            {centerMessage.line1}
-          </span>
-          <span className="text-sm text-amber-400 leading-tight mt-1">
-            {centerMessage.line2}
-          </span>
-        </div>
+        {voteRevealActive && voteRevealData ? (
+          // T008-T010: Vote summary display
+          <div className="flex flex-col items-center justify-center h-full text-center px-3 animate-vote-reveal">
+            {/* T009: Emoji based on approval status */}
+            <span className="text-4xl mb-1">
+              {voteRevealData.isApproved ? '✅' : '❌'}
+            </span>
+            {/* T010: Approve-reject count format */}
+            <span className="text-2xl font-bold text-amber-400">
+              {voteRevealData.approveCount}-{voteRevealData.rejectCount}
+            </span>
+          </div>
+        ) : (
+          // Normal center message
+          <div className="flex flex-col items-center justify-center h-full text-center px-3">
+            <span className="text-xl font-bold text-amber-500 leading-tight">
+              {centerMessage.line1}
+            </span>
+            <span className="text-sm text-amber-400 leading-tight mt-1">
+              {centerMessage.line2}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Players */}
@@ -276,20 +306,45 @@ export function PlayerSeats({
               `}
             >
               {/* Avatar - 012: Refactored with fill/border color system */}
+              {/* Feature 013: Vote reveal inline display */}
               <div
                 className={`
                   w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold
                   transition-all duration-300
                   ${getFillColor(selected, inDraftSelection, isProposed)}
                   ${getBorderColor(isMe, selected, inDraftSelection, isProposed)}
-                  ${getTextColor(isMe, selected, inDraftSelection, isProposed)}
+                  ${!voteRevealActive ? getTextColor(isMe, selected, inDraftSelection, isProposed) : ''}
                   ${player.is_leader ? 'ring-4 ring-amber-400 ring-offset-2 ring-offset-avalon-midnight' : ''}
                   ${''/* Disconnected state shown via red nickname only */}
                   ${inDraftSelection && selectable ? 'animate-pulse shadow-lg shadow-sky-400/50' : ''}
                 `}
                 style={{ borderWidth: isMe ? '4px' : '3px' }}
               >
-                {player.nickname.charAt(0).toUpperCase()}
+                {/* T004-T006: Show vote icon or initial */}
+                {voteRevealActive ? (
+                  (() => {
+                    const playerVote = findPlayerVote(player.id, voteRevealData?.votes);
+                    if (playerVote) {
+                      // T004, T005: Show ✓ (green) for approve, ✗ (red) for reject
+                      return (
+                        <span className={`text-3xl font-bold animate-vote-reveal ${
+                          playerVote.vote === 'approve' ? 'text-emerald-400' : 'text-red-400'
+                        }`}>
+                          {playerVote.vote === 'approve' ? '✓' : '✗'}
+                        </span>
+                      );
+                    } else {
+                      // T006: Missing vote - show "?" in gray
+                      return (
+                        <span className="text-3xl font-bold text-slate-400 animate-vote-reveal">
+                          ?
+                        </span>
+                      );
+                    }
+                  })()
+                ) : (
+                  player.nickname.charAt(0).toUpperCase()
+                )}
               </div>
 
               {/* Crown for leader - T020: Keep at top center */}

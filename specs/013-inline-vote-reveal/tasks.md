@@ -26,10 +26,10 @@
 
 **Purpose**: Extend interfaces before implementing display logic
 
-- [ ] T001 [P] Add VoteRevealData interface to `src/types/game.ts`
-- [ ] T002 [P] Add voteRevealActive and voteRevealData props to PlayerSeatsProps interface in `src/components/game/PlayerSeats.tsx`
+- [x] T001 [P] Add VoteRevealData interface to `src/types/game.ts`
+- [x] T002 [P] Add voteRevealActive and voteRevealData props to PlayerSeatsProps interface in `src/components/game/PlayerSeats.tsx`
 
-**Checkpoint**: Interfaces ready - user story implementation can begin
+**Checkpoint**: Interfaces ready - user story implementation can begin ✅
 
 ---
 
@@ -41,13 +41,13 @@
 
 ### Implementation for User Story 1
 
-- [ ] T003 [US1] Add helper function to find player's vote from votes array in `src/components/game/PlayerSeats.tsx`
-- [ ] T004 [US1] Add conditional rendering to show ✓/✗ icon instead of initial when voteRevealActive is true in `src/components/game/PlayerSeats.tsx`
-- [ ] T005 [US1] Apply emerald-400 color for approve (✓) and red-400 for reject (✗) in `src/components/game/PlayerSeats.tsx`
-- [ ] T006 [US1] Handle edge case: show "?" in gray for players with missing vote data in `src/components/game/PlayerSeats.tsx`
-- [ ] T007 [US1] Pass voteRevealActive and voteRevealData props from GameBoard to PlayerSeats in `src/components/game/GameBoard.tsx`
+- [x] T003 [US1] Add helper function to find player's vote from votes array in `src/components/game/PlayerSeats.tsx`
+- [x] T004 [US1] Add conditional rendering to show ✓/✗ icon instead of initial when voteRevealActive is true in `src/components/game/PlayerSeats.tsx`
+- [x] T005 [US1] Apply emerald-400 color for approve (✓) and red-400 for reject (✗) in `src/components/game/PlayerSeats.tsx`
+- [x] T006 [US1] Handle edge case: show "?" in gray for players with missing vote data in `src/components/game/PlayerSeats.tsx`
+- [x] T007 [US1] Pass voteRevealActive and voteRevealData props from GameBoard to PlayerSeats in `src/components/game/GameBoard.tsx`
 
-**Checkpoint**: Avatar vote icons display correctly. Can manually test before continuing.
+**Checkpoint**: Avatar vote icons display correctly. Can manually test before continuing. ✅
 
 ---
 
@@ -59,11 +59,11 @@
 
 ### Implementation for User Story 2
 
-- [ ] T008 [US2] Modify getCenterMessage to return vote summary when voteRevealActive is true in `src/components/game/PlayerSeats.tsx`
-- [ ] T009 [US2] Display emoji (✅/❌) based on isApproved value in center circle in `src/components/game/PlayerSeats.tsx`
-- [ ] T010 [US2] Display approve-reject count format (e.g., "4-2") below emoji in `src/components/game/PlayerSeats.tsx`
+- [x] T008 [US2] Modify getCenterMessage to return vote summary when voteRevealActive is true in `src/components/game/PlayerSeats.tsx`
+- [x] T009 [US2] Display emoji (✅/❌) based on isApproved value in center circle in `src/components/game/PlayerSeats.tsx`
+- [x] T010 [US2] Display approve-reject count format (e.g., "4-2") below emoji in `src/components/game/PlayerSeats.tsx`
 
-**Checkpoint**: Center summary displays correctly during vote reveal.
+**Checkpoint**: Center summary displays correctly during vote reveal. ✅
 
 ---
 
@@ -75,11 +75,11 @@
 
 ### Implementation for User Story 3
 
-- [ ] T011 [US3] Add animate-vote-reveal keyframes to `tailwind.config.ts` (fade-in-scale, 0.3s)
-- [ ] T012 [US3] Apply transition animation to vote icon appearance in `src/components/game/PlayerSeats.tsx`
-- [ ] T013 [US3] Apply transition animation to vote icon disappearance (return to initial) in `src/components/game/PlayerSeats.tsx`
+- [x] T011 [US3] Add animate-vote-reveal keyframes to `tailwind.config.ts` (fade-in-scale, 0.3s)
+- [x] T012 [US3] Apply transition animation to vote icon appearance in `src/components/game/PlayerSeats.tsx`
+- [x] T013 [US3] Apply transition animation to vote icon disappearance (return to initial) in `src/components/game/PlayerSeats.tsx`
 
-**Checkpoint**: Transitions are smooth and complete in under 300ms.
+**Checkpoint**: Transitions are smooth and complete in under 300ms. ✅
 
 ---
 
@@ -87,12 +87,12 @@
 
 **Purpose**: Remove old popup component, finalize integration
 
-- [ ] T014 Remove VoteResultReveal component rendering from `src/components/game/GameBoard.tsx`
-- [ ] T015 Remove VoteResultReveal import from `src/components/game/GameBoard.tsx`
-- [ ] T016 Delete `src/components/game/VoteResultReveal.tsx`
-- [ ] T017 Verify existing avatar features preserved during reveal (crown, Lady badge, border colors) in `src/components/game/PlayerSeats.tsx`
+- [x] T014 Remove VoteResultReveal component rendering from `src/components/game/GameBoard.tsx`
+- [x] T015 Remove VoteResultReveal import from `src/components/game/GameBoard.tsx`
+- [x] T016 Delete `src/components/game/VoteResultReveal.tsx`
+- [x] T017 Verify existing avatar features preserved during reveal (crown, Lady badge, border colors) in `src/components/game/PlayerSeats.tsx`
 
-**Checkpoint**: Old popup removed, inline display is the only vote reveal mechanism.
+**Checkpoint**: Old popup removed, inline display is the only vote reveal mechanism. ✅
 
 ---
 
@@ -100,8 +100,8 @@
 
 **Purpose**: Handle edge cases and ensure mobile compatibility
 
-- [ ] T018 [P] Handle disconnected player who voted: show their vote icon normally in `src/components/game/PlayerSeats.tsx`
-- [ ] T019 [P] Handle quick succession: if new vote starts before reveal ends, cancel current reveal in `src/components/game/GameBoard.tsx`
+- [x] T018 [P] Handle disconnected player who voted: show their vote icon normally in `src/components/game/PlayerSeats.tsx`
+- [x] T019 [P] Handle quick succession: if new vote starts before reveal ends, cancel current reveal in `src/components/game/GameBoard.tsx`
 - [ ] T020 Test on mobile viewport (375px) - verify no layout shift or overflow
 - [ ] T021 Run quickstart.md manual testing checklist
 
