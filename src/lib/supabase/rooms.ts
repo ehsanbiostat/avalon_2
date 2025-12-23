@@ -133,10 +133,14 @@ export async function updateLadyOfLakeHolder(
 
 /**
  * Get all waiting rooms with player counts
+ * Filters out stale rooms (inactive for more than 24 hours)
  */
 export async function getWaitingRooms(
   client: SupabaseClient
 ): Promise<RoomListItem[]> {
+  // Calculate cutoff time (24 hours ago)
+  const cutoffTime = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
   const { data, error } = await client
     .from('rooms')
     .select(`
@@ -145,10 +149,12 @@ export async function getWaitingRooms(
       manager_id,
       expected_players,
       created_at,
+      last_activity_at,
       players:room_players(count)
     `)
     .eq('status', 'waiting')
-    .order('created_at', { ascending: false });
+    .gte('last_activity_at', cutoffTime)  // Only show rooms active within 24h
+    .order('last_activity_at', { ascending: false });  // Most recently active first
 
   if (error) {
     throw error;
@@ -171,6 +177,7 @@ export async function getWaitingRooms(
     manager_id: string;
     expected_players: number;
     created_at: string;
+    last_activity_at: string;
     players: { count: number }[];
   }) => {
     const currentPlayers = room.players[0]?.count || 0;
@@ -182,6 +189,7 @@ export async function getWaitingRooms(
       current_players: currentPlayers,
       is_full: currentPlayers >= room.expected_players,
       created_at: room.created_at,
+      last_activity_at: room.last_activity_at,
     };
   });
 }

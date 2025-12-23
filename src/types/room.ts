@@ -29,6 +29,7 @@ export interface RoomListItem {
   current_players: number;
   is_full: boolean;
   created_at: string;
+  last_activity_at?: string;
 }
 
 /**
