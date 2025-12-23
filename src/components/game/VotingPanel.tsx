@@ -86,8 +86,6 @@ export function VotingPanel({
         ladyHolderId={ladyHolderId}
         gamePhase="voting"
         questNumber={questNumber}
-        voteRevealActive={voteRevealActive}
-        voteRevealData={voteRevealData}
       />
 
       {/* Vote Progress */}

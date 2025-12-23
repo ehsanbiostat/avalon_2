@@ -129,8 +129,6 @@ export function TeamProposal({
         questNumber={questNumber}
         questRequirement={questRequirement}
         isCurrentPlayerLeader={isLeader}
-        voteRevealActive={voteRevealActive}
-        voteRevealData={voteRevealData}
       />
 
       {/* Feature 007: Selection count visible to all players */}
