@@ -32,8 +32,7 @@
 
 - [ ] T003 Create getFillColor() helper function for team states in src/components/game/PlayerSeats.tsx
 - [ ] T004 Create getBorderColor() helper function for identity states in src/components/game/PlayerSeats.tsx
-- [ ] T005 Create getTextColor() helper function for text contrast in src/components/game/PlayerSeats.tsx
-- [ ] T006 Add transition classes to avatar container for smooth state changes
+- [ ] T005 Add transition classes to avatar container for smooth state changes
 
 **Checkpoint**: Helper functions ready - user story implementation can begin
 
@@ -47,12 +46,13 @@
 
 ### Implementation for User Story 1
 
-- [ ] T007 [US1] Implement sky-700 fill color for selected players in src/components/game/PlayerSeats.tsx
-- [ ] T008 [US1] Implement emerald-700 fill color for proposed team members in src/components/game/PlayerSeats.tsx
-- [ ] T009 [US1] Implement slate-700 default fill color in src/components/game/PlayerSeats.tsx
-- [ ] T010 [US1] Update avatar className to use getFillColor() instead of inline conditionals
-- [ ] T011 [US1] Remove obsolete bg-green-800 and bg-cyan-700 classes from current implementation
-- [ ] T012 [US1] Verify fill color priority: selected > proposed > default
+- [ ] T006 [US1] Implement sky-700 fill color for selected players in src/components/game/PlayerSeats.tsx
+- [ ] T007 [US1] Implement emerald-700 fill color for proposed team members in src/components/game/PlayerSeats.tsx
+- [ ] T008 [US1] Implement slate-700 default fill color in src/components/game/PlayerSeats.tsx
+- [ ] T009 [US1] Update avatar className to use getFillColor() instead of inline conditionals
+- [ ] T010 [US1] Remove obsolete bg-green-800 and bg-cyan-700 classes from current implementation
+- [ ] T011 [US1] Verify fill color priority: selected > proposed > default
+- [ ] T012 [US1] Handle inDraftSelection state with sky-700 fill + pulse animation
 
 **Checkpoint**: Team selection visible via fill color - verify in 10-player game
 
@@ -118,7 +118,7 @@
 
 **Purpose**: Final cleanup, transitions, and validation
 
-- [ ] T030 Add transition-all duration-300 to avatar for smooth color changes
+- [ ] T030 Verify transition-all duration-300 works correctly during state changes
 - [ ] T031 Simplify name styling to use consistent color logic based on isMe and isDisconnected
 - [ ] T032 Remove any unused CSS classes from the refactored component
 - [ ] T033 Verify all states work together: Leader + Lady + On Team + Voted + Current Player
@@ -156,8 +156,8 @@
 
 | Tasks | Can Run In Parallel | Reason |
 |-------|---------------------|--------|
-| T003, T004, T005 | Yes [P] | Different helper functions |
-| T007-T012 (US1) | Sequential | Same className block |
+| T003, T004 | Yes [P] | Different helper functions |
+| T006-T012 (US1) | Sequential | Same className block |
 | T013-T019 (US2) | Sequential | Same className block |
 | US1 and US2 | Yes [P] | Fill vs Border - different properties |
 | T030, T031, T032 | Yes [P] | Different code sections |
@@ -170,14 +170,13 @@
 # Launch helper functions in parallel:
 Task T003: "Create getFillColor() helper function"
 Task T004: "Create getBorderColor() helper function"
-Task T005: "Create getTextColor() helper function"
 ```
 
 ## Parallel Example: User Stories 1 & 2
 
 ```bash
 # Can work on fill and border logic simultaneously:
-Developer A: US1 tasks (T007-T012) - Fill color implementation
+Developer A: US1 tasks (T006-T012) - Fill color implementation
 Developer B: US2 tasks (T013-T019) - Border color implementation
 ```
 
@@ -207,8 +206,8 @@ Developer B: US2 tasks (T013-T019) - Border color implementation
 Since this is a single-file refactor, recommended order:
 
 1. T001-T002: Understand current code
-2. T003-T006: Create helper functions
-3. T007-T012: Implement fill colors
+2. T003-T005: Create helper functions + transitions
+3. T006-T012: Implement fill colors (including draft selection)
 4. T013-T019: Implement border colors
 5. T020-T025: Reposition badges
 6. T026-T029: Add vote badge
@@ -222,13 +221,13 @@ Since this is a single-file refactor, recommended order:
 |--------|-------|
 | **Total Tasks** | 35 |
 | **Setup Tasks** | 2 |
-| **Foundational Tasks** | 4 |
-| **US1 Tasks** | 6 |
+| **Foundational Tasks** | 3 |
+| **US1 Tasks** | 7 |
 | **US2 Tasks** | 7 |
 | **US3 Tasks** | 6 |
 | **US4 Tasks** | 4 |
 | **Polish Tasks** | 6 |
-| **Parallel Opportunities** | 8 tasks marked [P] |
+| **Parallel Opportunities** | 7 tasks across phases |
 | **Estimated Time** | 1-2 hours |
 
 ---

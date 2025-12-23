@@ -63,6 +63,7 @@ After analysis, the following approach was selected:
 |-------|------------|-----------|
 | Default | Dark slate gray | `bg-slate-700` |
 | Selected by leader | Sky blue | `bg-sky-700` |
+| In draft selection | Sky blue (pulsing) | `bg-sky-700 animate-pulse` |
 | On proposed team | Emerald green | `bg-emerald-700` |
 
 **Border Colors (Identity States):**
