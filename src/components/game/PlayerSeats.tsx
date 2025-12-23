@@ -299,17 +299,17 @@ export function PlayerSeats({
                 </div>
               )}
 
-              {/* Lady of the Lake token - T021: Moved to bottom RIGHT */}
+              {/* Lady of the Lake token - middle RIGHT, close to circle */}
               {hasLady && (
-                <div className="absolute -bottom-2 -right-3 text-xl" title="Lady of the Lake">
+                <div className="absolute -right-3 top-1/2 -translate-y-1/2 text-xl" title="Lady of the Lake">
                   🌊
                 </div>
               )}
 
-              {/* Vote indicator - T026: Moved to bottom LEFT */}
+              {/* Vote indicator - middle LEFT, close to circle */}
               {player.has_voted && (
                 <div
-                  className="absolute -bottom-2 -left-3 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center text-xs text-black font-bold"
+                  className="absolute -left-3 top-1/2 -translate-y-1/2 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center text-xs text-black font-bold"
                   title="Has voted"
                 >
                   ✓
