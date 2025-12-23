@@ -46,10 +46,10 @@ export function VotingPanel({
 
   const handleVote = async (vote: VoteChoice) => {
     if (hasVoted || submitting) return;
-    
+
     setSubmitting(true);
     setError(null);
-    
+
     try {
       await submitVote(gameId, vote);
       onVoteSubmitted();
@@ -86,6 +86,8 @@ export function VotingPanel({
         ladyHolderId={ladyHolderId}
         gamePhase="voting"
         questNumber={questNumber}
+        voteRevealActive={voteRevealActive}
+        voteRevealData={voteRevealData}
       />
 
       {/* Vote Progress */}
@@ -93,7 +95,7 @@ export function VotingPanel({
         <p className="text-avalon-silver/60 text-sm mb-2">
           {votesSubmitted} / {totalPlayers} votes submitted
         </p>
-        
+
         {/* Progress bar */}
         <div className="w-full max-w-xs mx-auto h-2 bg-avalon-dark-blue rounded-full overflow-hidden">
           <div
@@ -115,7 +117,7 @@ export function VotingPanel({
           >
             👍 Approve
           </Button>
-          
+
           <Button
             variant="primary"
             onClick={() => handleVote('reject')}
@@ -146,4 +148,3 @@ export function VotingPanel({
     </div>
   );
 }
-

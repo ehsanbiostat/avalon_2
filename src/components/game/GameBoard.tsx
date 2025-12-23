@@ -13,8 +13,8 @@ import { TeamProposal } from './TeamProposal';
 import { VotingPanel } from './VotingPanel';
 import { QuestExecution } from './QuestExecution';
 import { QuestResultDisplay } from './QuestResultDisplay';
-import { PlayerSeats } from './PlayerSeats';
 import { LadyOfLakePhase } from './LadyOfLakePhase';
+import { PlayerSeats } from './PlayerSeats';
 import { InvestigationResult } from './InvestigationResult';
 import { AssassinPhase } from './AssassinPhase';
 import { GameOver } from './GameOver';
@@ -87,6 +87,17 @@ export function GameBoard({ gameId }: GameBoardProps) {
       }
     }
   }, [gameState?.last_vote_result, getSeenProposals, markProposalSeen]);
+
+  // Feature 013: Auto-dismiss vote reveal after 10 seconds
+  useEffect(() => {
+    if (showVoteReveal) {
+      const timer = setTimeout(() => {
+        setShowVoteReveal(false);
+      }, 10000); // 10 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [showVoteReveal]);
 
   const handleVoteRevealComplete = useCallback(() => {
     setShowVoteReveal(false);
@@ -303,6 +314,26 @@ export function GameBoard({ gameId }: GameBoardProps) {
 
       {/* Phase-specific content */}
       <div className="bg-avalon-dark-blue/30 rounded-xl p-6 border border-avalon-silver/10">
+        {/* Feature 013: Inline Vote Reveal - shows above phase content */}
+        {showVoteReveal && gameState.last_vote_result && (
+          <div className="mb-6 animate-fade-in">
+            <PlayerSeats
+              players={players}
+              currentPlayerId={currentPlayerId}
+              ladyHolderId={ladyHolderId}
+              gamePhase={game.phase}
+              questNumber={game.current_quest}
+              voteRevealActive={true}
+              voteRevealData={{
+                votes: gameState.last_vote_result.votes,
+                isApproved: gameState.last_vote_result.is_approved,
+                approveCount: gameState.last_vote_result.approve_count,
+                rejectCount: gameState.last_vote_result.reject_count,
+              }}
+            />
+          </div>
+        )}
+
         {/* Team Building */}
         {game.phase === 'team_building' && (
           <TeamProposal
@@ -364,28 +395,6 @@ export function GameBoard({ gameId }: GameBoardProps) {
           />
         )}
       </div>
-
-      {/* Feature 013: Inline Vote Result Reveal */}
-      {showVoteReveal && gameState.last_vote_result && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center animate-fade-in">
-          <div className="relative">
-            <PlayerSeats
-              players={players}
-              currentPlayerId={currentPlayerId}
-              ladyHolderId={ladyHolderId}
-              gamePhase={game.phase}
-              questNumber={game.current_quest}
-              voteRevealActive={true}
-              voteRevealData={{
-                votes: gameState.last_vote_result.votes,
-                isApproved: gameState.last_vote_result.is_approved,
-                approveCount: gameState.last_vote_result.approve_count,
-                rejectCount: gameState.last_vote_result.reject_count,
-              }}
-            />
-          </div>
-        </div>
-      )}
 
       {/* Role Modal */}
       <Modal
