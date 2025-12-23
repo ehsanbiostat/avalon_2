@@ -257,9 +257,9 @@ export function PlayerSeats({
         // T042: Check connection status
         const isDisconnected = !player.is_connected;
 
-        // Feature 007: Determine visual state
-        const inDraftSelection = isDraftSelected(player.id);
-        const isProposed = player.is_on_team; // Officially proposed team
+        // Feature 007: Determine visual state (coerce to boolean for type safety)
+        const inDraftSelection = isDraftSelected(player.id) ?? false;
+        const isProposed = player.is_on_team ?? false; // Officially proposed team
 
         return (
           <div
