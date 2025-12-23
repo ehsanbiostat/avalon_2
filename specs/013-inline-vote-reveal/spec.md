@@ -2,7 +2,7 @@
 
 **Feature Branch**: `013-inline-vote-reveal`
 **Created**: 2025-12-23
-**Status**: Research Phase
+**Status**: Ready for Planning
 **Input**: User description: "Change voting result UI from popup panel to inline indicators on player avatars"
 
 ---
@@ -29,267 +29,128 @@ Currently, voting results are shown in a modal/overlay popup that lists all play
 └─────────────────────────────────────┘
 ```
 
-### Desired Outcome
+### Chosen Solution
 
-Vote results shown directly on player avatars in the game circle, without a blocking popup.
-
----
-
-## UI Design Research
-
-### Option A: Colored Border Flash
-
-**Concept**: Flash the avatar border with approve/reject color for a few seconds.
+**Option E: Icon Inside Avatar** with minimal center summary.
 
 ```
-         👑
-    ┌─────────┐          ┌─────────┐
-    │         │          ▓▓▓▓▓▓▓▓▓▓▓  ← Red border flash
-    │    A    │          ▓    B    ▓
-    │         │          ▓▓▓▓▓▓▓▓▓▓▓
-    └─────────┘          └─────────┘
-    ↑ Green border         Rejected
-      Approved
-```
+                    👑
+               ┌─────────┐
+               │    ✓    │  ← Green ✓ (approved)
+               └─────────┘
+                  Alice
 
-**Pros:**
-- Minimal UI change
-- Uses existing border system
-- Very fast to render
-- Clear approve (green) / reject (red) signal
-
-**Cons:**
-- Temporary - disappears after animation
-- May conflict with current border colors (amber for "You")
-- Colorblind users may struggle (both colors look similar)
-
----
-
-### Option B: Emoji Badge Reveal
-
-**Concept**: Show 👍 or 👎 badge on avatar after reveal.
-
-```
-         👑
-    ┌─────────┐ 👍      ┌─────────┐ 👎
-    │         │         │         │
-    │    A    │         │    B    │
-    │         │         │         │
-    └─────────┘         └─────────┘
-      Approved           Rejected
-```
-
-**Pros:**
-- Universal understanding (thumbs up/down)
-- Highly visible
-- Colorblind-friendly
-- Can persist for the duration of reveal
-
-**Cons:**
-- May overlap with existing badges (Lady, Vote checkmark)
-- Need to find a free position (top-left?)
-
----
-
-### Option C: Avatar Glow Effect
-
-**Concept**: Apply a colored glow/shadow around the avatar.
-
-```
-    ░░░░░░░░░░░           ▓▓▓▓▓▓▓▓▓▓▓
-    ░ ┌─────┐ ░           ▓ ┌─────┐ ▓
-    ░ │  A  │ ░           ▓ │  B  │ ▓
-    ░ └─────┘ ░           ▓ └─────┘ ▓
-    ░░░░░░░░░░░           ▓▓▓▓▓▓▓▓▓▓▓
-    ↑ Green glow          ↑ Red glow
-```
-
-**Pros:**
-- Visually striking
-- Doesn't interfere with badges
-- Smooth CSS animation possible
-- Can pulse for emphasis
-
-**Cons:**
-- May be distracting
-- Needs careful styling to look good
-- Performance consideration (box-shadow animations)
-
----
-
-### Option D: Fill Color Overlay
-
-**Concept**: Temporarily change avatar fill to semi-transparent green/red.
-
-```
     ┌─────────┐           ┌─────────┐
-    │░░░░░░░░░│           │▓▓▓▓▓▓▓▓▓│
-    │░░░ A ░░░│           │▓▓▓ B ▓▓▓│
-    │░░░░░░░░░│           │▓▓▓▓▓▓▓▓▓│
+    │    ✗    │           │    ✓    │
     └─────────┘           └─────────┘
-    ↑ Green tint          ↑ Red tint
-```
-
-**Pros:**
-- Very clear visual
-- Fills the entire avatar space
-- Simple CSS overlay
-
-**Cons:**
-- Conflicts with team selection colors (blue/green already used)
-- May confuse "approved" green with "on team" green
-
----
-
-### Option E: Icon Inside Avatar (Recommended)
-
-**Concept**: Show large ✓ or ✗ icon over the avatar initial during reveal.
-
-```
-    ┌─────────┐           ┌─────────┐
-    │         │           │         │
+       Bob      ┌───────┐    Carol
+                │ ✅4-2 │  ← Center summary
+    ┌─────────┐ └───────┘ ┌─────────┐
     │    ✓    │           │    ✗    │
-    │         │           │         │
     └─────────┘           └─────────┘
-    ↑ Green ✓             ↑ Red ✗
-    (replaces initial)
+      David                  Eve
 ```
 
-**Pros:**
-- Maximum visibility
-- Clear approve/reject meaning
-- No overlap issues
-- Simple to implement
-
-**Cons:**
-- Hides player initial temporarily
-- Needs animation to transition smoothly
+**Design Decisions:**
+- **Visual Style**: Large ✓ (green) or ✗ (red) icon replaces avatar initial
+- **Duration**: 10 seconds visible
+- **Center Summary**: Minimal format "✅ 4-2" or "❌ 2-4"
 
 ---
 
-### Option F: Split Reveal (Staggered Animation)
+## User Scenarios & Testing
 
-**Concept**: Reveal votes one by one with animation, not all at once.
+### User Story 1 - View Vote Results on Avatars (Priority: P1)
 
-```
-Step 1:  [A: ✓] [B: ?] [C: ?] [D: ?] [E: ?] [F: ?]
-Step 2:  [A: ✓] [B: ✗] [C: ?] [D: ?] [E: ?] [F: ?]
-Step 3:  [A: ✓] [B: ✗] [C: ✓] [D: ?] [E: ?] [F: ?]
-...
-```
+After all players submit their votes, players see each person's vote directly on their avatar in the game circle, with a clear ✓ or ✗ icon.
 
-**Pros:**
-- Builds suspense
-- Easier to track who voted what
-- Engaging animation
+**Why this priority**: Core feature - replaces the current popup with inline display.
 
-**Cons:**
-- Takes longer to complete reveal
-- More complex implementation
-- May feel slow for repeated use
+**Independent Test**: Complete a voting round, verify all avatars show ✓/✗ icons with correct colors.
+
+**Acceptance Scenarios:**
+
+1. **Given** all players have voted, **When** votes are revealed, **Then** each avatar displays a large ✓ (green) for approve or ✗ (red) for reject.
+
+2. **Given** vote reveal is active, **When** 10 seconds pass, **Then** avatars return to showing player initials.
+
+3. **Given** a 10-player game, **When** votes are revealed, **Then** all 10 avatars simultaneously show their vote icons.
 
 ---
 
-### Option G: Hybrid - Badge + Border
+### User Story 2 - View Vote Summary in Center (Priority: P1)
 
-**Concept**: Combine border color flash with a small badge.
+Players see a minimal summary in the center circle showing the overall result and vote count.
 
-```
-    ░░░░░░░░░░░░░
-    ░ ┌─────────┐ ░  ← Green border pulse
-    ░ │         │ ░
-  ✓ ░ │    A    │ ░  ← Green ✓ badge (top-left)
-    ░ │         │ ░
-    ░ └─────────┘ ░
-    ░░░░░░░░░░░░░
-```
+**Why this priority**: Provides quick at-a-glance result without reading each avatar.
 
-**Pros:**
-- Double reinforcement (color + icon)
-- Badge persists after animation fades
-- Clear for colorblind users
+**Independent Test**: Complete a voting round, verify center shows "✅ 4-2" or "❌ 2-4" format.
 
-**Cons:**
-- May be visually busy
-- More elements to manage
+**Acceptance Scenarios:**
+
+1. **Given** votes are revealed, **When** team is approved, **Then** center displays "✅ [approve]-[reject]" (e.g., "✅ 4-2").
+
+2. **Given** votes are revealed, **When** team is rejected, **Then** center displays "❌ [approve]-[reject]" (e.g., "❌ 2-4").
+
+3. **Given** vote reveal ends, **When** 10 seconds pass, **Then** center returns to normal game phase message.
 
 ---
 
-## Comparison Matrix
+### User Story 3 - Smooth Animation Transition (Priority: P2)
 
-| Option | Visibility | Colorblind-Safe | Performance | Simplicity | Conflict Risk |
-|--------|------------|-----------------|-------------|------------|---------------|
-| A: Border Flash | Medium | ❌ Low | ✅ Fast | ✅ Simple | ⚠️ Medium |
-| B: Emoji Badge | ✅ High | ✅ High | ✅ Fast | ✅ Simple | ⚠️ Medium |
-| C: Glow Effect | ✅ High | ❌ Low | ⚠️ Medium | Medium | ✅ Low |
-| D: Fill Overlay | ✅ High | ❌ Low | ✅ Fast | ✅ Simple | ❌ High |
-| E: Icon Inside | ✅ High | ✅ High | ✅ Fast | ✅ Simple | ✅ Low |
-| F: Staggered | ✅ High | ✅ High | ✅ Fast | ❌ Complex | ✅ Low |
-| G: Hybrid | ✅ High | ✅ High | ⚠️ Medium | Medium | ⚠️ Medium |
+The transition from player initial to vote icon and back should be smooth and not jarring.
 
----
+**Why this priority**: Polish - improves user experience but core functionality works without it.
 
-## Recommendation
+**Independent Test**: Observe vote reveal animation, verify smooth fade/scale transition.
 
-**Option E (Icon Inside Avatar)** or **Option B (Emoji Badge)** are recommended for:
-- Highest clarity
-- Colorblind accessibility
-- Minimal performance impact
-- No conflict with existing UI elements
+**Acceptance Scenarios:**
+
+1. **Given** votes are being revealed, **When** transition starts, **Then** initial fades out and icon fades in (not instant swap).
+
+2. **Given** 10 seconds have passed, **When** reveal ends, **Then** icon fades out and initial fades back in.
 
 ---
 
-## Questions for User
+### Edge Cases
 
-### Q1: Preferred Visual Style
-
-Which approach do you prefer?
-
-| Option | Style | Description |
-|--------|-------|-------------|
-| A | Border Flash | Quick green/red border animation |
-| B | Emoji Badge 👍👎 | Thumbs up/down badge on avatar |
-| C | Glow Effect | Colored glow around avatar |
-| D | Fill Overlay | Semi-transparent color overlay |
-| E | Icon Inside ✓✗ | Large checkmark/X replaces initial |
-| F | Staggered Reveal | One-by-one animated reveal |
-| G | Hybrid | Border + badge combination |
-
-**Your choice**: _[Wait for response]_
+- **Disconnected player**: If a player disconnects before voting, show a "?" or skip indicator
+- **Tie votes**: Center summary shows "❌ 3-3" (ties reject)
+- **Single reject in 10-player game**: All votes visible, even with asymmetric results
+- **Quick succession**: If new vote happens before reveal ends, cancel current reveal
 
 ---
 
-### Q2: Animation Duration
+## Requirements
 
-How long should the vote reveal be visible?
+### Functional Requirements
 
-| Option | Duration | Description |
-|--------|----------|-------------|
-| A | 3 seconds | Quick glance |
-| B | 5 seconds | Standard (current popup duration) |
-| C | 10 seconds | Extended view |
-| D | Until dismissed | Player clicks to continue |
+- **FR-001**: System MUST display vote result icons (✓/✗) inside player avatars during reveal phase
+- **FR-002**: System MUST use green color for approve (✓) and red color for reject (✗)
+- **FR-003**: System MUST show vote reveal for exactly 10 seconds
+- **FR-004**: System MUST display minimal summary in center circle during reveal ("✅ X-Y" format)
+- **FR-005**: System MUST animate transition between player initial and vote icon
+- **FR-006**: System MUST return to normal avatar display after reveal ends
+- **FR-007**: System MUST remove the current popup modal for vote results
+- **FR-008**: System MUST preserve existing avatar features during reveal (crown, Lady badge, border colors)
+- **FR-009**: System MUST work on mobile viewport (375px+)
+- **FR-010**: System MUST not cause layout shift during reveal
 
-**Your choice**: _[Wait for response]_
+### Key Entities
 
----
-
-### Q3: Keep Summary Text?
-
-Should there be a brief summary in the center of the circle?
-
-| Option | Style | Description |
-|--------|-------|-------------|
-| A | Yes - minimal | "✅ Approved (4-2)" in center |
-| B | Yes - detailed | "Team Approved! 4 approve, 2 reject" |
-| C | No | Only show on avatars, no center text |
-
-**Your choice**: _[Wait for response]_
+- **VoteRevealState**: Tracks whether reveal is active, votes data, remaining time
+- **PlayerVote**: Player ID + vote value (approve/reject)
 
 ---
 
-## Notes
+## Success Criteria
 
-- This is a **research phase** specification
-- No implementation until user selects preferred options
-- Once options are selected, full functional requirements will be defined
+### Measurable Outcomes
+
+- **SC-001**: Vote reveal is visible for 10 seconds (±0.5s tolerance)
+- **SC-002**: All player votes are displayed simultaneously on reveal
+- **SC-003**: Center summary shows correct approve/reject counts
+- **SC-004**: Transition animation completes in under 300ms
+- **SC-005**: No popup/modal appears during vote reveal
+- **SC-006**: Works correctly on 5-10 player games
+- **SC-007**: UI remains responsive during reveal (no frame drops)
