@@ -1,26 +1,18 @@
 /**
  * API Route: POST /api/cleanup
- * Triggers room cleanup for stale rooms
+ * Archives stale rooms (marks as 'closed' instead of deleting)
+ * This preserves game history for statistics
  *
  * This endpoint can be called by:
- * - Vercel Cron Jobs (recommended for production)
- * - Supabase Edge Functions
+ * - Supabase pg_cron (recommended - runs in database)
+ * - Vercel Cron Jobs (requires Pro plan)
  * - External cron service
- *
- * For Vercel, add to vercel.json:
- * {
- *   "crons": [
- *     {
- *       "path": "/api/cleanup",
- *       "schedule": "0 * * * *"  // Every hour
- *     }
- *   ]
- * }
+ * - Manual trigger for testing
  */
 
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
-import { getRoomsToCleanup, getCleanupReason, type RoomForCleanup } from '@/lib/domain/room-cleanup';
+import { getRoomsToArchive, getArchiveReason, type RoomForArchive } from '@/lib/domain/room-cleanup';
 import { logger } from '@/lib/utils/logger';
 
 /**
@@ -60,73 +52,83 @@ export async function POST(request: Request) {
 
     const supabase = createServerClient();
 
-    // Fetch all rooms
+    // Fetch all active rooms (not already closed)
     const { data: rooms, error: fetchError } = await supabase
       .from('rooms')
-      .select('id, code, status, last_activity_at');
+      .select('id, code, status, last_activity_at')
+      .neq('status', 'closed');
 
     if (fetchError) {
       throw fetchError;
     }
 
-    // Determine which rooms to cleanup
-    const roomsToCleanup = getRoomsToCleanup(rooms as RoomForCleanup[]);
+    // Determine which rooms to archive
+    const roomsToArchive = getRoomsToArchive(rooms as RoomForArchive[]);
 
-    if (roomsToCleanup.length === 0) {
-      logger.info('cleanup.complete', {
-        action: 'cleanup',
+    if (roomsToArchive.length === 0) {
+      logger.info('archive.complete', {
+        action: 'archive',
         roomsChecked: rooms?.length || 0,
-        roomsDeleted: 0,
+        roomsArchived: 0,
       });
 
       return NextResponse.json({
         data: {
           roomsChecked: rooms?.length || 0,
-          roomsDeleted: 0,
-          deletedRoomCodes: [],
+          roomsArchived: 0,
+          archivedRoomCodes: [],
         },
       });
     }
 
-    // Delete stale rooms
-    const deletedRoomCodes: string[] = [];
+    // Archive stale rooms (set status to 'closed')
+    const archivedRoomCodes: string[] = [];
     const errors: Array<{ roomCode: string; error: string }> = [];
 
-    for (const room of roomsToCleanup) {
-      const { error: deleteError } = await supabase
+    for (const room of roomsToArchive) {
+      const { error: updateError } = await supabase
         .from('rooms')
-        .delete()
+        .update({
+          status: 'closed',
+          last_activity_at: new Date().toISOString(),
+        })
         .eq('id', room.id);
 
-      if (deleteError) {
-        errors.push({ roomCode: room.code, error: deleteError.message });
-        logger.error('cleanup.error', {
+      if (updateError) {
+        errors.push({ roomCode: room.code, error: updateError.message });
+        logger.error('archive.error', {
           roomCode: room.code,
-          error: deleteError.message,
+          error: updateError.message,
         });
       } else {
-        deletedRoomCodes.push(room.code);
-        logger.roomDeleted(room.code, getCleanupReason(room.status));
+        archivedRoomCodes.push(room.code);
+        logger.info('room.archived', {
+          roomCode: room.code,
+          reason: getArchiveReason(room.status),
+        });
       }
     }
 
-    logger.cleanupRun(deletedRoomCodes.length, 'scheduled');
+    logger.info('archive.run', {
+      roomsArchived: archivedRoomCodes.length,
+      trigger: 'api',
+    });
 
     return NextResponse.json({
       data: {
         roomsChecked: rooms?.length || 0,
-        roomsDeleted: deletedRoomCodes.length,
-        deletedRoomCodes,
+        roomsArchived: archivedRoomCodes.length,
+        archivedRoomCodes,
         errors: errors.length > 0 ? errors : undefined,
       },
     });
   } catch (error) {
-    logger.error('cleanup.failed', {
+    logger.error('archive.failed', {
       error: error instanceof Error ? error.message : 'Unknown error',
     });
 
     return NextResponse.json(
-      { error: { code: 'INTERNAL_ERROR', message: 'Cleanup failed' } },
+      { error: { code: 'INTERNAL_ERROR', message: 'Archive failed' } },
       { status: 500 }
     );
   }

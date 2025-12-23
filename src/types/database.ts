@@ -147,9 +147,14 @@ export interface Database {
         Args: { p_room_id: string; p_player_id: string };
         Returns: Array<{ nickname: string }>;
       };
-      cleanup_stale_rooms: {
+      archive_stale_rooms: {
         Args: Record<string, never>;
-        Returns: void;
+        Returns: Array<{
+          archived_waiting: number;
+          archived_roles_distributed: number;
+          archived_started: number;
+          total_archived: number;
+        }>;
       };
       // Phase 6: Player Reconnection Functions
       check_nickname_available: {
@@ -180,7 +185,8 @@ export interface Database {
 }
 
 // Room status enum
-export type RoomStatus = 'waiting' | 'roles_distributed' | 'started';
+// 'closed' = archived room (inactive but preserved for statistics)
+export type RoomStatus = 'waiting' | 'roles_distributed' | 'started' | 'closed';
 
 // Role enum (base alignment)
 export type Role = 'good' | 'evil';

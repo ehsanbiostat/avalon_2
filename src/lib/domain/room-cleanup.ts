@@ -1,6 +1,7 @@
 /**
- * Room cleanup logic
- * Handles automatic deletion of stale rooms based on inactivity
+ * Room archiving logic
+ * Handles marking stale rooms as 'closed' based on inactivity
+ * Game history is preserved for statistics
  */
 
 import {
@@ -10,12 +11,17 @@ import {
 import type { RoomStatus } from '@/types/database';
 
 /**
- * Check if a room should be cleaned up based on status and last activity
+ * Check if a room should be archived based on status and last activity
  */
-export function shouldCleanupRoom(
+export function shouldArchiveRoom(
   status: RoomStatus,
   lastActivityAt: string
 ): boolean {
+  // Already closed rooms should not be re-processed
+  if (status === 'closed') {
+    return false;
+  }
+
   const lastActivity = new Date(lastActivityAt).getTime();
   const now = Date.now();
   const elapsed = now - lastActivity;
@@ -39,6 +45,9 @@ export function shouldCleanupRoom(
   }
 }
 
+// Keep old name for backwards compatibility
+export const shouldCleanupRoom = shouldArchiveRoom;
+
 /**
  * Get the timeout duration for a room based on its status
  */
@@ -49,6 +58,8 @@ export function getTimeoutDuration(status: RoomStatus): number {
       return WAITING_ROOM_TIMEOUT;
     case 'started':
       return STARTED_ROOM_TIMEOUT;
+    case 'closed':
+      return 0; // Already archived
     default:
       return WAITING_ROOM_TIMEOUT;
   }
@@ -61,6 +72,10 @@ export function getRemainingTime(
   status: RoomStatus,
   lastActivityAt: string
 ): number {
+  if (status === 'closed') {
+    return 0;
+  }
+
   const timeout = getTimeoutDuration(status);
   const lastActivity = new Date(lastActivityAt).getTime();
   const now = Date.now();
@@ -77,6 +92,10 @@ export function formatRemainingTime(
   status: RoomStatus,
   lastActivityAt: string
 ): string {
+  if (status === 'closed') {
+    return 'Archived';
+  }
+
   const remaining = getRemainingTime(status, lastActivityAt);
 
   if (remaining <= 0) {
@@ -94,38 +113,47 @@ export function formatRemainingTime(
 }
 
 /**
- * Cleanup result for a batch operation
+ * Archive result for a batch operation
  */
-export interface CleanupResult {
+export interface ArchiveResult {
   roomsChecked: number;
-  roomsDeleted: number;
-  deletedRoomCodes: string[];
+  roomsArchived: number;
+  archivedRoomCodes: string[];
   errors: Array<{ roomCode: string; error: string }>;
 }
 
+// Keep old interface name for backwards compatibility
+export type CleanupResult = ArchiveResult;
+
 /**
- * Room info for cleanup check
+ * Room info for archive check
  */
-export interface RoomForCleanup {
+export interface RoomForArchive {
   id: string;
   code: string;
   status: RoomStatus;
   last_activity_at: string;
 }
 
+// Keep old interface name for backwards compatibility
+export type RoomForCleanup = RoomForArchive;
+
 /**
- * Get rooms that should be cleaned up from a list
+ * Get rooms that should be archived from a list
  */
-export function getRoomsToCleanup(rooms: RoomForCleanup[]): RoomForCleanup[] {
+export function getRoomsToArchive(rooms: RoomForArchive[]): RoomForArchive[] {
   return rooms.filter((room) =>
-    shouldCleanupRoom(room.status, room.last_activity_at)
+    shouldArchiveRoom(room.status, room.last_activity_at)
   );
 }
 
+// Keep old function name for backwards compatibility
+export const getRoomsToCleanup = getRoomsToArchive;
+
 /**
- * Cleanup reason for logging
+ * Archive reason for logging
  */
-export function getCleanupReason(status: RoomStatus): string {
+export function getArchiveReason(status: RoomStatus): string {
   switch (status) {
     case 'waiting':
       return 'waiting_timeout_24h';
@@ -133,7 +161,12 @@ export function getCleanupReason(status: RoomStatus): string {
       return 'roles_distributed_timeout_24h';
     case 'started':
       return 'started_timeout_48h';
+    case 'closed':
+      return 'already_archived';
     default:
       return 'unknown';
   }
 }
+
+// Keep old function name for backwards compatibility
+export const getCleanupReason = getArchiveReason;
