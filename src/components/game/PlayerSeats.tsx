@@ -249,59 +249,50 @@ export function PlayerSeats({
   // T009: Get dynamic center message
   const centerMessage = getCenterMessage();
 
-  // Mobile responsive scaling
-  // Measures container width and scales the 520px circle to fit
+  // Mobile responsive scaling - CSS-only approach using max-width and aspect-ratio
+  // This avoids JavaScript measurement issues and works on first render
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
+  const [containerWidth, setContainerWidth] = useState<number | null>(null);
 
   useEffect(() => {
-    const updateScale = () => {
+    const updateWidth = () => {
       if (containerRef.current) {
-        const containerWidth = containerRef.current.offsetWidth;
-        // Scale down if container is smaller than base size, but never scale up
-        const newScale = Math.min(1, containerWidth / BASE_SIZE);
-        setScale(newScale);
+        setContainerWidth(containerRef.current.offsetWidth);
       }
     };
 
-    // Initial calculation after mount
-    updateScale();
-
-    // Also run after a short delay to handle layout settling
-    const timeoutId = setTimeout(updateScale, 100);
+    // Initial measurement
+    updateWidth();
 
     // Recalculate on resize
-    window.addEventListener('resize', updateScale);
-    return () => {
-      window.removeEventListener('resize', updateScale);
-      clearTimeout(timeoutId);
-    };
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
   }, []);
 
-  // Calculate scaled dimensions
-  const scaledWidth = BASE_SIZE * scale;
-  const scaledHeight = BASE_SIZE * scale;
+  // Calculate scale: container width / base size, capped at 1
+  // Before measurement, use CSS to constrain, after measurement use calculated scale
+  const scale = containerWidth ? Math.min(1, containerWidth / BASE_SIZE) : 1;
+  const actualSize = containerWidth ? Math.min(containerWidth, BASE_SIZE) : BASE_SIZE;
 
   return (
-    // Outer: measures available width
-    <div ref={containerRef} className="w-full">
-      {/* Middle: sized to visual dimensions, centered */}
+    // Outer: constrains width, measures available space
+    <div ref={containerRef} className="w-full max-w-[520px] mx-auto">
+      {/* Responsive container: maintains aspect ratio, sized to fit */}
       <div
-        className="mx-auto"
+        className="relative w-full"
         style={{
-          width: scaledWidth,
-          height: scaledHeight,
-          position: 'relative',
+          // Use aspect-ratio for height, or fallback to calculated height
+          aspectRatio: '1 / 1',
+          maxWidth: BASE_SIZE,
         }}
       >
-        {/* Inner: original 520px size, scaled from top-left corner */}
+        {/* Scaled content layer */}
         <div
-          className="absolute top-0 left-0"
+          className="absolute inset-0 origin-top-left"
           style={{
             width: BASE_SIZE,
             height: BASE_SIZE,
             transform: `scale(${scale})`,
-            transformOrigin: 'top left',
           }}
         >
       {/* Feature 008: Dynamic center messages */}
