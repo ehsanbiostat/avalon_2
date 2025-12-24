@@ -281,6 +281,10 @@ interface RoleToggleProps {
   emoji: string;
 }
 
+/**
+ * RoleToggle - Uses button instead of label+checkbox to prevent scroll jump
+ * The browser's scroll-to-focus behavior on hidden inputs caused layout jumps on mobile
+ */
 function RoleToggle({
   enabled,
   locked,
@@ -293,10 +297,19 @@ function RoleToggle({
 }: RoleToggleProps) {
   const isDisabled = locked || disabled;
 
+  const handleClick = () => {
+    if (!isDisabled && onChange) {
+      onChange(!enabled);
+    }
+  };
+
   return (
-    <label
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={isDisabled}
       className={`
-        flex items-start gap-3 p-3 rounded-lg border transition-all
+        w-full text-left flex items-start gap-3 p-3 rounded-lg border transition-all
         ${isDisabled
           ? 'border-avalon-silver/10 bg-avalon-midnight/20 cursor-not-allowed opacity-70'
           : enabled
@@ -312,15 +325,9 @@ function RoleToggle({
           <span className={`font-semibold text-base ${enabled ? 'text-avalon-gold' : 'text-avalon-parchment'}`}>
             {label}
           </span>
-          <input
-            type="checkbox"
-            checked={enabled}
-            onChange={(e) => onChange?.(e.target.checked)}
-            disabled={isDisabled}
-            className="sr-only"
-          />
+          {/* Visual toggle indicator - no hidden input needed */}
           <div className={`
-            w-10 h-6 rounded-full transition-colors
+            w-10 h-6 rounded-full transition-colors flex-shrink-0
             ${isDisabled ? 'bg-avalon-silver/30' : enabled ? 'bg-avalon-gold' : 'bg-avalon-silver/30'}
           `}>
             <div className={`
@@ -334,6 +341,6 @@ function RoleToggle({
           <p className="text-xs text-amber-400/70 mt-1 italic">{disabledReason}</p>
         )}
       </div>
-    </label>
+    </button>
   );
 }
