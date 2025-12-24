@@ -86,6 +86,7 @@ src/
 │   ├── game/
 │   │   └── GameBoard.tsx           # MODIFY: Add "?" button to header
 │   └── rulebook/
+│       ├── index.ts                # NEW: Barrel export for rulebook components
 │       ├── RulebookContent.tsx     # NEW: Shared tabbed content
 │       ├── RulebookModal.tsx       # NEW: Modal wrapper
 │       ├── RulebookTabs.tsx        # NEW: Tab navigation component

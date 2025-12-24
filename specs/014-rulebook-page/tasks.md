@@ -31,7 +31,7 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T003 Create RulebookTabs navigation component in `src/components/rulebook/RulebookTabs.tsx`
+- [ ] T003 [P] Create RulebookTabs navigation component in `src/components/rulebook/RulebookTabs.tsx`
 - [ ] T004 [P] Create RolesTab content component in `src/components/rulebook/RolesTab.tsx`
 - [ ] T005 [P] Create GameModesTab content component in `src/components/rulebook/GameModesTab.tsx`
 - [ ] T006 [P] Create VisualGuideTab content component in `src/components/rulebook/VisualGuideTab.tsx`
@@ -74,18 +74,18 @@
 
 ---
 
-## Phase 5: User Story 3 - Role Clarification (Priority: P3)
+## Phase 5: User Story 3 - Role Clarification (Priority: P3) ✓ Validation Only
 
 **Goal**: Players who just received a role can understand what it can do and who they can see
 
 **Independent Test**: View Roles tab → see all 8 roles grouped by team → verify descriptions match game behavior
 
-### Implementation for User Story 3
+### Validation for User Story 3
 
-> Note: US3 is satisfied by the content in RolesTab (T004). This phase validates completeness.
+> **Note**: US3 is fully satisfied by T004 (RolesTab component). This phase contains validation checkpoints only - no new code.
 
-- [ ] T015 [US3] Verify RolesTab shows all 8 roles with correct team colors in `src/components/rulebook/RolesTab.tsx`
-- [ ] T016 [US3] Verify role descriptions match `SPECIAL_ROLES` from `src/lib/utils/constants.ts`
+- [ ] T015 [US3] ✓ Verify RolesTab shows all 8 roles with correct team colors in `src/components/rulebook/RolesTab.tsx`
+- [ ] T016 [US3] ✓ Verify role descriptions match `SPECIAL_ROLES` from `src/lib/utils/constants.ts`
 
 **Checkpoint**: US3 complete - all roles clearly explained with visibility rules
 
@@ -123,7 +123,7 @@
 ### Parallel Opportunities
 
 Within Phase 2 (Foundational):
-- T004, T005, T006, T007 can ALL run in parallel (different tab files)
+- T003, T004, T005, T006, T007 can ALL run in parallel (different component files)
 
 Within Phase 6 (Polish):
 - T017, T018, T019 can ALL run in parallel (independent checks)
@@ -182,7 +182,7 @@ T001 → T002 → T003 → T004-T007 (parallel) → T008 → T009 → DEMO!
 | Phase 4 (US2) | 3 tasks |
 | Phase 5 (US3) | 2 tasks |
 | Phase 6 (Polish) | 5 tasks |
-| Parallel Opportunities | 8 (T004-T007, T017-T019) |
+| Parallel Opportunities | 9 (T003-T007, T017-T019) |
 | MVP Scope | T001-T011 (11 tasks) |
 
 ---

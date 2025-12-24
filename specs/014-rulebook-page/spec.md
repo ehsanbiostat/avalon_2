@@ -43,7 +43,7 @@ The rulebook must:
   4. **Game Flow** - Phases, voting, quests, win conditions
 
 ### FR-002: Quick-Access Button in Game Rooms
-- Add a "?" or "📖" button in the game room header/UI
+- Add a "?" button in the game room header/UI
 - Button opens a modal overlay with the same tabbed content
 - Modal can be closed to return to game without losing state
 
