@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { PlayerList } from './PlayerList';
 import { RolesInPlay } from './RolesInPlay';
 import { LadyOfLakeBadge } from './LadyOfLakeBadge';
+import { RulebookModal } from './rulebook/RulebookModal';
 import type { RoomDetails } from '@/types/room';
 
 interface LobbyProps {
@@ -33,6 +34,7 @@ export function Lobby({
   isConnected = true,
 }: LobbyProps) {
   const [copied, setCopied] = useState(false);
+  const [showRulebook, setShowRulebook] = useState(false);
 
   const isManager = room.current_player.is_manager;
   const isFull = room.players.length >= room.room.expected_players;
@@ -116,6 +118,15 @@ export function Lobby({
             />
             {isConnected ? 'Live' : 'Syncing...'}
           </span>
+
+          {/* Rulebook Button */}
+          <button
+            onClick={() => setShowRulebook(true)}
+            className="px-2 py-1 text-xs rounded-md border border-avalon-dark-border text-avalon-text-secondary hover:bg-avalon-dark-lighter hover:text-avalon-gold transition-colors"
+            title="View Rulebook"
+          >
+            ?
+          </button>
         </div>
       </div>
 
@@ -213,6 +224,9 @@ export function Lobby({
           Leave Room
         </Button>
       </div>
+
+      {/* Rulebook Modal */}
+      <RulebookModal isOpen={showRulebook} onClose={() => setShowRulebook(false)} />
     </div>
   );
 }
