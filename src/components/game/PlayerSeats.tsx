@@ -5,9 +5,14 @@
  * Circular display of players around a table
  * T042, T043: Updated for Phase 6 to show disconnect status
  * 012: Refactored indicator system - fill colors for team state, border colors for identity
+ * Mobile: Scales down proportionally to fit smaller screens
  */
 
+import { useState, useEffect, useRef } from 'react';
 import type { GamePlayer, CenterMessage, GamePhase, VoteRevealData, VoteInfo } from '@/types/game';
+
+// Base dimensions for the player circle layout
+const BASE_SIZE = 520; // Original fixed width/height in pixels
 
 /**
  * T003: Get fill color based on team selection state
@@ -244,8 +249,42 @@ export function PlayerSeats({
   // T009: Get dynamic center message
   const centerMessage = getCenterMessage();
 
+  // Mobile responsive scaling
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const updateScale = () => {
+      if (containerRef.current) {
+        const containerWidth = containerRef.current.offsetWidth;
+        // Scale down if container is smaller than base size, but never scale up
+        const newScale = Math.min(1, containerWidth / BASE_SIZE);
+        setScale(newScale);
+      }
+    };
+
+    // Initial calculation
+    updateScale();
+
+    // Recalculate on resize
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, []);
+
+  // Calculate scaled height for the outer container
+  const scaledHeight = BASE_SIZE * scale;
+
   return (
-    <div className="relative w-[520px] h-[520px] mx-auto">
+    <div ref={containerRef} className="w-full overflow-hidden" style={{ height: scaledHeight }}>
+      <div
+        className="relative mx-auto"
+        style={{
+          width: BASE_SIZE,
+          height: BASE_SIZE,
+          transform: `scale(${scale})`,
+          transformOrigin: 'top center',
+        }}
+      >
       {/* Feature 008: Dynamic center messages */}
       {/* Feature 013: Vote summary display when reveal is active */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 rounded-full bg-gradient-to-br from-amber-800 to-amber-950 border-4 border-amber-700 shadow-lg">
@@ -390,6 +429,7 @@ export function PlayerSeats({
           </div>
         );
       })}
+      </div>
     </div>
   );
 }
