@@ -250,6 +250,7 @@ export function PlayerSeats({
   const centerMessage = getCenterMessage();
 
   // Mobile responsive scaling
+  // Measures container width and scales the 520px circle to fit
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 
@@ -263,28 +264,46 @@ export function PlayerSeats({
       }
     };
 
-    // Initial calculation
+    // Initial calculation after mount
     updateScale();
+
+    // Also run after a short delay to handle layout settling
+    const timeoutId = setTimeout(updateScale, 100);
 
     // Recalculate on resize
     window.addEventListener('resize', updateScale);
-    return () => window.removeEventListener('resize', updateScale);
+    return () => {
+      window.removeEventListener('resize', updateScale);
+      clearTimeout(timeoutId);
+    };
   }, []);
 
-  // Calculate scaled height for the outer container
+  // Calculate scaled dimensions
+  const scaledWidth = BASE_SIZE * scale;
   const scaledHeight = BASE_SIZE * scale;
 
   return (
-    <div ref={containerRef} className="w-full overflow-hidden" style={{ height: scaledHeight }}>
+    // Outer: measures available width
+    <div ref={containerRef} className="w-full">
+      {/* Middle: sized to visual dimensions, centered */}
       <div
-        className="relative mx-auto"
+        className="mx-auto"
         style={{
-          width: BASE_SIZE,
-          height: BASE_SIZE,
-          transform: `scale(${scale})`,
-          transformOrigin: 'top center',
+          width: scaledWidth,
+          height: scaledHeight,
+          position: 'relative',
         }}
       >
+        {/* Inner: original 520px size, scaled from top-left corner */}
+        <div
+          className="absolute top-0 left-0"
+          style={{
+            width: BASE_SIZE,
+            height: BASE_SIZE,
+            transform: `scale(${scale})`,
+            transformOrigin: 'top left',
+          }}
+        >
       {/* Feature 008: Dynamic center messages */}
       {/* Feature 013: Vote summary display when reveal is active */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 rounded-full bg-gradient-to-br from-amber-800 to-amber-950 border-4 border-amber-700 shadow-lg">
@@ -429,6 +448,7 @@ export function PlayerSeats({
           </div>
         );
       })}
+        </div>
       </div>
     </div>
   );
