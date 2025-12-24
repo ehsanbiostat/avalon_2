@@ -84,7 +84,7 @@ export function Modal({
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-8 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby={title ? 'modal-title' : undefined}
@@ -95,15 +95,15 @@ export function Modal({
         onClick={handleOverlayClick}
       />
 
-      {/* Modal Content */}
+      {/* Modal Content - anchored to top, not centered */}
       <div
         className={`
           relative w-full ${sizeStyles[size]}
           bg-avalon-navy border border-avalon-silver/30
           rounded-xl shadow-2xl
           animate-slide-up
-          my-auto
-          ${scrollable ? 'max-h-[90vh] flex flex-col' : ''}
+          mb-8
+          ${scrollable ? 'max-h-[85vh] flex flex-col' : ''}
         `}
         onClick={(e) => e.stopPropagation()}
       >
