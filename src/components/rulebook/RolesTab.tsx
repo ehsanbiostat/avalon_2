@@ -4,12 +4,12 @@ import { SPECIAL_ROLES, GOOD_SPECIAL_ROLES, EVIL_SPECIAL_ROLES } from '@/lib/uti
 import type { SpecialRole } from '@/types/role';
 
 /**
- * Roles tab content - displays all 8 special roles organized by team
+ * Roles tab content - displays all 9 roles organized by team
  */
 export function RolesTab() {
-  // Filter to only show roles that appear in games (not 'servant' or 'minion' generics for display)
+  // All roles that appear in games
   const displayGoodRoles: SpecialRole[] = ['merlin', 'percival', 'servant'];
-  const displayEvilRoles: SpecialRole[] = ['assassin', 'morgana', 'mordred', 'oberon_standard', 'oberon_chaos'];
+  const displayEvilRoles: SpecialRole[] = ['assassin', 'morgana', 'mordred', 'oberon_standard', 'oberon_chaos', 'minion'];
 
   return (
     <div
