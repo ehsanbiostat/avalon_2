@@ -5,9 +5,14 @@
  * Circular display of players around a table
  * T042, T043: Updated for Phase 6 to show disconnect status
  * 012: Refactored indicator system - fill colors for team state, border colors for identity
+ * Mobile: Scales down proportionally to fit smaller screens
  */
 
-import type { GamePlayer, CenterMessage, GamePhase } from '@/types/game';
+import { useState, useEffect, useRef } from 'react';
+import type { GamePlayer, CenterMessage, GamePhase, VoteRevealData, VoteInfo } from '@/types/game';
+
+// Base dimensions for the player circle layout
+const BASE_SIZE = 520; // Original fixed width/height in pixels
 
 /**
  * T003: Get fill color based on team selection state
@@ -56,6 +61,15 @@ function getTextColor(
   return 'text-slate-200';
 }
 
+/**
+ * T003: Find a player's vote from the votes array
+ * Returns the vote info if found, undefined otherwise
+ */
+function findPlayerVote(playerId: string, votes: VoteInfo[] | undefined): VoteInfo | undefined {
+  if (!votes) return undefined;
+  return votes.find(v => v.player_id === playerId);
+}
+
 interface PlayerSeatsProps {
   players: GamePlayer[];
   currentPlayerId: string | null;
@@ -79,6 +93,9 @@ interface PlayerSeatsProps {
   lastQuestResult?: 'success' | 'failed' | null;
   gameWinner?: 'good' | 'evil' | null;
   isAssassin?: boolean;
+  /** Feature 013: Vote reveal inline display */
+  voteRevealActive?: boolean;
+  voteRevealData?: VoteRevealData;
 }
 
 export function PlayerSeats({
@@ -100,6 +117,8 @@ export function PlayerSeats({
   lastQuestResult,
   gameWinner,
   isAssassin = false,
+  voteRevealActive = false,
+  voteRevealData,
 }: PlayerSeatsProps) {
   const angleStep = (2 * Math.PI) / players.length;
   const radius = 210; // Distance from center - scales well for up to 10 players
@@ -230,18 +249,78 @@ export function PlayerSeats({
   // T009: Get dynamic center message
   const centerMessage = getCenterMessage();
 
+  // Mobile responsive scaling - CSS-only approach using max-width and aspect-ratio
+  // This avoids JavaScript measurement issues and works on first render
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState<number | null>(null);
+
+  useEffect(() => {
+    const updateWidth = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.offsetWidth);
+      }
+    };
+
+    // Initial measurement
+    updateWidth();
+
+    // Recalculate on resize
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
+
+  // Calculate scale: container width / base size, capped at 1
+  // Before measurement, use CSS to constrain, after measurement use calculated scale
+  const scale = containerWidth ? Math.min(1, containerWidth / BASE_SIZE) : 1;
+  const actualSize = containerWidth ? Math.min(containerWidth, BASE_SIZE) : BASE_SIZE;
+
   return (
-    <div className="relative w-[520px] h-[520px] mx-auto">
+    // Outer: constrains width, measures available space
+    <div ref={containerRef} className="w-full max-w-[520px] mx-auto">
+      {/* Responsive container: maintains aspect ratio, sized to fit */}
+      <div
+        className="relative w-full"
+        style={{
+          // Use aspect-ratio for height, or fallback to calculated height
+          aspectRatio: '1 / 1',
+          maxWidth: BASE_SIZE,
+        }}
+      >
+        {/* Scaled content layer */}
+        <div
+          className="absolute inset-0 origin-top-left"
+          style={{
+            width: BASE_SIZE,
+            height: BASE_SIZE,
+            transform: `scale(${scale})`,
+          }}
+        >
       {/* Feature 008: Dynamic center messages */}
+      {/* Feature 013: Vote summary display when reveal is active */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 rounded-full bg-gradient-to-br from-amber-800 to-amber-950 border-4 border-amber-700 shadow-lg">
-        <div className="flex flex-col items-center justify-center h-full text-center px-3">
-          <span className="text-xl font-bold text-amber-500 leading-tight">
-            {centerMessage.line1}
-          </span>
-          <span className="text-sm text-amber-400 leading-tight mt-1">
-            {centerMessage.line2}
-          </span>
-        </div>
+        {voteRevealActive && voteRevealData ? (
+          // T008-T010: Vote summary display
+          <div className="flex flex-col items-center justify-center h-full text-center px-3 animate-vote-reveal">
+            {/* T009: Emoji based on approval status */}
+            <span className="text-4xl mb-1">
+              {voteRevealData.isApproved ? '✅' : '❌'}
+            </span>
+            {/* T010: Approve-reject count format */}
+            <span className="text-2xl font-bold text-amber-400">
+              {voteRevealData.approveCount}-{voteRevealData.rejectCount}
+            </span>
+          </div>
+        ) : (
+          // Normal center message
+          <div className="flex flex-col items-center justify-center h-full text-center px-3">
+            <span className="text-xl font-bold text-amber-500 leading-tight">
+              {centerMessage.line1}
+            </span>
+            <span className="text-sm text-amber-400 leading-tight mt-1">
+              {centerMessage.line2}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Players */}
@@ -276,21 +355,52 @@ export function PlayerSeats({
               `}
             >
               {/* Avatar - 012: Refactored with fill/border color system */}
-              <div
-                className={`
-                  w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold
-                  transition-all duration-300
-                  ${getFillColor(selected, inDraftSelection, isProposed)}
-                  ${getBorderColor(isMe, selected, inDraftSelection, isProposed)}
-                  ${getTextColor(isMe, selected, inDraftSelection, isProposed)}
-                  ${player.is_leader ? 'ring-4 ring-amber-400 ring-offset-2 ring-offset-avalon-midnight' : ''}
-                  ${''/* Disconnected state shown via red nickname only */}
-                  ${inDraftSelection && selectable ? 'animate-pulse shadow-lg shadow-sky-400/50' : ''}
-                `}
-                style={{ borderWidth: isMe ? '4px' : '3px' }}
-              >
-                {player.nickname.charAt(0).toUpperCase()}
-              </div>
+              {/* Feature 013: Vote reveal inline display */}
+              {(() => {
+                // Pre-calculate vote for styling
+                const playerVote = voteRevealActive ? findPlayerVote(player.id, voteRevealData?.votes) : null;
+                const voteType = playerVote?.vote;
+
+                // Option B: Full background color for vote reveal
+                const getVoteRevealBg = () => {
+                  if (!voteRevealActive) return '';
+                  if (voteType === 'approve') return 'bg-emerald-600 border-emerald-400';
+                  if (voteType === 'reject') return 'bg-red-600 border-red-400';
+                  return 'bg-slate-600 border-slate-400'; // Missing vote
+                };
+
+                return (
+                  <div
+                    className={`
+                      w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold
+                      transition-all duration-300
+                      ${voteRevealActive ? getVoteRevealBg() : getFillColor(selected, inDraftSelection, isProposed)}
+                      ${voteRevealActive ? '' : getBorderColor(isMe, selected, inDraftSelection, isProposed)}
+                      ${!voteRevealActive ? getTextColor(isMe, selected, inDraftSelection, isProposed) : 'text-white'}
+                      ${player.is_leader ? 'ring-4 ring-amber-400 ring-offset-2 ring-offset-avalon-midnight' : ''}
+                      ${inDraftSelection && selectable ? 'animate-pulse shadow-lg shadow-sky-400/50' : ''}
+                    `}
+                    style={{ borderWidth: isMe ? '4px' : '3px' }}
+                  >
+                    {/* T004-T006: Show vote icon or initial */}
+                    {voteRevealActive ? (
+                      voteType ? (
+                        // Option B: White icon on colored background
+                        <span className="text-4xl font-bold text-white animate-vote-reveal">
+                          {voteType === 'approve' ? '✓' : '✗'}
+                        </span>
+                      ) : (
+                        // T006: Missing vote - show "?" in white
+                        <span className="text-4xl font-bold text-white/70 animate-vote-reveal">
+                          ?
+                        </span>
+                      )
+                    ) : (
+                      player.nickname.charAt(0).toUpperCase()
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Crown for leader - T020: Keep at top center */}
               {player.is_leader && (
@@ -329,6 +439,8 @@ export function PlayerSeats({
           </div>
         );
       })}
+        </div>
+      </div>
     </div>
   );
 }

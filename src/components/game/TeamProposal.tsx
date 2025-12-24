@@ -80,27 +80,27 @@ export function TeamProposal({
 
   const handlePlayerClick = (playerId: string) => {
     if (!isLeader) return;
-    
+
     setSelectedTeam((prev) => {
       const newTeam = prev.includes(playerId)
         ? prev.filter((id) => id !== playerId)
         : prev.length < requiredSize
         ? [...prev, playerId]
         : prev;
-      
+
       // Feature 007: Broadcast to all players (debounced)
       broadcastDraftTeam(newTeam);
-      
+
       return newTeam;
     });
   };
 
   const handleSubmit = async () => {
     if (selectedTeam.length !== requiredSize) return;
-    
+
     setSubmitting(true);
     setError(null);
-    
+
     try {
       await proposeTeam(gameId, selectedTeam);
       setSelectedTeam([]);
@@ -136,8 +136,8 @@ export function TeamProposal({
       {(isLeader || isDraftInProgress) && (
         <div className="text-center">
           <p className={`text-sm font-semibold ${
-            (isLeader ? selectedTeam.length : (draftTeam?.length || 0)) === requiredSize 
-              ? 'text-green-400' 
+            (isLeader ? selectedTeam.length : (draftTeam?.length || 0)) === requiredSize
+              ? 'text-green-400'
               : 'text-cyan-400'
           }`}>
             {isLeader ? 'Your selection' : 'Selecting team'}: {isLeader ? selectedTeam.length : (draftTeam?.length || 0)} / {requiredSize}
@@ -151,7 +151,7 @@ export function TeamProposal({
           <p className="text-avalon-silver/60 text-sm">
             {selectedTeam.length} / {requiredSize} selected (local)
           </p>
-          
+
           {/* Selected Players Preview */}
           {selectedTeam.length > 0 && (
             <div className="flex justify-center gap-2 mt-2 flex-wrap">
@@ -168,16 +168,16 @@ export function TeamProposal({
               })}
             </div>
           )}
-          
+
           {error && (
             <p className="text-red-400 text-sm mt-2">{error}</p>
           )}
-          
+
           {/* Feature 007: Broadcast error (doesn't block submission) */}
           {broadcastError && (
             <p className="text-orange-400 text-xs mt-1">⚠️ {broadcastError}</p>
           )}
-          
+
           <Button
             variant="primary"
             onClick={handleSubmit}
@@ -189,7 +189,7 @@ export function TeamProposal({
           </Button>
         </div>
       )}
-      
+
       {/* Waiting message for non-leaders */}
       {!isLeader && (
         <div className="text-center text-avalon-silver/60 animate-pulse">
@@ -199,4 +199,3 @@ export function TeamProposal({
     </div>
   );
 }
-

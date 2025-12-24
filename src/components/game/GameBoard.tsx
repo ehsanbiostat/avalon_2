@@ -13,8 +13,8 @@ import { TeamProposal } from './TeamProposal';
 import { VotingPanel } from './VotingPanel';
 import { QuestExecution } from './QuestExecution';
 import { QuestResultDisplay } from './QuestResultDisplay';
-import { VoteResultReveal } from './VoteResultReveal';
 import { LadyOfLakePhase } from './LadyOfLakePhase';
+import { PlayerSeats } from './PlayerSeats';
 import { InvestigationResult } from './InvestigationResult';
 import { AssassinPhase } from './AssassinPhase';
 import { GameOver } from './GameOver';
@@ -87,6 +87,17 @@ export function GameBoard({ gameId }: GameBoardProps) {
       }
     }
   }, [gameState?.last_vote_result, getSeenProposals, markProposalSeen]);
+
+  // Feature 013: Auto-dismiss vote reveal after 10 seconds
+  useEffect(() => {
+    if (showVoteReveal) {
+      const timer = setTimeout(() => {
+        setShowVoteReveal(false);
+      }, 10000); // 10 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [showVoteReveal]);
 
   const handleVoteRevealComplete = useCallback(() => {
     setShowVoteReveal(false);
@@ -303,78 +314,95 @@ export function GameBoard({ gameId }: GameBoardProps) {
 
       {/* Phase-specific content */}
       <div className="bg-avalon-dark-blue/30 rounded-xl p-6 border border-avalon-silver/10">
-        {/* Team Building */}
-        {game.phase === 'team_building' && (
-          <TeamProposal
-            gameId={gameId}
-            players={players}
-            currentPlayerId={currentPlayerId}
-            questNumber={game.current_quest}
-            questRequirement={quest_requirement}
-            isLeader={isLeader}
-            onProposalSubmitted={handleAction}
-            ladyHolderId={ladyHolderId}
-            draftTeam={draft_team}
-            isDraftInProgress={is_draft_in_progress}
-          />
-        )}
+        {/* Feature 013: Inline Vote Reveal - REPLACES phase content temporarily */}
+        {showVoteReveal && gameState.last_vote_result ? (
+          <div className="animate-fade-in">
+            <PlayerSeats
+              players={players}
+              currentPlayerId={currentPlayerId}
+              ladyHolderId={ladyHolderId}
+              gamePhase={game.phase}
+              questNumber={game.current_quest}
+              voteRevealActive={true}
+              voteRevealData={{
+                votes: gameState.last_vote_result.votes,
+                isApproved: gameState.last_vote_result.is_approved,
+                approveCount: gameState.last_vote_result.approve_count,
+                rejectCount: gameState.last_vote_result.reject_count,
+              }}
+            />
+            {/* Brief status message */}
+            <p className="text-center text-avalon-silver/60 text-sm mt-4 animate-pulse">
+              {gameState.last_vote_result.is_approved
+                ? 'Team approved! Proceeding to quest...'
+                : 'Team rejected! New leader selecting...'}
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Team Building */}
+            {game.phase === 'team_building' && (
+              <TeamProposal
+                gameId={gameId}
+                players={players}
+                currentPlayerId={currentPlayerId}
+                questNumber={game.current_quest}
+                questRequirement={quest_requirement}
+                isLeader={isLeader}
+                onProposalSubmitted={handleAction}
+                ladyHolderId={ladyHolderId}
+                draftTeam={draft_team}
+                isDraftInProgress={is_draft_in_progress}
+              />
+            )}
 
-        {/* Voting */}
-        {game.phase === 'voting' && current_proposal && (
-          <VotingPanel
-            gameId={gameId}
-            players={players}
-            currentPlayerId={currentPlayerId}
-            proposal={current_proposal}
-            myVote={gameState.my_vote}
-            votesSubmitted={gameState.votes_submitted}
-            totalPlayers={gameState.total_players}
-            onVoteSubmitted={handleAction}
-            ladyHolderId={ladyHolderId}
-            questNumber={game.current_quest}
-          />
-        )}
+            {/* Voting */}
+            {game.phase === 'voting' && current_proposal && (
+              <VotingPanel
+                gameId={gameId}
+                players={players}
+                currentPlayerId={currentPlayerId}
+                proposal={current_proposal}
+                myVote={gameState.my_vote}
+                votesSubmitted={gameState.votes_submitted}
+                totalPlayers={gameState.total_players}
+                onVoteSubmitted={handleAction}
+                ladyHolderId={ladyHolderId}
+                questNumber={game.current_quest}
+              />
+            )}
 
-        {/* Quest */}
-        {game.phase === 'quest' && current_proposal && (
-          <QuestExecution
-            gameId={gameId}
-            players={players}
-            currentPlayerId={currentPlayerId}
-            proposal={current_proposal}
-            questNumber={game.current_quest}
-            questRequirement={quest_requirement}
-            amTeamMember={gameState.am_team_member}
-            canSubmitAction={gameState.can_submit_action}
-            hasSubmittedAction={gameState.has_submitted_action}
-            actionsSubmitted={gameState.actions_submitted}
-            totalTeamMembers={gameState.total_team_members}
-            playerRole={playerRole}
-            onActionSubmitted={handleAction}
-          />
-        )}
+            {/* Quest */}
+            {game.phase === 'quest' && current_proposal && (
+              <QuestExecution
+                gameId={gameId}
+                players={players}
+                currentPlayerId={currentPlayerId}
+                proposal={current_proposal}
+                questNumber={game.current_quest}
+                questRequirement={quest_requirement}
+                amTeamMember={gameState.am_team_member}
+                canSubmitAction={gameState.can_submit_action}
+                hasSubmittedAction={gameState.has_submitted_action}
+                actionsSubmitted={gameState.actions_submitted}
+                totalTeamMembers={gameState.total_team_members}
+                playerRole={playerRole}
+                onActionSubmitted={handleAction}
+              />
+            )}
 
-        {/* Quest Result */}
-        {game.phase === 'quest_result' && game.quest_results.length > 0 && (
-          <QuestResultDisplay
-            gameId={gameId}
-            questResult={game.quest_results[game.quest_results.length - 1]}
-            failsRequired={getQuestRequirement(game.player_count, game.quest_results.length).fails}
-            onContinue={handleAction}
-          />
+            {/* Quest Result */}
+            {game.phase === 'quest_result' && game.quest_results.length > 0 && (
+              <QuestResultDisplay
+                gameId={gameId}
+                questResult={game.quest_results[game.quest_results.length - 1]}
+                failsRequired={getQuestRequirement(game.player_count, game.quest_results.length).fails}
+                onContinue={handleAction}
+              />
+            )}
+          </>
         )}
       </div>
-
-      {/* Vote Result Reveal Overlay */}
-      {showVoteReveal && gameState.last_vote_result && (
-        <VoteResultReveal
-          votes={gameState.last_vote_result.votes}
-          isApproved={gameState.last_vote_result.is_approved}
-          approveCount={gameState.last_vote_result.approve_count}
-          rejectCount={gameState.last_vote_result.reject_count}
-          onComplete={handleVoteRevealComplete}
-        />
-      )}
 
       {/* Role Modal */}
       <Modal
