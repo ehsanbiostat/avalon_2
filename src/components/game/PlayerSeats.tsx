@@ -307,45 +307,51 @@ export function PlayerSeats({
             >
               {/* Avatar - 012: Refactored with fill/border color system */}
               {/* Feature 013: Vote reveal inline display */}
-              <div
-                className={`
-                  w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold
-                  transition-all duration-300
-                  ${getFillColor(selected, inDraftSelection, isProposed)}
-                  ${getBorderColor(isMe, selected, inDraftSelection, isProposed)}
-                  ${!voteRevealActive ? getTextColor(isMe, selected, inDraftSelection, isProposed) : ''}
-                  ${player.is_leader ? 'ring-4 ring-amber-400 ring-offset-2 ring-offset-avalon-midnight' : ''}
-                  ${''/* Disconnected state shown via red nickname only */}
-                  ${inDraftSelection && selectable ? 'animate-pulse shadow-lg shadow-sky-400/50' : ''}
-                `}
-                style={{ borderWidth: isMe ? '4px' : '3px' }}
-              >
-                {/* T004-T006: Show vote icon or initial */}
-                {voteRevealActive ? (
-                  (() => {
-                    const playerVote = findPlayerVote(player.id, voteRevealData?.votes);
-                    if (playerVote) {
-                      // T004, T005: Show ✓ (green) for approve, ✗ (red) for reject
-                      return (
-                        <span className={`text-3xl font-bold animate-vote-reveal ${
-                          playerVote.vote === 'approve' ? 'text-emerald-400' : 'text-red-400'
-                        }`}>
-                          {playerVote.vote === 'approve' ? '✓' : '✗'}
+              {(() => {
+                // Pre-calculate vote for styling
+                const playerVote = voteRevealActive ? findPlayerVote(player.id, voteRevealData?.votes) : null;
+                const voteType = playerVote?.vote;
+
+                // Option B: Full background color for vote reveal
+                const getVoteRevealBg = () => {
+                  if (!voteRevealActive) return '';
+                  if (voteType === 'approve') return 'bg-emerald-600 border-emerald-400';
+                  if (voteType === 'reject') return 'bg-red-600 border-red-400';
+                  return 'bg-slate-600 border-slate-400'; // Missing vote
+                };
+
+                return (
+                  <div
+                    className={`
+                      w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold
+                      transition-all duration-300
+                      ${voteRevealActive ? getVoteRevealBg() : getFillColor(selected, inDraftSelection, isProposed)}
+                      ${voteRevealActive ? '' : getBorderColor(isMe, selected, inDraftSelection, isProposed)}
+                      ${!voteRevealActive ? getTextColor(isMe, selected, inDraftSelection, isProposed) : 'text-white'}
+                      ${player.is_leader ? 'ring-4 ring-amber-400 ring-offset-2 ring-offset-avalon-midnight' : ''}
+                      ${inDraftSelection && selectable ? 'animate-pulse shadow-lg shadow-sky-400/50' : ''}
+                    `}
+                    style={{ borderWidth: isMe ? '4px' : '3px' }}
+                  >
+                    {/* T004-T006: Show vote icon or initial */}
+                    {voteRevealActive ? (
+                      voteType ? (
+                        // Option B: White icon on colored background
+                        <span className="text-4xl font-bold text-white animate-vote-reveal">
+                          {voteType === 'approve' ? '✓' : '✗'}
                         </span>
-                      );
-                    } else {
-                      // T006: Missing vote - show "?" in gray
-                      return (
-                        <span className="text-3xl font-bold text-slate-400 animate-vote-reveal">
+                      ) : (
+                        // T006: Missing vote - show "?" in white
+                        <span className="text-4xl font-bold text-white/70 animate-vote-reveal">
                           ?
                         </span>
-                      );
-                    }
-                  })()
-                ) : (
-                  player.nickname.charAt(0).toUpperCase()
-                )}
-              </div>
+                      )
+                    ) : (
+                      player.nickname.charAt(0).toUpperCase()
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Crown for leader - T020: Keep at top center */}
               {player.is_leader && (
