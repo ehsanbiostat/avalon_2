@@ -173,12 +173,16 @@ export function RoleConfigPanel({
             emoji="🌊"
           />
 
-          {/* T044: Warning for small games */}
-          {config.ladyOfLake && expectedPlayers < LADY_OF_LAKE_MIN_RECOMMENDED && (
-            <p className="text-sm font-medium text-yellow-400 mt-2 flex items-center gap-1">
+          {/* T044: Warning for small games - always reserve space to prevent layout shift */}
+          <div className={`overflow-hidden transition-all duration-200 ${
+            config.ladyOfLake && expectedPlayers < LADY_OF_LAKE_MIN_RECOMMENDED
+              ? 'max-h-10 opacity-100 mt-2'
+              : 'max-h-0 opacity-0'
+          }`}>
+            <p className="text-sm font-medium text-yellow-400 flex items-center gap-1">
               ⚠️ Recommended for {LADY_OF_LAKE_MIN_RECOMMENDED}+ players
             </p>
-          )}
+          </div>
 
           {/* Feature 009: Merlin Decoy Mode */}
           <RoleToggle
@@ -218,20 +222,26 @@ export function RoleConfigPanel({
             disabledReason="Cannot use with Decoy Mode"
           />
 
-          {/* T019: Warning for Mordred + Oberon Chaos with Split Intel */}
-          {config.merlin_split_intel_enabled && config.mordred && config.oberon === 'chaos' && (
+          {/* T019: Warning for Mordred + Oberon Chaos with Split Intel - smooth transition */}
+          <div className={`overflow-hidden transition-all duration-200 ${
+            config.merlin_split_intel_enabled && config.mordred && config.oberon === 'chaos'
+              ? 'max-h-24 opacity-100'
+              : 'max-h-0 opacity-0'
+          }`}>
             <div className="p-2 rounded-lg bg-red-500/10 border border-red-500/30">
               <p className="text-sm font-medium text-red-400">
-                ⚠️ With Mordred + Oberon Chaos, all evil may be hidden from Merlin. 
+                ⚠️ With Mordred + Oberon Chaos, all evil may be hidden from Merlin.
                 Split Intel Mode will be blocked if no visible evil players exist.
               </p>
             </div>
-          )}
+          </div>
         </div>
       </div>
 
-      {/* T029: Validation warnings */}
-      {validation.warnings.length > 0 && (
+      {/* T029: Validation warnings - smooth transition */}
+      <div className={`overflow-hidden transition-all duration-200 ${
+        validation.warnings.length > 0 ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
+      }`}>
         <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
           <h5 className="text-base font-bold text-yellow-400 mb-1">Suggestions</h5>
           <ul className="text-sm text-yellow-300/80 space-y-1">
@@ -240,10 +250,12 @@ export function RoleConfigPanel({
             ))}
           </ul>
         </div>
-      )}
+      </div>
 
-      {/* Validation errors */}
-      {validation.errors.length > 0 && (
+      {/* Validation errors - smooth transition */}
+      <div className={`overflow-hidden transition-all duration-200 ${
+        validation.errors.length > 0 ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
+      }`}>
         <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
           <h5 className="text-base font-bold text-red-400 mb-1">Configuration Error</h5>
           <ul className="text-sm text-red-300/80 space-y-1">
@@ -252,7 +264,7 @@ export function RoleConfigPanel({
             ))}
           </ul>
         </div>
-      )}
+      </div>
     </div>
   );
 }

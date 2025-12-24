@@ -131,7 +131,9 @@ export function Modal({
         )}
 
         {/* Body */}
-        <div className={`p-6 ${scrollable ? 'overflow-y-auto flex-grow' : ''}`}>
+        <div className={`p-6 ${scrollable ? 'overflow-y-auto flex-grow overscroll-contain' : ''}`}
+          style={{ overflowAnchor: 'auto' }}
+        >
           {children}
         </div>
 

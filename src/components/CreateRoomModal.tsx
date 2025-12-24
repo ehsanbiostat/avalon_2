@@ -133,20 +133,27 @@ export function CreateRoomModal({
               Evil: {ROLE_RATIOS[expectedPlayers]?.evil ?? 0}
             </span>
           </div>
-          
-          {/* Compact role summary when advanced is hidden */}
-          {!showAdvanced && Object.keys(roleConfig).length > 0 && (
-            <RoleConfigSummary 
-              config={roleConfig} 
+
+          {/* Compact role summary when advanced is hidden - smooth transition */}
+          <div className={`
+            transition-all duration-200 overflow-hidden
+            ${!showAdvanced && Object.keys(roleConfig).length > 0 ? 'max-h-20 opacity-100 mt-2 pt-2 border-t border-avalon-silver/10' : 'max-h-0 opacity-0'}
+          `}>
+            <RoleConfigSummary
+              config={roleConfig}
               expectedPlayers={expectedPlayers}
               compact
-              className="mt-2 pt-2 border-t border-avalon-silver/10"
             />
-          )}
+          </div>
         </div>
 
-        {/* Advanced Role Configuration */}
-        {showAdvanced && (
+        {/* Advanced Role Configuration - smooth transition to prevent layout jump */}
+        <div
+          className={`
+            transition-all duration-300 ease-in-out overflow-hidden
+            ${showAdvanced ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}
+          `}
+        >
           <div className="border border-avalon-silver/20 rounded-lg p-4 bg-avalon-midnight/30">
             <h4 className="font-display text-avalon-parchment text-lg font-bold mb-4">
               Configure Special Roles
@@ -156,15 +163,15 @@ export function CreateRoomModal({
               config={roleConfig}
               onChange={setRoleConfig}
             />
-            
+
             {/* Full summary */}
-            <RoleConfigSummary 
-              config={roleConfig} 
+            <RoleConfigSummary
+              config={roleConfig}
               expectedPlayers={expectedPlayers}
               className="mt-4"
             />
           </div>
-        )}
+        </div>
       </form>
     </Modal>
   );
