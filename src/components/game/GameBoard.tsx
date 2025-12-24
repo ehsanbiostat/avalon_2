@@ -19,6 +19,7 @@ import { InvestigationResult } from './InvestigationResult';
 import { AssassinPhase } from './AssassinPhase';
 import { GameOver } from './GameOver';
 import { SessionTakeoverAlert } from '@/components/SessionTakeoverAlert';
+import { RulebookModal } from '@/components/rulebook/RulebookModal';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { getPhaseName, getPhaseDescription } from '@/lib/domain/game-state-machine';
@@ -32,6 +33,7 @@ export function GameBoard({ gameId }: GameBoardProps) {
   const router = useRouter();
   const { gameState, currentPlayerId, playerRole, specialRole, roomCode, loading, error, sessionTakenOver, refetch } = useGameState(gameId);
   const [showRoleModal, setShowRoleModal] = useState(false);
+  const [showRulebook, setShowRulebook] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const handleCopyRoomCode = async () => {
@@ -278,13 +280,22 @@ export function GameBoard({ gameId }: GameBoardProps) {
           </p>
         </div>
 
-        {/* Compact View Role Button */}
-        <button
-          onClick={() => setShowRoleModal(true)}
-          className="px-3 py-1.5 text-xs rounded-md border border-avalon-dark-border text-avalon-text-secondary hover:bg-avalon-dark-lighter transition-colors"
-        >
-          👁️ Role
-        </button>
+        {/* Compact Action Buttons */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowRulebook(true)}
+            className="px-2 py-1.5 text-xs rounded-md border border-avalon-dark-border text-avalon-text-secondary hover:bg-avalon-dark-lighter transition-colors"
+            title="View Rulebook"
+          >
+            ?
+          </button>
+          <button
+            onClick={() => setShowRoleModal(true)}
+            className="px-3 py-1.5 text-xs rounded-md border border-avalon-dark-border text-avalon-text-secondary hover:bg-avalon-dark-lighter transition-colors"
+          >
+            👁️ Role
+          </button>
+        </div>
       </div>
 
       {/* Quest Tracker */}
@@ -454,6 +465,9 @@ export function GameBoard({ gameId }: GameBoardProps) {
 
       {/* T073: Session Takeover Alert */}
       <SessionTakeoverAlert isOpen={sessionTakenOver} />
+
+      {/* Feature 014: Rulebook Modal */}
+      <RulebookModal isOpen={showRulebook} onClose={() => setShowRulebook(false)} />
     </div>
   );
 }

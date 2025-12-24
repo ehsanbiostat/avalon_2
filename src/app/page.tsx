@@ -303,9 +303,17 @@ export default function Home() {
         )}
 
         {/* Footer Info */}
-        <p className="text-center text-base font-medium text-avalon-text-muted">
-          For 5-10 players • Real-time multiplayer
-        </p>
+        <div className="text-center space-y-2">
+          <button
+            onClick={() => router.push('/rules')}
+            className="text-avalon-text-secondary hover:text-avalon-gold transition-colors text-sm font-medium"
+          >
+            📜 View Rulebook
+          </button>
+          <p className="text-base font-medium text-avalon-text-muted">
+            For 5-10 players • Real-time multiplayer
+          </p>
+        </div>
       </div>
 
       {/* Create Room Modal */}

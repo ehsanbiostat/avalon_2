@@ -18,8 +18,8 @@
 
 **Purpose**: Create shared content definitions and component directory structure
 
-- [ ] T001 Create rulebook component directory at `src/components/rulebook/`
-- [ ] T002 Create static content definitions with types in `src/lib/domain/rulebook-content.ts`
+- [x] T001 Create rulebook component directory at `src/components/rulebook/`
+- [x] T002 Create static content definitions with types in `src/lib/domain/rulebook-content.ts`
 
 **Checkpoint**: Shared infrastructure ready for tab component development
 
@@ -31,12 +31,12 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T003 [P] Create RulebookTabs navigation component in `src/components/rulebook/RulebookTabs.tsx`
-- [ ] T004 [P] Create RolesTab content component in `src/components/rulebook/RolesTab.tsx`
-- [ ] T005 [P] Create GameModesTab content component in `src/components/rulebook/GameModesTab.tsx`
-- [ ] T006 [P] Create VisualGuideTab content component in `src/components/rulebook/VisualGuideTab.tsx`
-- [ ] T007 [P] Create GameFlowTab content component in `src/components/rulebook/GameFlowTab.tsx`
-- [ ] T008 Create RulebookContent container component in `src/components/rulebook/RulebookContent.tsx`
+- [x] T003 [P] Create RulebookTabs navigation component in `src/components/rulebook/RulebookTabs.tsx`
+- [x] T004 [P] Create RolesTab content component in `src/components/rulebook/RolesTab.tsx`
+- [x] T005 [P] Create GameModesTab content component in `src/components/rulebook/GameModesTab.tsx`
+- [x] T006 [P] Create VisualGuideTab content component in `src/components/rulebook/VisualGuideTab.tsx`
+- [x] T007 [P] Create GameFlowTab content component in `src/components/rulebook/GameFlowTab.tsx`
+- [x] T008 Create RulebookContent container component in `src/components/rulebook/RulebookContent.tsx`
 
 **Checkpoint**: Foundation ready - all 4 tabs working in shared container
 
@@ -50,9 +50,9 @@
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Create dedicated rules page at `src/app/rules/page.tsx`
-- [ ] T010 [US1] Add "Rules" link to home page footer in `src/app/page.tsx`
-- [ ] T011 [US1] Verify `/rules` page renders with all 4 tabs and correct styling
+- [x] T009 [US1] Create dedicated rules page at `src/app/rules/page.tsx`
+- [x] T010 [US1] Add "Rules" link to home page footer in `src/app/page.tsx`
+- [x] T011 [US1] Verify `/rules` page renders with all 4 tabs and correct styling
 
 **Checkpoint**: US1 complete - new players can learn rules from dedicated page
 
@@ -66,9 +66,9 @@
 
 ### Implementation for User Story 2
 
-- [ ] T012 [US2] Create RulebookModal wrapper component in `src/components/rulebook/RulebookModal.tsx`
-- [ ] T013 [US2] Add "?" button and modal state to `src/components/game/GameBoard.tsx`
-- [ ] T014 [US2] Verify modal opens/closes correctly and preserves game state
+- [x] T012 [US2] Create RulebookModal wrapper component in `src/components/rulebook/RulebookModal.tsx`
+- [x] T013 [US2] Add "?" button and modal state to `src/components/game/GameBoard.tsx`
+- [x] T014 [US2] Verify modal opens/closes correctly and preserves game state
 
 **Checkpoint**: US2 complete - in-game players can access quick reference
 
@@ -84,8 +84,8 @@
 
 > **Note**: US3 is fully satisfied by T004 (RolesTab component). This phase contains validation checkpoints only - no new code.
 
-- [ ] T015 [US3] ✓ Verify RolesTab shows all 8 roles with correct team colors in `src/components/rulebook/RolesTab.tsx`
-- [ ] T016 [US3] ✓ Verify role descriptions match `SPECIAL_ROLES` from `src/lib/utils/constants.ts`
+- [x] T015 [US3] ✓ Verify RolesTab shows all 8 roles with correct team colors in `src/components/rulebook/RolesTab.tsx`
+- [x] T016 [US3] ✓ Verify role descriptions match `SPECIAL_ROLES` from `src/lib/utils/constants.ts`
 
 **Checkpoint**: US3 complete - all roles clearly explained with visibility rules
 
@@ -95,11 +95,11 @@
 
 **Purpose**: Responsive design, accessibility, and final validation
 
-- [ ] T017 [P] Test responsive design on mobile (375px width) - verify tabs scroll
-- [ ] T018 [P] Verify keyboard accessibility for tabs (Tab key, Enter to select)
-- [ ] T019 [P] Verify dark theme consistency across all tabs
-- [ ] T020 Run quickstart.md manual testing checklist
-- [ ] T021 Create index export file at `src/components/rulebook/index.ts`
+- [x] T017 [P] Test responsive design on mobile (375px width) - verify tabs scroll
+- [x] T018 [P] Verify keyboard accessibility for tabs (Tab key, Enter to select)
+- [x] T019 [P] Verify dark theme consistency across all tabs
+- [x] T020 Run quickstart.md manual testing checklist
+- [x] T021 Create index export file at `src/components/rulebook/index.ts`
 
 ---
 
