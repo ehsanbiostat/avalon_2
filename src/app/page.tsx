@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -10,6 +10,7 @@ import { ReturningPlayerPanel } from '@/components/ReturningPlayerPanel';
 import { usePlayer } from '@/hooks/usePlayer';
 import { validateNickname, validateRoomCode } from '@/lib/domain/validation';
 import type { RoleConfig } from '@/types/role-config';
+import type { WatchStatusResponse } from '@/types/watcher';
 
 export default function Home() {
   const router = useRouter();
@@ -25,11 +26,16 @@ export default function Home() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const [isJoiningRoom, setIsJoiningRoom] = useState(false);
+  const [isWatchingRoom, setIsWatchingRoom] = useState(false);
 
   // Error states
   const [nicknameError, setNicknameError] = useState<string | null>(null);
   const [roomCodeError, setRoomCodeError] = useState<string | null>(null);
   const [generalError, setGeneralError] = useState<string | null>(null);
+
+  // Feature 015: Watch status state
+  const [watchStatus, setWatchStatus] = useState<WatchStatusResponse | null>(null);
+  const [isCheckingWatchStatus, setIsCheckingWatchStatus] = useState(false);
 
   // Pre-fill nickname if already registered
   useEffect(() => {
@@ -37,6 +43,65 @@ export default function Home() {
       setNicknameInput(nickname);
     }
   }, [nickname]);
+
+  /**
+   * Feature 015: Check if room is watchable when room code changes
+   */
+  const checkWatchStatus = useCallback(async (code: string) => {
+    if (!playerId || code.length !== 6) {
+      setWatchStatus(null);
+      return;
+    }
+
+    setIsCheckingWatchStatus(true);
+    try {
+      const response = await fetch(`/api/rooms/${code.toUpperCase()}/watch-status`, {
+        headers: { 'X-Player-ID': playerId },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setWatchStatus(data.data);
+      } else {
+        setWatchStatus(null);
+      }
+    } catch {
+      setWatchStatus(null);
+    } finally {
+      setIsCheckingWatchStatus(false);
+    }
+  }, [playerId]);
+
+  // Check watch status when room code input changes
+  useEffect(() => {
+    if (roomCodeInput.length === 6 && isRegistered) {
+      checkWatchStatus(roomCodeInput);
+    } else {
+      setWatchStatus(null);
+    }
+  }, [roomCodeInput, isRegistered, checkWatchStatus]);
+
+  /**
+   * Feature 015: Handle watching a room
+   */
+  const handleWatchRoom = async () => {
+    setRoomCodeError(null);
+    setGeneralError(null);
+
+    if (!playerId || !watchStatus?.gameId || !watchStatus.watchable) {
+      return;
+    }
+
+    setIsWatchingRoom(true);
+    try {
+      // Navigate to watcher view (join will happen on page load)
+      router.push(`/watch/${watchStatus.gameId}`);
+    } catch (err) {
+      setRoomCodeError(err instanceof Error ? err.message : 'Failed to start watching');
+    } finally {
+      setIsWatchingRoom(false);
+    }
+  };
 
   /**
    * Handle nickname registration
@@ -267,19 +332,55 @@ export default function Home() {
                   onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())}
                   error={roomCodeError || undefined}
                   maxLength={6}
-                  disabled={isJoiningRoom}
+                  disabled={isJoiningRoom || isWatchingRoom}
                   className="text-center tracking-widest font-mono text-lg"
                 />
 
-                <Button
-                  type="submit"
-                  variant="secondary"
-                  fullWidth
-                  isLoading={isJoiningRoom}
-                  disabled={roomCodeInput.length < 6}
-                >
-                  Join Room
-                </Button>
+                {/* Feature 015: Watch Status Indicator */}
+                {roomCodeInput.length === 6 && watchStatus && (
+                  <div className="text-xs text-center">
+                    {isCheckingWatchStatus ? (
+                      <span className="text-avalon-text-muted">Checking status...</span>
+                    ) : watchStatus.watchable ? (
+                      <span className="text-emerald-400">
+                        👁️ Game in progress • {watchStatus.watcherCount}/{watchStatus.watcherLimit} watching
+                      </span>
+                    ) : watchStatus.reason === 'GAME_NOT_STARTED' ? (
+                      <span className="text-avalon-text-muted">Game hasn&apos;t started yet</span>
+                    ) : watchStatus.reason === 'GAME_ENDED' ? (
+                      <span className="text-avalon-text-muted">Game has ended</span>
+                    ) : watchStatus.reason === 'ROOM_NOT_FOUND' ? (
+                      <span className="text-red-400">Room not found</span>
+                    ) : null}
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  <Button
+                    type="submit"
+                    variant="secondary"
+                    fullWidth
+                    isLoading={isJoiningRoom}
+                    disabled={roomCodeInput.length < 6 || isWatchingRoom}
+                  >
+                    Join Room
+                  </Button>
+
+                  {/* Feature 015: Watch Button */}
+                  {watchStatus?.watchable && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={handleWatchRoom}
+                      isLoading={isWatchingRoom}
+                      disabled={isJoiningRoom || !watchStatus.watchable}
+                      className="flex-shrink-0"
+                    >
+                      👁️ Watch
+                    </Button>
+                  )}
+                </div>
               </form>
 
               {/* Browse Rooms Link */}
