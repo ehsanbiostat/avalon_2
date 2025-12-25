@@ -19,10 +19,10 @@
 
 **Purpose**: Create base broadcast module structure and types
 
-- [ ] T001 Create broadcast module directory at `src/lib/broadcast/`
-- [ ] T002 [P] Create TypeScript type definitions in `src/types/broadcast.ts` (BroadcastEventType, payload interfaces, BroadcastMessage union)
-- [ ] T003 [P] Create event type constants and helpers in `src/lib/broadcast/event-types.ts`
-- [ ] T004 [P] Create debounce utility in `src/lib/broadcast/debounce.ts` (50ms minimum between broadcasts)
+- [x] T001 Create broadcast module directory at `src/lib/broadcast/`
+- [x] T002 [P] Create TypeScript type definitions in `src/types/broadcast.ts` (BroadcastEventType, payload interfaces, BroadcastMessage union)
+- [x] T003 [P] Create event type constants and helpers in `src/lib/broadcast/event-types.ts`
+- [x] T004 [P] Create debounce utility in `src/lib/broadcast/debounce.ts` (50ms minimum between broadcasts)
 
 ---
 
@@ -32,11 +32,11 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T005 Create server-side broadcaster base module in `src/lib/broadcast/broadcaster.ts` with `broadcastEvent()` function
-- [ ] T006 Create channel manager in `src/lib/broadcast/channel-manager.ts` (track active channels, 2-hour timeout)
-- [ ] T007 Create client-side subscription hook in `src/hooks/useBroadcastChannel.ts` (subscribe to game channel, handle events)
-- [ ] T008 Add connection event logging to `src/lib/broadcast/broadcaster.ts` (FR-015: log connect, disconnect, errors)
-- [ ] T009 Export all broadcast modules from `src/lib/broadcast/index.ts`
+- [x] T005 Create server-side broadcaster base module in `src/lib/broadcast/broadcaster.ts` with `broadcastEvent()` function
+- [x] T006 Create channel manager in `src/lib/broadcast/channel-manager.ts` (track active channels, 2-hour timeout)
+- [x] T007 Create client-side subscription hook in `src/hooks/useBroadcastChannel.ts` (subscribe to game channel, handle events)
+- [x] T008 Add connection event logging to `src/lib/broadcast/broadcaster.ts` (FR-015: log connect, disconnect, errors)
+- [x] T009 Export all broadcast modules from `src/lib/broadcast/index.ts`
 
 **Checkpoint**: Broadcast foundation ready - user story implementation can now begin
 
@@ -50,11 +50,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] Add `broadcastDraftUpdate()` function to `src/lib/broadcast/broadcaster.ts`
-- [ ] T011 [US1] Modify `src/app/api/games/[gameId]/draft-team/route.ts` to call `broadcastDraftUpdate()` after successful DB write
-- [ ] T012 [US1] Add `draft_update` event handler to `src/hooks/useBroadcastChannel.ts`
-- [ ] T013 [US1] Integrate `useBroadcastChannel` into `src/hooks/useGameState.ts` with draft_update handler
-- [ ] T014 [US1] Update local state immediately on `draft_update` broadcast receive in `useGameState.ts`
+- [x] T010 [US1] Add `broadcastDraftUpdate()` function to `src/lib/broadcast/broadcaster.ts`
+- [x] T011 [US1] Modify `src/app/api/games/[gameId]/draft-team/route.ts` to call `broadcastDraftUpdate()` after successful DB write
+- [x] T012 [US1] Add `draft_update` event handler to `src/hooks/useBroadcastChannel.ts`
+- [x] T013 [US1] Integrate `useBroadcastChannel` into `src/hooks/useGameState.ts` with draft_update handler
+- [x] T014 [US1] Update local state immediately on `draft_update` broadcast receive in `useGameState.ts`
 
 **Checkpoint**: Draft team selection broadcasts working - other players see selections instantly
 
@@ -68,10 +68,10 @@
 
 ### Implementation for User Story 2
 
-- [ ] T015 [US2] Add `broadcastVoteSubmitted()` function to `src/lib/broadcast/broadcaster.ts`
-- [ ] T016 [US2] Modify `src/app/api/games/[gameId]/vote/route.ts` to call `broadcastVoteSubmitted()` after successful vote record
-- [ ] T017 [US2] Add `vote_submitted` event handler to `src/hooks/useBroadcastChannel.ts`
-- [ ] T018 [US2] Update `useGameState.ts` to handle vote_submitted (update votes_submitted count, mark player as voted)
+- [x] T015 [US2] Add `broadcastVoteSubmitted()` function to `src/lib/broadcast/broadcaster.ts`
+- [x] T016 [US2] Modify `src/app/api/games/[gameId]/vote/route.ts` to call `broadcastVoteSubmitted()` after successful vote record
+- [x] T017 [US2] Add `vote_submitted` event handler to `src/hooks/useBroadcastChannel.ts`
+- [x] T018 [US2] Update `useGameState.ts` to handle vote_submitted (update votes_submitted count, mark player as voted)
 
 **Checkpoint**: Vote status broadcasts working - players see who voted instantly
 
@@ -85,10 +85,10 @@
 
 ### Implementation for User Story 3
 
-- [ ] T019 [US3] Add `broadcastActionSubmitted()` function to `src/lib/broadcast/broadcaster.ts`
-- [ ] T020 [US3] Modify `src/app/api/games/[gameId]/quest/action/route.ts` to call `broadcastActionSubmitted()` after successful action record
-- [ ] T021 [US3] Add `action_submitted` event handler to `src/hooks/useBroadcastChannel.ts`
-- [ ] T022 [US3] Update `useGameState.ts` to handle action_submitted (update actions_submitted count)
+- [x] T019 [US3] Add `broadcastActionSubmitted()` function to `src/lib/broadcast/broadcaster.ts`
+- [x] T020 [US3] Modify `src/app/api/games/[gameId]/quest/action/route.ts` to call `broadcastActionSubmitted()` after successful action record
+- [x] T021 [US3] Add `action_submitted` event handler to `src/hooks/useBroadcastChannel.ts`
+- [x] T022 [US3] Update `useGameState.ts` to handle action_submitted (update actions_submitted count)
 
 **Checkpoint**: Quest action broadcasts working - players see progress instantly
 
@@ -102,14 +102,14 @@
 
 ### Implementation for Phase Transitions
 
-- [ ] T023 Add `broadcastPhaseTransition()` function to `src/lib/broadcast/broadcaster.ts`
-- [ ] T024 Add `broadcastGameOver()` function to `src/lib/broadcast/broadcaster.ts`
-- [ ] T025 Modify `src/app/api/games/[gameId]/vote/route.ts` to broadcast phase_transition on team approval/rejection
-- [ ] T026 Modify `src/app/api/games/[gameId]/quest/action/route.ts` to broadcast phase_transition and game_over as appropriate
-- [ ] T027 Modify `src/app/api/games/[gameId]/propose/route.ts` to broadcast phase_transition (team_building→voting)
-- [ ] T028 Modify `src/app/api/games/[gameId]/continue/route.ts` to broadcast phase_transition (quest_result→next phase)
-- [ ] T029 Add `phase_transition` and `game_over` event handlers to `src/hooks/useBroadcastChannel.ts`
-- [ ] T030 Update `useGameState.ts` to trigger immediate refetch on phase_transition/game_over broadcasts
+- [x] T023 Add `broadcastPhaseTransition()` function to `src/lib/broadcast/broadcaster.ts`
+- [x] T024 Add `broadcastGameOver()` function to `src/lib/broadcast/broadcaster.ts`
+- [x] T025 Modify `src/app/api/games/[gameId]/vote/route.ts` to broadcast phase_transition on team approval/rejection
+- [x] T026 Modify `src/app/api/games/[gameId]/quest/action/route.ts` to broadcast phase_transition and game_over as appropriate
+- [x] T027 Modify `src/app/api/games/[gameId]/propose/route.ts` to broadcast phase_transition (team_building→voting)
+- [x] T028 Modify `src/app/api/games/[gameId]/continue/route.ts` to broadcast phase_transition (quest_result→next phase)
+- [x] T029 Add `phase_transition` and `game_over` event handlers to `src/hooks/useBroadcastChannel.ts`
+- [x] T030 Update `useGameState.ts` to trigger immediate refetch on phase_transition/game_over broadcasts
 
 **Checkpoint**: All phase changes broadcast - players stay synchronized
 
@@ -123,10 +123,10 @@
 
 ### Implementation for User Story 4
 
-- [ ] T031 [US4] Add connection error handling to `src/hooks/useBroadcastChannel.ts` (log errors, don't block)
-- [ ] T032 [US4] Ensure `useGameState.ts` maintains polling regardless of broadcast connection status
-- [ ] T033 [US4] Add auto-reconnect logic to `useBroadcastChannel.ts` (Supabase handles this, ensure we don't interfere)
-- [ ] T034 [US4] Add debug logging for connection events (SUBSCRIBED, CHANNEL_ERROR, TIMED_OUT, CLOSED)
+- [x] T031 [US4] Add connection error handling to `src/hooks/useBroadcastChannel.ts` (log errors, don't block)
+- [x] T032 [US4] Ensure `useGameState.ts` maintains polling regardless of broadcast connection status
+- [x] T033 [US4] Add auto-reconnect logic to `useBroadcastChannel.ts` (Supabase handles this, ensure we don't interfere)
+- [x] T034 [US4] Add debug logging for connection events (SUBSCRIBED, CHANNEL_ERROR, TIMED_OUT, CLOSED)
 
 **Checkpoint**: Fallback working - game playable even without real-time connection
 
@@ -140,9 +140,9 @@
 
 ### Implementation for User Story 5
 
-- [ ] T035 [US5] Integrate `useBroadcastChannel` into `src/hooks/useWatcherState.ts`
-- [ ] T036 [US5] Add handlers for all broadcast events (draft_update, vote_submitted, action_submitted, phase_transition, game_over) in `useWatcherState.ts`
-- [ ] T037 [US5] Ensure watcher channel subscription uses same channel name format as players (`game:${gameId}`)
+- [x] T035 [US5] Integrate `useBroadcastChannel` into `src/hooks/useWatcherState.ts`
+- [x] T036 [US5] Add handlers for all broadcast events (draft_update, vote_submitted, action_submitted, phase_transition, game_over) in `useWatcherState.ts`
+- [x] T037 [US5] Ensure watcher channel subscription uses same channel name format as players (`game:${gameId}`)
 
 **Checkpoint**: Watchers receive broadcasts - same smooth experience as players
 
@@ -152,10 +152,10 @@
 
 **Purpose**: Final cleanup and validation
 
-- [ ] T038 [P] Add barrel export for broadcast types in `src/types/index.ts`
-- [ ] T039 [P] Verify debounce is applied consistently across all broadcast functions
-- [ ] T040 [P] Verify no sensitive information (vote values, action types, roles) in any broadcast payload
-- [ ] T041 [P] Run lint and type check on all new files
+- [x] T038 [P] Add barrel export for broadcast types in `src/types/index.ts`
+- [x] T039 [P] Verify debounce is applied consistently across all broadcast functions
+- [x] T040 [P] Verify no sensitive information (vote values, action types, roles) in any broadcast payload
+- [x] T041 [P] Run lint and type check on all new files
 - [ ] T042 Manual E2E test: Leader selects player → verify other players see highlight <200ms
 - [ ] T043 Manual E2E test: Player votes → verify "voted" badge appears on other screens <200ms
 - [ ] T044 Manual E2E test: Disconnect network → verify polling fallback continues working

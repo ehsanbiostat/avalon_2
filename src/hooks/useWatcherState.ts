@@ -1,6 +1,7 @@
 /**
  * useWatcherState hook
  * Feature 015: Manages watcher game state with polling updates
+ * Feature 016: Added real-time broadcast subscription for instant updates
  *
  * Similar to useGameState but:
  * - Uses /api/watch/[gameId] endpoint
@@ -13,6 +14,14 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import type { WatcherGameState, UseWatcherStateResult } from '@/types/watcher';
 import { WATCHER_POLL_INTERVAL_MS } from '@/types/watcher';
 import { getPlayerId } from '@/lib/utils/player-id';
+import { useBroadcastChannel } from './useBroadcastChannel';
+import type {
+  DraftUpdatePayload,
+  VoteSubmittedPayload,
+  ActionSubmittedPayload,
+  PhaseTransitionPayload,
+  GameOverPayload,
+} from '@/types/broadcast';
 
 /**
  * Auto-rejoin as watcher when session expires
@@ -45,6 +54,74 @@ export function useWatcherState(gameId: string | null): UseWatcherStateResult {
 
   // Track rejoin attempts to avoid infinite loops
   const rejoinAttemptRef = useRef(false);
+
+  // Feature 016: Broadcast handlers for real-time updates (same as players)
+  const handleDraftUpdate = useCallback((payload: DraftUpdatePayload) => {
+    setGameState((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        draft_team: payload.draft_team,
+      };
+    });
+  }, []);
+
+  const handleVoteSubmitted = useCallback((payload: VoteSubmittedPayload) => {
+    setGameState((prev) => {
+      if (!prev) return null;
+      // Update votes_submitted count and mark the player as voted
+      const updatedPlayers = prev.players.map((p) =>
+        p.id === payload.player_id ? { ...p, has_voted: true } : p
+      );
+      return {
+        ...prev,
+        votes_submitted: payload.votes_count,
+        players: updatedPlayers,
+      };
+    });
+  }, []);
+
+  const handleActionSubmitted = useCallback((payload: ActionSubmittedPayload) => {
+    setGameState((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        actions_submitted: payload.actions_count,
+        total_team_members: payload.total_team_members,
+      };
+    });
+  }, []);
+
+  const handlePhaseTransition = useCallback(
+    (payload: PhaseTransitionPayload) => {
+      // eslint-disable-next-line no-console
+      console.log(
+        `[Watcher Broadcast] Phase transition: ${payload.previous_phase} → ${payload.phase}`
+      );
+      // Trigger full refetch to get accurate state for new phase
+      fetchGameStateRef.current?.();
+    },
+    []
+  );
+
+  const handleGameOver = useCallback((payload: GameOverPayload) => {
+    // eslint-disable-next-line no-console
+    console.log(`[Watcher Broadcast] Game over: ${payload.winner} wins (${payload.reason})`);
+    // Trigger full refetch to get final state with revealed roles
+    fetchGameStateRef.current?.();
+  }, []);
+
+  // Store fetchGameState in ref for use in broadcast handlers
+  const fetchGameStateRef = useRef<(() => Promise<void>) | null>(null);
+
+  // Feature 016: Subscribe to broadcast channel (same channel as players)
+  useBroadcastChannel(gameId, {
+    onDraftUpdate: handleDraftUpdate,
+    onVoteSubmitted: handleVoteSubmitted,
+    onActionSubmitted: handleActionSubmitted,
+    onPhaseTransition: handlePhaseTransition,
+    onGameOver: handleGameOver,
+  });
 
   const fetchGameState = useCallback(async () => {
     if (!gameId) {
@@ -103,7 +180,11 @@ export function useWatcherState(gameId: string | null): UseWatcherStateResult {
     }
   }, [gameId]);
 
+  // Store fetchGameState ref for broadcast handlers
+  fetchGameStateRef.current = fetchGameState;
+
   // Initial fetch and polling setup
+  // Note: Polling continues even with broadcast connection (fallback per FR-007)
   useEffect(() => {
     isMountedRef.current = true;
 

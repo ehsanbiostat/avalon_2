@@ -10,6 +10,7 @@ import { getGameById, updateDraftTeam } from '@/lib/supabase/games';
 import { getQuestRequirement } from '@/lib/domain/quest-config';
 import { validateDraftSelection, normalizeDraftTeam } from '@/lib/domain/team-selection';
 import { errors, handleError } from '@/lib/utils/errors';
+import { broadcastDraftUpdate } from '@/lib/broadcast';
 import type { UpdateDraftTeamRequest, UpdateDraftTeamResponse } from '@/types/game';
 
 interface RouteParams {
@@ -97,11 +98,11 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
     if (!validation.valid) {
       return NextResponse.json(
-        { 
-          error: { 
+        {
+          error: {
             code: validation.error?.includes('not in this game') ? 'INVALID_PLAYER_ID' : 'INVALID_TEAM_SIZE',
-            message: validation.error 
-          } 
+            message: validation.error
+          }
         },
         { status: 400 }
       );
@@ -109,6 +110,10 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
     // Update draft team in database
     const updatedGame = await updateDraftTeam(supabase, gameId, normalizedTeam);
+
+    // Feature 016: Broadcast draft update to all connected clients (FR-001)
+    // Broadcast AFTER successful DB write per FR-011
+    await broadcastDraftUpdate(gameId, updatedGame.draft_team || []);
 
     // Return success response
     const response: UpdateDraftTeamResponse = {
@@ -123,4 +128,3 @@ export async function PUT(request: Request, { params }: RouteParams) {
     return handleError(error);
   }
 }
-

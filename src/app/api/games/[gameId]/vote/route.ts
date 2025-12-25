@@ -13,6 +13,11 @@ import { logVotesRevealed } from '@/lib/supabase/game-events';
 import { canVote } from '@/lib/domain/game-state-machine';
 import { calculateVoteResult, wouldBeFifthRejection } from '@/lib/domain/vote-calculator';
 import { errors, handleError } from '@/lib/utils/errors';
+import {
+  broadcastVoteSubmitted,
+  broadcastPhaseTransition,
+  broadcastGameOver,
+} from '@/lib/broadcast';
 import type { VoteRequest, VoteResponse, VoteInfo } from '@/types/game';
 
 interface RouteParams {
@@ -107,6 +112,10 @@ export async function POST(request: Request, { params }: RouteParams) {
     const votesSubmitted = await getVoteCount(supabase, proposal.id);
     const totalPlayers = game.player_count;
 
+    // Feature 016: Broadcast vote submission (FR-002)
+    // Note: Does NOT include vote value - only that player voted
+    await broadcastVoteSubmitted(gameId, player.id, votesSubmitted, totalPlayers);
+
     // Check if all votes are in
     if (votesSubmitted === totalPlayers) {
       // Calculate vote result
@@ -164,10 +173,19 @@ export async function POST(request: Request, { params }: RouteParams) {
           })
           .eq('id', gameId)
           .eq('phase', 'voting'); // Only update if still in voting phase
-        
+
         // If update failed, another request already processed this - that's OK
         if (updateError) {
           console.log('Vote result already processed by another request');
+        } else {
+          // Feature 016: Broadcast phase transition (FR-013)
+          await broadcastPhaseTransition(
+            gameId,
+            'quest',
+            'voting',
+            'proposal_approved',
+            game.current_quest
+          );
         }
       } else {
         // Team rejected
@@ -176,12 +194,14 @@ export async function POST(request: Request, { params }: RouteParams) {
         if (wouldBeFifthRejection(game.vote_track)) {
           // 5th rejection - Evil wins!
           await endGame(supabase, gameId, 'evil', '5_rejections');
+          // Feature 016: Broadcast game over (FR-014)
+          await broadcastGameOver(gameId, 'evil', '5_rejections');
         } else {
           // CRITICAL FIX: Use optimistic locking to prevent race condition
           // Calculate new leader index and update atomically
           const nextLeaderIndex = (game.leader_index + 1) % game.seating_order.length;
           const nextLeaderId = game.seating_order[nextLeaderIndex];
-          
+
           const { error: updateError } = await supabase
             .from('games')
             .update({
@@ -192,10 +212,19 @@ export async function POST(request: Request, { params }: RouteParams) {
             })
             .eq('id', gameId)
             .eq('phase', 'voting'); // Only update if still in voting phase
-          
+
           // If update failed, another request already processed this - that's OK
           if (updateError) {
             console.log('Vote result already processed by another request');
+          } else {
+            // Feature 016: Broadcast phase transition (FR-013)
+            await broadcastPhaseTransition(
+              gameId,
+              'team_building',
+              'voting',
+              'proposal_rejected',
+              game.current_quest
+            );
           }
         }
       }
@@ -212,4 +241,3 @@ export async function POST(request: Request, { params }: RouteParams) {
     return handleError(error);
   }
 }
-

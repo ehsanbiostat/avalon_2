@@ -11,6 +11,7 @@ import { getInvestigatedPlayerIds, getPreviousLadyHolderIds } from '@/lib/supaba
 import { isShowingResults, isTerminalPhase } from '@/lib/domain/game-state-machine';
 import { shouldTriggerLadyPhase } from '@/lib/domain/lady-of-lake';
 import { errors, handleError } from '@/lib/utils/errors';
+import { broadcastPhaseTransition } from '@/lib/broadcast';
 import type { ContinueGameResponse } from '@/types/game';
 
 interface RouteParams {
@@ -79,7 +80,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     // CRITICAL FIX: Use optimistic locking to prevent race condition
     // If multiple players press "Continue" simultaneously, only the first one should succeed
     // We do this by atomically updating the phase only if it's still 'quest_result'
-    
+
     // Check if Lady phase should trigger (after Quest 2, 3, 4)
     // Only if migration 009 applied (lady_enabled exists and is true)
     let shouldGoToLadyPhase = false;
@@ -112,7 +113,7 @@ export async function POST(request: Request, { params }: RouteParams) {
         .eq('phase', 'quest_result') // Optimistic lock - only update if phase unchanged
         .select()
         .single();
-      
+
       if (updateError || !updateResult) {
         // Another request already processed this - return current state
         const currentGame = await getGameById(supabase, gameId);
@@ -123,6 +124,15 @@ export async function POST(request: Request, { params }: RouteParams) {
         };
         return NextResponse.json({ data: response });
       }
+
+      // Feature 016: Broadcast phase transition (FR-013)
+      await broadcastPhaseTransition(
+        gameId,
+        'lady_of_lake',
+        'quest_result',
+        'quest_result_shown',
+        game.current_quest
+      );
 
       const response: ContinueGameResponse = {
         phase: 'lady_of_lake',
@@ -152,7 +162,7 @@ export async function POST(request: Request, { params }: RouteParams) {
       .eq('phase', 'quest_result') // Optimistic lock - only update if phase unchanged
       .select()
       .single();
-    
+
     if (updateError || !updateResult) {
       // Another request already processed this - return current state
       const currentGame = await getGameById(supabase, gameId);
@@ -163,6 +173,15 @@ export async function POST(request: Request, { params }: RouteParams) {
       };
       return NextResponse.json({ data: response });
     }
+
+    // Feature 016: Broadcast phase transition (FR-013)
+    await broadcastPhaseTransition(
+      gameId,
+      'team_building',
+      'quest_result',
+      'quest_result_shown',
+      nextQuest
+    );
 
     // Successfully updated - return new state
     const response: ContinueGameResponse = {
@@ -176,4 +195,3 @@ export async function POST(request: Request, { params }: RouteParams) {
     return handleError(error);
   }
 }
-

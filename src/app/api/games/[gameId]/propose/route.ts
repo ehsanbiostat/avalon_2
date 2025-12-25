@@ -13,6 +13,7 @@ import { getQuestRequirement } from '@/lib/domain/quest-config';
 import { validateTeamProposal, validateProposer } from '@/lib/domain/team-validation';
 import { canProposeTeam } from '@/lib/domain/game-state-machine';
 import { errors, handleError } from '@/lib/utils/errors';
+import { broadcastPhaseTransition } from '@/lib/broadcast';
 import type { ProposeTeamRequest, ProposeTeamResponse } from '@/types/game';
 
 interface RouteParams {
@@ -121,6 +122,15 @@ export async function POST(request: Request, { params }: RouteParams) {
     // Update game phase to voting
     await updateGamePhase(supabase, gameId, 'voting');
 
+    // Feature 016: Broadcast phase transition (FR-013)
+    await broadcastPhaseTransition(
+      gameId,
+      'voting',
+      'team_building',
+      'proposal_submitted',
+      game.current_quest
+    );
+
     // Log event
     await logTeamProposed(supabase, gameId, {
       quest_number: game.current_quest,
@@ -142,4 +152,3 @@ export async function POST(request: Request, { params }: RouteParams) {
     return handleError(error);
   }
 }
-

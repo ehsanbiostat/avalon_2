@@ -16,7 +16,12 @@ import { getQuestRequirement } from '@/lib/domain/quest-config';
 import { calculateQuestOutcome, validateQuestAction, isOnQuestTeam } from '@/lib/domain/quest-resolver';
 import { checkWinConditions } from '@/lib/domain/win-conditions';
 import { errors, handleError } from '@/lib/utils/errors';
-import type { QuestActionRequest, QuestActionResponse, QuestResult } from '@/types/game';
+import {
+  broadcastActionSubmitted,
+  broadcastPhaseTransition,
+  broadcastGameOver,
+} from '@/lib/broadcast';
+import type { QuestActionRequest, QuestActionResponse, QuestResult, WinReason } from '@/types/game';
 
 interface RouteParams {
   params: Promise<{ gameId: string }>;
@@ -137,12 +142,16 @@ export async function POST(request: Request, { params }: RouteParams) {
     const actionsSubmitted = await getActionCount(supabase, gameId, game.current_quest);
     const totalTeamMembers = proposal.team_member_ids.length;
 
+    // Feature 016: Broadcast action submission (FR-003)
+    // Note: Does NOT include action type - only the count
+    await broadcastActionSubmitted(gameId, actionsSubmitted, totalTeamMembers);
+
     // Check if all actions are in
     if (actionsSubmitted === totalTeamMembers) {
       // Calculate quest result
       const actionCounts = await calculateQuestResult(supabase, gameId, game.current_quest);
       const questReq = getQuestRequirement(game.player_count, game.current_quest);
-      
+
       const outcome = calculateQuestOutcome(
         Array(actionCounts.success).fill('success').concat(Array(actionCounts.fail).fill('fail')),
         questReq.fails
@@ -169,7 +178,7 @@ export async function POST(request: Request, { params }: RouteParams) {
 
       // Add quest result and check win conditions
       const updatedResults = [...game.quest_results, questResult];
-      
+
       // Check if Merlin is in the game (for assassin phase)
       const { data: merlinCheck } = await supabase
         .from('player_roles')
@@ -177,7 +186,7 @@ export async function POST(request: Request, { params }: RouteParams) {
         .eq('room_id', game.room_id)
         .eq('special_role', 'merlin')
         .single();
-      
+
       const hasMerlin = !!merlinCheck;
       const winCheck = checkWinConditions(updatedResults, 0, hasMerlin);
 
@@ -193,9 +202,18 @@ export async function POST(request: Request, { params }: RouteParams) {
           })
           .eq('id', gameId)
           .eq('phase', 'quest'); // Only update if still in quest phase
-        
+
         if (updateError) {
           console.log('Quest result already processed by another request');
+        } else {
+          // Feature 016: Broadcast phase transition (FR-013)
+          await broadcastPhaseTransition(
+            gameId,
+            'assassin',
+            'quest',
+            'assassin_phase',
+            game.current_quest
+          );
         }
       } else if (winCheck.gameOver) {
         // Game over!
@@ -210,9 +228,16 @@ export async function POST(request: Request, { params }: RouteParams) {
           })
           .eq('id', gameId)
           .eq('phase', 'quest'); // Only update if still in quest phase
-        
+
         if (updateError) {
           console.log('Quest result already processed by another request');
+        } else {
+          // Feature 016: Broadcast game over (FR-014)
+          await broadcastGameOver(
+            gameId,
+            winCheck.winner!,
+            winCheck.reason as WinReason
+          );
         }
       } else {
         // Move to quest_result phase for display, then continue
@@ -224,9 +249,18 @@ export async function POST(request: Request, { params }: RouteParams) {
           })
           .eq('id', gameId)
           .eq('phase', 'quest'); // Only update if still in quest phase
-        
+
         if (updateError) {
           console.log('Quest result already processed by another request');
+        } else {
+          // Feature 016: Broadcast phase transition (FR-013)
+          await broadcastPhaseTransition(
+            gameId,
+            'quest_result',
+            'quest',
+            'quest_complete',
+            game.current_quest
+          );
         }
       }
     }
@@ -242,4 +276,3 @@ export async function POST(request: Request, { params }: RouteParams) {
     return handleError(error);
   }
 }
-
