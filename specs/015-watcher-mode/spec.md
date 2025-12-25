@@ -88,6 +88,10 @@ A user with a room code needs a clear way to choose between joining as a player 
   - Same error as players: "Room not found"
 - What happens during Assassin phase (sensitive game moment)?
   - Watchers see the same as neutral observer: Assassin is selecting, but no hint about who Merlin is
+- What happens if a user is watching Room A and wants to join Room B as a player?
+  - Allowed - user navigates to home page, enters Room B code, selects "Join". Room A watcher session remains active (or times out after 30s inactivity). No conflict.
+- What happens if a user is a player in Room A and wants to watch Room B?
+  - Allowed - user opens new tab or navigates away from Room A, enters Room B code, selects "Watch". Being a player in Room A does not prevent watching Room B.
 
 ## Clarifications
 
@@ -96,6 +100,7 @@ A user with a room code needs a clear way to choose between joining as a player 
 - Q: Performance impact of watchers? → A: Zero impact - watchers must be completely invisible to game performance and flow
 - Q: Game state isolation? → A: Watchers see current snapshot only, can rejoin unlimited times, each join shows only current state
 - Q: Watcher vs player registration? → A: Watchers use the SAME nickname registration as players. The only differentiation point is when joining a room (choosing "Watch" vs "Join"). No separate watcher registration flow needed.
+- Q: Is watcher/player state permanent or room-scoped? → A: **ROOM-SCOPED ONLY**. Watcher/Player state exists ONLY within a specific room. Outside that room, all users are identical. Same user can be a watcher in Room A and a player in Room B simultaneously. No permanent watcher/player designation exists on the platform.
 
 ## Requirements *(mandatory)*
 
@@ -137,6 +142,8 @@ The following constraints are **non-negotiable** for this feature:
 - **FR-013**: System MUST serve watchers from a separate read-only data path that cannot write to game tables
 - **FR-014**: System MUST NOT include watcher-related data in any game state responses sent to players
 - **FR-015**: Watcher polling/requests MUST NOT block or delay player game actions
+- **FR-016**: Watcher state MUST be room-scoped - a user's watcher status in Room A has NO effect on their ability to join Room B as a player (or vice versa)
+- **FR-017**: System MUST NOT persist watcher/player designation at the platform level - all users are treated identically outside of room context
 
 ### Non-Functional Requirements (Performance & Isolation)
 
@@ -149,11 +156,21 @@ The following constraints are **non-negotiable** for this feature:
 
 ### Key Entities
 
-- **Watcher**: A regular platform user (same registration as players) who chooses to observe a game instead of joining. The "watcher" distinction only exists at the room entry point. Has: playerId (from existing registration), nickname, joined_at timestamp. **CRITICAL**: Watcher data is ephemeral and stored separately from game data - NO foreign keys to game tables.
+- **Watcher**: A regular platform user (same registration as players) who chooses to observe a game instead of joining. The "watcher" distinction only exists within a specific room context - NOT a platform-level designation. Has: playerId (from existing registration), nickname, joined_at timestamp. **CRITICAL**: Watcher data is ephemeral and stored separately from game data - NO foreign keys to game tables.
 - **Game**: Existing entity - **NOT modified** for watcher feature. Game entity has zero awareness of watchers.
-- **WatcherSession**: Ephemeral tracking of active watcher connections. Stored in memory or separate cache (NOT in game database tables). Used for enforcing 10-watcher limit. Auto-expires on disconnect.
+- **WatcherSession**: Ephemeral, **room-scoped** tracking of active watcher connections. Key: (gameId, playerId). Stored in memory or separate cache (NOT in game database tables). Used for enforcing 10-watcher limit per room. Auto-expires on disconnect. **CRITICAL**: A user can have multiple WatcherSessions in different rooms, or be a player in one room and a watcher in another simultaneously.
 
-**Architecture Note**: Users on the platform are identical until the moment they enter a room code and choose "Watch" vs "Join". No separate user types, registration flows, or platform-level differentiation exists for watchers.
+### Architecture Principles (Room-Scoped State)
+
+**⚠️ CRITICAL DESIGN CONSTRAINT**: Watcher/Player state is **ROOM-SCOPED ONLY**.
+
+1. **Platform-Level**: All users are identical. Home page, room browsing, nickname registration - no differentiation.
+2. **Room Entry Point**: User chooses "Join" (player) or "Watch" (watcher) - this is the ONLY differentiation point.
+3. **Inside Room**: User has player OR watcher state for THAT specific room only.
+4. **Multi-Room**: Same user can be:
+   - Watcher in Room A AND Player in Room B (simultaneously)
+   - Leave Room A, return to home page, create a new room as host/player
+5. **No Persistence**: Watcher state is ephemeral. Leaving the room = losing watcher state. Returning requires re-choosing "Watch".
 
 ## Success Criteria *(mandatory)*
 
