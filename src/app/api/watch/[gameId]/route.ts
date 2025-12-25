@@ -41,17 +41,22 @@ export async function GET(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error }, { status: 401 });
     }
 
-    // Verify caller is a registered watcher for this game
-    if (!isWatcher(gameId, playerId)) {
+    // Try to update lastSeen FIRST to prevent race condition with cleanup
+    // This keeps the session alive before we check validity
+    const sessionUpdated = updateWatcherLastSeen(gameId, playerId);
+
+    // If session wasn't updated (watcher timed out or never joined),
+    // check if they were a valid watcher that got cleaned up
+    // In that case, we should be lenient - browser tabs can be throttled
+    if (!sessionUpdated && !isWatcher(gameId, playerId)) {
+      // Watcher session expired or never existed
+      // Return a specific error that the client can handle for auto-rejoin
       const error: WatcherError = {
-        code: 'NOT_WATCHER',
-        message: 'You are not watching this game',
+        code: 'SESSION_EXPIRED',
+        message: 'Watcher session expired. Please rejoin.',
       };
       return NextResponse.json({ error }, { status: 401 });
     }
-
-    // Update lastSeen timestamp for session keepalive (no database writes!)
-    updateWatcherLastSeen(gameId, playerId);
 
     const supabase = createServerClient();
 

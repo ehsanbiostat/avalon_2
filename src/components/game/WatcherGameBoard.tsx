@@ -254,38 +254,50 @@ function WatcherPhaseContent({ gameState }: WatcherPhaseContentProps) {
   const { game, players, current_proposal, quest_requirement } = gameState;
   const leader = players.find(p => p.is_leader);
 
-  // Team Building Phase
+  // Team Building Phase - matches player view (TeamProposal component)
   if (game.phase === 'team_building') {
+    const draftInProgress = game.draft_team && game.draft_team.length > 0;
+
     return (
       <div className="space-y-4">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-avalon-gold mb-2">Team Selection</h3>
-          <p className="text-avalon-silver/70 text-sm">
-            <span className="font-medium text-avalon-gold">{leader?.nickname || 'Leader'}</span>
-            {' '}is selecting {quest_requirement.size} players for Quest {game.current_quest}
-          </p>
-        </div>
+        {/* Player Selection Circle - same as players see */}
+        <PlayerSeats
+          players={players}
+          currentPlayerId={null}
+          ladyHolderId={game.lady_holder_id}
+          gamePhase={game.phase}
+          questNumber={game.current_quest}
+          draftTeam={game.draft_team}
+          isDraftInProgress={draftInProgress}
+          questRequirement={quest_requirement}
+        />
 
-        {/* Show draft team if in progress */}
-        {game.draft_team && game.draft_team.length > 0 && (
-          <div className="bg-avalon-dark-blue/40 rounded-lg p-3 border border-avalon-silver/20">
-            <p className="text-xs text-avalon-text-muted mb-2">Current Selection:</p>
-            <div className="flex flex-wrap gap-2">
-              {game.draft_team.map((playerId) => {
-                const player = players.find(p => p.id === playerId);
-                return (
-                  <span
-                    key={playerId}
-                    className="px-2 py-1 bg-avalon-gold/20 text-avalon-gold rounded text-sm"
-                  >
-                    {player?.nickname || 'Unknown'}
-                  </span>
-                );
-              })}
-            </div>
+        {/* Selection count - same format as players see */}
+        {draftInProgress && (
+          <div className="text-center">
+            <p className={`text-sm font-semibold ${
+              (game.draft_team?.length || 0) === quest_requirement.size
+                ? 'text-green-400'
+                : 'text-cyan-400'
+            }`}>
+              Selecting team: {game.draft_team?.length || 0} / {quest_requirement.size}
+            </p>
           </div>
         )}
 
+        {/* Waiting message - same as non-leaders see */}
+        <div className="text-center text-avalon-silver/60 animate-pulse">
+          Waiting for {leader?.nickname || 'Leader'} to propose a team...
+        </div>
+      </div>
+    );
+  }
+
+  // Voting Phase - matches player view (VotingPanel component)
+  if (game.phase === 'voting' && current_proposal) {
+    return (
+      <div className="space-y-4">
+        {/* Player seats with team highlighted - same as players see */}
         <PlayerSeats
           players={players}
           currentPlayerId={null}
@@ -293,41 +305,8 @@ function WatcherPhaseContent({ gameState }: WatcherPhaseContentProps) {
           gamePhase={game.phase}
           questNumber={game.current_quest}
         />
-      </div>
-    );
-  }
 
-  // Voting Phase
-  if (game.phase === 'voting' && current_proposal) {
-    const teamPlayers = current_proposal.team_member_ids
-      .map(id => players.find(p => p.id === id))
-      .filter(Boolean);
-
-    return (
-      <div className="space-y-4">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-avalon-gold mb-2">Vote in Progress</h3>
-          <p className="text-avalon-silver/70 text-sm">
-            Players are voting on the proposed team
-          </p>
-        </div>
-
-        {/* Proposed Team */}
-        <div className="bg-avalon-dark-blue/40 rounded-lg p-3 border border-avalon-silver/20">
-          <p className="text-xs text-avalon-text-muted mb-2">Proposed Team:</p>
-          <div className="flex flex-wrap gap-2">
-            {teamPlayers.map((player) => (
-              <span
-                key={player!.id}
-                className="px-2 py-1 bg-avalon-gold/20 text-avalon-gold rounded text-sm"
-              >
-                {player!.nickname}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Vote Progress */}
+        {/* Vote Progress - same as players see */}
         <div className="text-center text-sm text-avalon-silver/70">
           <span className="text-avalon-gold font-medium">{gameState.votes_submitted}</span>
           {' / '}
@@ -335,6 +314,19 @@ function WatcherPhaseContent({ gameState }: WatcherPhaseContentProps) {
           {' votes submitted'}
         </div>
 
+        {/* Waiting message */}
+        <div className="text-center text-avalon-silver/60 animate-pulse">
+          Waiting for all players to vote...
+        </div>
+      </div>
+    );
+  }
+
+  // Quest Phase - matches player view (QuestExecution component)
+  if (game.phase === 'quest' && current_proposal) {
+    return (
+      <div className="space-y-4">
+        {/* Player seats with team highlighted - same as players see */}
         <PlayerSeats
           players={players}
           currentPlayerId={null}
@@ -342,71 +334,41 @@ function WatcherPhaseContent({ gameState }: WatcherPhaseContentProps) {
           gamePhase={game.phase}
           questNumber={game.current_quest}
         />
-      </div>
-    );
-  }
 
-  // Quest Phase
-  if (game.phase === 'quest' && current_proposal) {
-    const teamPlayers = current_proposal.team_member_ids
-      .map(id => players.find(p => p.id === id))
-      .filter(Boolean);
-
-    return (
-      <div className="space-y-4">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-avalon-gold mb-2">Quest {game.current_quest}</h3>
-          <p className="text-avalon-silver/70 text-sm">
-            Team is executing the quest
-          </p>
-        </div>
-
-        {/* Quest Team */}
-        <div className="bg-avalon-dark-blue/40 rounded-lg p-3 border border-avalon-silver/20">
-          <p className="text-xs text-avalon-text-muted mb-2">Quest Team:</p>
-          <div className="flex flex-wrap gap-2">
-            {teamPlayers.map((player) => (
-              <span
-                key={player!.id}
-                className="px-2 py-1 bg-avalon-gold/20 text-avalon-gold rounded text-sm"
-              >
-                {player!.nickname}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Action Progress */}
+        {/* Action Progress - same as players see */}
         <div className="text-center text-sm text-avalon-silver/70">
           <span className="text-avalon-gold font-medium">{gameState.actions_submitted}</span>
           {' / '}
           <span>{gameState.total_team_members}</span>
-          {' actions submitted'}
+          {' quest actions submitted'}
         </div>
 
-        <PlayerSeats
-          players={players}
-          currentPlayerId={null}
-          ladyHolderId={game.lady_holder_id}
-          gamePhase={game.phase}
-          questNumber={game.current_quest}
-        />
+        {/* Waiting message */}
+        <div className="text-center text-avalon-silver/60 animate-pulse">
+          Team is executing the quest...
+        </div>
       </div>
     );
   }
 
-  // Quest Result Phase
+  // Quest Result Phase - matches player view (QuestResultDisplay component)
   if (game.phase === 'quest_result' && game.quest_results.length > 0) {
     const lastResult = game.quest_results[game.quest_results.length - 1];
     const failsRequired = getQuestRequirement(game.player_count, game.quest_results.length).fails;
 
     return (
       <div className="space-y-4">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-avalon-gold mb-2">
-            Quest {lastResult.quest} Result
-          </h3>
+        {/* Player seats */}
+        <PlayerSeats
+          players={players}
+          currentPlayerId={null}
+          ladyHolderId={game.lady_holder_id}
+          gamePhase={game.phase}
+          questNumber={game.current_quest}
+        />
 
+        {/* Quest Result - same format as players see */}
+        <div className="text-center">
           <div
             className={`
               inline-block px-6 py-3 rounded-full text-xl font-bold
@@ -418,39 +380,24 @@ function WatcherPhaseContent({ gameState }: WatcherPhaseContentProps) {
             {lastResult.result === 'success' ? '✅ SUCCESS' : '❌ FAILED'}
           </div>
 
-          <div className="mt-4 text-sm text-avalon-silver/70">
+          <div className="mt-2 text-sm text-avalon-silver/70">
             <p>
               {lastResult.success_count} success / {lastResult.fail_count} fail
               {failsRequired > 1 && ` (${failsRequired} fails required)`}
             </p>
           </div>
         </div>
-
-        <PlayerSeats
-          players={players}
-          currentPlayerId={null}
-          ladyHolderId={game.lady_holder_id}
-          gamePhase={game.phase}
-          questNumber={game.current_quest}
-        />
       </div>
     );
   }
 
-  // Lady of the Lake Phase
+  // Lady of the Lake Phase - matches player view (LadyOfLakePhase component)
   if (game.phase === 'lady_of_lake') {
     const holder = players.find(p => p.nickname === gameState.lady_of_lake?.holder_nickname);
 
     return (
       <div className="space-y-4">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-avalon-gold mb-2">Lady of the Lake</h3>
-          <p className="text-avalon-silver/70 text-sm">
-            <span className="font-medium text-blue-300">{holder?.nickname || 'Lady Holder'}</span>
-            {' '}is choosing a player to investigate
-          </p>
-        </div>
-
+        {/* Player seats */}
         <PlayerSeats
           players={players}
           currentPlayerId={null}
@@ -458,21 +405,21 @@ function WatcherPhaseContent({ gameState }: WatcherPhaseContentProps) {
           gamePhase={game.phase}
           questNumber={game.current_quest}
         />
+
+        {/* Waiting message */}
+        <div className="text-center text-avalon-silver/60 animate-pulse">
+          <span className="font-medium text-blue-300">{holder?.nickname || 'Lady Holder'}</span>
+          {' '}is choosing a player to investigate...
+        </div>
       </div>
     );
   }
 
-  // Assassin Phase
+  // Assassin Phase - matches player view (AssassinPhase component)
   if (game.phase === 'assassin') {
     return (
       <div className="space-y-4">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-red-400 mb-2">Assassin Phase</h3>
-          <p className="text-avalon-silver/70 text-sm">
-            Good has won 3 quests! The Assassin is choosing who to eliminate...
-          </p>
-        </div>
-
+        {/* Player seats */}
         <PlayerSeats
           players={players}
           currentPlayerId={null}
@@ -480,6 +427,11 @@ function WatcherPhaseContent({ gameState }: WatcherPhaseContentProps) {
           gamePhase={game.phase}
           questNumber={game.current_quest}
         />
+
+        {/* Waiting message */}
+        <div className="text-center text-avalon-silver/60 animate-pulse">
+          Good has won 3 quests! The Assassin is choosing who to eliminate...
+        </div>
       </div>
     );
   }

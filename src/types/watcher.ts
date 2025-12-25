@@ -140,6 +140,7 @@ export type WatcherErrorCode =
   | 'GAME_NOT_FOUND'
   | 'NICKNAME_REQUIRED'
   | 'NOT_WATCHER'
+  | 'SESSION_EXPIRED'
   | 'GAME_ENDED'
   | 'ROOM_NOT_FOUND';
 
