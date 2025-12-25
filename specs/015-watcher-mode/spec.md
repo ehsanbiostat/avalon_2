@@ -72,7 +72,7 @@ A user with a room code needs a clear way to choose between joining as a player 
 
 1. **Given** a user enters a valid room code, **When** the game is in progress, **Then** they see two options: "Join Room" (disabled with tooltip "Game in progress") and "Watch Game"
 2. **Given** a user enters a valid room code, **When** the game hasn't started, **Then** they see "Join Room" enabled and "Watch Game" disabled with tooltip "Available after game starts"
-3. **Given** a user has not entered a nickname, **When** they try to watch, **Then** they are prompted to enter a nickname first (same rules as players: 3-20 characters)
+3. **Given** a user has not registered a nickname, **When** they try to watch, **Then** they are prompted to register via the standard nickname registration flow (same as players: 3-20 characters)
 
 ---
 
@@ -95,6 +95,7 @@ A user with a room code needs a clear way to choose between joining as a player 
 
 - Q: Performance impact of watchers? → A: Zero impact - watchers must be completely invisible to game performance and flow
 - Q: Game state isolation? → A: Watchers see current snapshot only, can rejoin unlimited times, each join shows only current state
+- Q: Watcher vs player registration? → A: Watchers use the SAME nickname registration as players. The only differentiation point is when joining a room (choosing "Watch" vs "Join"). No separate watcher registration flow needed.
 
 ## Requirements *(mandatory)*
 
@@ -111,7 +112,7 @@ The following constraints are **non-negotiable** for this feature:
 ### Functional Requirements
 
 - **FR-001**: System MUST allow users to watch a game by entering a valid room code and selecting "Watch"
-- **FR-002**: System MUST require watchers to have a registered nickname (3-20 characters) before watching
+- **FR-002**: System MUST require watchers to have a registered nickname (3-20 characters) before watching. **Note**: Watchers use the same nickname registration system as players - no separate watcher registration flow.
 - **FR-003**: System MUST only allow watching after the game has started (not during waiting room)
 - **FR-004**: System MUST limit watchers to a maximum of 10 per game
 - **FR-005**: System MUST display game state to watchers in read-only mode (no interactive controls)
@@ -148,9 +149,11 @@ The following constraints are **non-negotiable** for this feature:
 
 ### Key Entities
 
-- **Watcher**: A registered user (with nickname) observing a game without participation. Has: nickname, connection status, joined_at timestamp. **CRITICAL**: Watcher data is ephemeral and stored separately from game data - NO foreign keys to game tables.
+- **Watcher**: A regular platform user (same registration as players) who chooses to observe a game instead of joining. The "watcher" distinction only exists at the room entry point. Has: playerId (from existing registration), nickname, joined_at timestamp. **CRITICAL**: Watcher data is ephemeral and stored separately from game data - NO foreign keys to game tables.
 - **Game**: Existing entity - **NOT modified** for watcher feature. Game entity has zero awareness of watchers.
 - **WatcherSession**: Ephemeral tracking of active watcher connections. Stored in memory or separate cache (NOT in game database tables). Used for enforcing 10-watcher limit. Auto-expires on disconnect.
+
+**Architecture Note**: Users on the platform are identical until the moment they enter a room code and choose "Watch" vs "Join". No separate user types, registration flows, or platform-level differentiation exists for watchers.
 
 ## Success Criteria *(mandatory)*
 
