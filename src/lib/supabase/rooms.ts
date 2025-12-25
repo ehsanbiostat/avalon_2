@@ -152,7 +152,6 @@ export async function getWaitingRooms(
       created_at,
       last_activity_at,
       status,
-      current_game_id,
       players:room_players(count)
     `)
     .in('status', ['waiting', 'started'])  // Feature 015: Include started games for watching
@@ -174,6 +173,24 @@ export async function getWaitingRooms(
     (managers || []).map((m: { id: string; nickname: string }) => [m.id, m.nickname])
   );
 
+  // Feature 015: Get active games for started rooms
+  const startedRoomIds = (data || [])
+    .filter((r: { status: string }) => r.status === 'started')
+    .map((r: { id: string }) => r.id);
+
+  let gameMap = new Map<string, string>();
+  if (startedRoomIds.length > 0) {
+    const { data: games } = await client
+      .from('games')
+      .select('id, room_id')
+      .in('room_id', startedRoomIds)
+      .is('ended_at', null);  // Only active games
+
+    gameMap = new Map(
+      (games || []).map((g: { id: string; room_id: string }) => [g.room_id, g.id])
+    );
+  }
+
   return (data || []).map((room: {
     id: string;
     code: string;
@@ -182,7 +199,6 @@ export async function getWaitingRooms(
     created_at: string;
     last_activity_at: string;
     status: string;
-    current_game_id: string | null;
     players: { count: number }[];
   }) => {
     const currentPlayers = room.players[0]?.count || 0;
@@ -197,7 +213,7 @@ export async function getWaitingRooms(
       last_activity_at: room.last_activity_at,
       // Feature 015: Include status and game ID for watch functionality
       status: room.status as RoomStatus,
-      current_game_id: room.current_game_id,
+      current_game_id: gameMap.get(room.id) || null,
     };
   });
 }
