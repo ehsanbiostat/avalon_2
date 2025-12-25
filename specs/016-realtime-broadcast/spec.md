@@ -102,7 +102,7 @@ Watchers (spectators) also receive real-time updates for all game actions they a
 - **FR-001**: System MUST broadcast draft team selection changes to all players in the game room within 200ms of the change being confirmed by the server
 - **FR-002**: System MUST broadcast vote submission events to all players, showing who has voted without revealing the vote itself
 - **FR-003**: System MUST broadcast quest action submission progress to all players
-- **FR-004**: System MUST maintain a Supabase Realtime channel for each active game
+- **FR-004**: System MUST create a Supabase Realtime channel when a game starts (phase transitions to team_building) and destroy it when the game ends (game_over) or after 2 hours of inactivity
 - **FR-005**: System MUST automatically subscribe players to the game channel when they join/view a game
 - **FR-006**: System MUST automatically unsubscribe players from the game channel when they leave or disconnect
 - **FR-007**: System MUST fall back to HTTP polling (existing 3-second interval) if real-time connection fails
@@ -111,6 +111,9 @@ Watchers (spectators) also receive real-time updates for all game actions they a
 - **FR-010**: System MUST debounce rapid broadcasts to prevent message flooding (minimum 50ms between broadcasts)
 - **FR-011**: System MUST use server-confirmed state as the source of truth (broadcast after successful DB write, not before)
 - **FR-012**: System MUST handle channel reconnection automatically without user intervention
+- **FR-013**: System MUST broadcast phase transitions (e.g., team_building→voting, voting→quest, quest→quest_result) so all players transition simultaneously
+- **FR-014**: System MUST broadcast game over announcement including winner and win reason for synchronized end-game experience
+- **FR-015**: System MUST log connection events (connect, disconnect, reconnect) and errors for debugging purposes
 
 ### Key Entities
 
@@ -129,6 +132,16 @@ Watchers (spectators) also receive real-time updates for all game actions they a
 - **SC-005**: Fallback to polling occurs within 5 seconds of connection loss, ensuring no player is left without updates
 - **SC-006**: No increase in server resource usage beyond 10% compared to polling-only approach
 - **SC-007**: User-perceived responsiveness improves (qualitative - game feels more "live" and synchronized)
+
+## Clarifications
+
+### Session 2025-12-25
+
+- Q: When should the game channel be created and destroyed? → A: Create when game starts (phase changes to team_building), destroy when game ends (game_over) OR after 2 hours of inactivity
+- Q: How should channel subscriptions be authorized? → A: No authorization needed - broadcast messages contain no sensitive data (FR-008 ensures no hidden information is revealed)
+- Q: Should other game events also be broadcast? → A: Yes, include phase transitions (voting→quest, quest→result, etc.) AND game over announcement with final results
+- Q: Should players see a connection status indicator? → A: No visible indicator - fallback to polling is seamless and should not worry users
+- Q: What level of observability is needed? → A: Log connection events and errors (connect, disconnect, reconnect, failures) for debugging
 
 ## Assumptions
 
