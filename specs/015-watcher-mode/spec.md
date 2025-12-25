@@ -89,7 +89,24 @@ A user with a room code needs a clear way to choose between joining as a player 
 - What happens during Assassin phase (sensitive game moment)?
   - Watchers see the same as neutral observer: Assassin is selecting, but no hint about who Merlin is
 
+## Clarifications
+
+### Session 2024-12-25
+
+- Q: Performance impact of watchers? → A: Zero impact - watchers must be completely invisible to game performance and flow
+- Q: Game state isolation? → A: Watchers see current snapshot only, can rejoin unlimited times, each join shows only current state
+
 ## Requirements *(mandatory)*
+
+### Critical Isolation Constraints ⚠️
+
+The following constraints are **non-negotiable** for this feature:
+
+1. **Zero Game Impact**: Watcher presence MUST NOT affect game state, timing, or flow in any way
+2. **Zero Performance Impact**: Adding/removing watchers MUST NOT degrade game performance for players
+3. **Pure Read-Only**: Watchers have NO ability to interact with ANY game step or action
+4. **Current State Only**: Watchers see only the current game snapshot - no history, no replay
+5. **Unlimited Rejoins**: Watchers can leave and rejoin any number of times, always seeing current state
 
 ### Functional Requirements
 
@@ -116,12 +133,24 @@ A user with a room code needs a clear way to choose between joining as a player 
 - **FR-010**: System MUST show watchers the same game over screen as players when game ends
 - **FR-011**: System MUST NOT allow watcher actions to modify any game state
 - **FR-012**: System MUST provide a "Stop Watching" button for watchers to exit
+- **FR-013**: System MUST serve watchers from a separate read-only data path that cannot write to game tables
+- **FR-014**: System MUST NOT include watcher-related data in any game state responses sent to players
+- **FR-015**: Watcher polling/requests MUST NOT block or delay player game actions
+
+### Non-Functional Requirements (Performance & Isolation)
+
+- **NFR-001**: Watcher requests MUST have zero measurable impact on player request latency
+- **NFR-002**: Game state for players MUST be computed independently of watcher presence
+- **NFR-003**: Watcher connection/disconnection MUST NOT trigger any game state updates
+- **NFR-004**: Watcher data MUST be stored separately from game data (no foreign keys into game tables)
+- **NFR-005**: System MUST handle 10 watchers + 10 players simultaneously without performance degradation
+- **NFR-006**: Watcher state MUST be ephemeral (in-memory or short-lived) - not persisted to game history
 
 ### Key Entities
 
-- **Watcher**: A registered user (with nickname) observing a game without participation. Has: nickname, connection status, joined_at timestamp. Relationship: many watchers to one game.
-- **Game**: Existing entity, extended to track associated watchers (separate from players)
-- **WatcherSession**: Tracks active watcher connections for a game. Used for enforcing 10-watcher limit and cleanup.
+- **Watcher**: A registered user (with nickname) observing a game without participation. Has: nickname, connection status, joined_at timestamp. **CRITICAL**: Watcher data is ephemeral and stored separately from game data - NO foreign keys to game tables.
+- **Game**: Existing entity - **NOT modified** for watcher feature. Game entity has zero awareness of watchers.
+- **WatcherSession**: Ephemeral tracking of active watcher connections. Stored in memory or separate cache (NOT in game database tables). Used for enforcing 10-watcher limit. Auto-expires on disconnect.
 
 ## Success Criteria *(mandatory)*
 
@@ -134,3 +163,12 @@ A user with a room code needs a clear way to choose between joining as a player 
 - **SC-005**: Players cannot detect the presence of watchers through any UI element
 - **SC-006**: System correctly enforces 10-watcher limit with clear feedback when limit is reached
 - **SC-007**: Watchers can complete full game observation from start to finish without errors
+
+### Performance & Isolation Outcomes (Critical)
+
+- **SC-008**: Player API response times remain unchanged (±5%) with 0 vs 10 watchers present
+- **SC-009**: Game state database writes have zero watcher-related fields or foreign keys
+- **SC-010**: Watcher join/leave operations complete without any game table writes
+- **SC-011**: Players experience identical game flow whether watchers are present or not
+- **SC-012**: Watcher can rejoin the same game 100+ times without any cumulative effect on game state
+- **SC-013**: No watcher-related code paths execute during player game actions (complete isolation)
