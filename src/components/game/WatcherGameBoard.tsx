@@ -256,7 +256,7 @@ function WatcherPhaseContent({ gameState }: WatcherPhaseContentProps) {
 
   // Team Building Phase - matches player view (TeamProposal component)
   if (game.phase === 'team_building') {
-    const draftInProgress = game.draft_team && game.draft_team.length > 0;
+    const draftInProgress = !!(game.draft_team && game.draft_team.length > 0);
 
     return (
       <div className="space-y-4">
