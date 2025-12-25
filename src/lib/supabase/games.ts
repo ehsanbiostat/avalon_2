@@ -11,6 +11,7 @@ import type {
   GamePhase,
   QuestResult,
 } from '@/types/game';
+import { updateRoomStatus } from './rooms';
 
 /**
  * Create a new game for a room
@@ -178,6 +179,7 @@ export async function addQuestResult(
 
 /**
  * Set game winner and end the game
+ * Also closes the room to remove it from active rooms list
  */
 export async function endGame(
   client: SupabaseClient,
@@ -185,12 +187,25 @@ export async function endGame(
   winner: 'good' | 'evil',
   winReason: string
 ): Promise<Game> {
-  return updateGame(client, gameId, {
+  // First get the game to find its room_id
+  const game = await getGameById(client, gameId);
+  if (!game) {
+    throw new Error('Game not found');
+  }
+
+  // Update the game with game_over phase
+  const updatedGame = await updateGame(client, gameId, {
     phase: 'game_over',
     winner,
     win_reason: winReason,
     ended_at: new Date().toISOString(),
   });
+
+  // Close the room so it doesn't appear in active rooms list
+  // This is idempotent - closing an already-closed room is a no-op
+  await updateRoomStatus(client, game.room_id, 'closed');
+
+  return updatedGame;
 }
 
 /**

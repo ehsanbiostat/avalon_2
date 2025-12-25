@@ -16,7 +16,7 @@ export const ROOM_STATUSES = ['waiting', 'roles_distributed', 'started', 'closed
 const STATE_TRANSITIONS: Record<RoomStatus, RoomStatus[]> = {
   waiting: ['roles_distributed'],
   roles_distributed: ['started'],
-  started: [], // Terminal state (game in progress)
+  started: ['closed'], // Can transition to closed when game ends
   closed: [], // Terminal state (archived - preserves game history)
 };
 

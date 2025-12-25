@@ -21,7 +21,7 @@
 
 **⚠️ CRITICAL**: User story implementation requires this phase complete
 
-- [ ] T001 Update STATE_TRANSITIONS in `src/lib/domain/room-state.ts` to allow `started` → `closed` transition
+- [x] T001 Update STATE_TRANSITIONS in `src/lib/domain/room-state.ts` to allow `started` → `closed` transition
 
 **Checkpoint**: Room state machine now accepts the new transition
 
@@ -35,9 +35,9 @@
 
 ### Implementation for User Story 1
 
-- [ ] T002 [US1] Update `endGame()` function in `src/lib/supabase/games.ts` to close room after setting game_over phase
-- [ ] T003 [P] [US1] Update `src/app/api/games/[gameId]/quest/action/route.ts` to close room when game ends via quest victory/loss
-- [ ] T004 [P] [US1] Update `src/app/api/games/[gameId]/assassin-guess/route.ts` to close room when game ends via assassin guess
+- [x] T002 [US1] Update `endGame()` function in `src/lib/supabase/games.ts` to close room after setting game_over phase
+- [x] T003 [P] [US1] Update `src/app/api/games/[gameId]/quest/action/route.ts` to close room when game ends via quest victory/loss
+- [x] T004 [P] [US1] Update `src/app/api/games/[gameId]/assassin-guess/route.ts` to close room when game ends via assassin guess
 
 **Checkpoint**: All three game-end paths now close the room automatically
 
@@ -51,7 +51,7 @@
 
 ### Implementation for User Story 2
 
-- [ ] T005 [US2] Verify that existing game state queries work for closed rooms (no code changes expected)
+- [x] T005 [US2] Verify that existing game state queries work for closed rooms (no code changes expected)
 
 **Note**: This story validates existing behavior. Room closure only changes `status` - all game data (quests, votes, roles) is preserved by default.
 
@@ -63,7 +63,7 @@
 
 **Purpose**: Validate the complete implementation
 
-- [ ] T006 Run lint and type check on modified files
+- [x] T006 Run lint and type check on modified files
 - [ ] T007 Manual E2E test: Play game to completion via quests → verify room removed from browse list
 - [ ] T008 Manual E2E test: Play game to 5 rejections → verify room removed from browse list
 - [ ] T009 Manual E2E test: Direct URL to finished game → verify game over screen displays correctly

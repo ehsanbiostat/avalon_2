@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
 import { getGameById, updateGame } from '@/lib/supabase/games';
+import { updateRoomStatus } from '@/lib/supabase/rooms';
 import { checkAssassinGuess } from '@/lib/domain/win-conditions';
 import { logGameOver } from '@/lib/supabase/game-events';
 
@@ -91,6 +92,10 @@ export async function POST(
       assassin_guess_id: guessed_player_id,
     });
 
+    // Feature 017: Close room when game ends (FR-001)
+    // Remove room from active rooms list
+    await updateRoomStatus(supabase, game.room_id, 'closed');
+
     // Log game over event
     await logGameOver(
       supabase,
@@ -115,4 +120,3 @@ export async function POST(
     );
   }
 }
-

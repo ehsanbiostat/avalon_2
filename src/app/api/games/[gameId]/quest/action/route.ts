@@ -11,6 +11,7 @@ import { getActiveProposalForQuest } from '@/lib/supabase/proposals';
 import { getPlayerRole } from '@/lib/supabase/roles';
 import { submitQuestAction, getActionCount, calculateQuestResult } from '@/lib/supabase/quest-actions';
 import { logQuestCompleted } from '@/lib/supabase/game-events';
+import { updateRoomStatus } from '@/lib/supabase/rooms';
 import { canSubmitQuestAction } from '@/lib/domain/game-state-machine';
 import { getQuestRequirement } from '@/lib/domain/quest-config';
 import { calculateQuestOutcome, validateQuestAction, isOnQuestTeam } from '@/lib/domain/quest-resolver';
@@ -232,6 +233,10 @@ export async function POST(request: Request, { params }: RouteParams) {
         if (updateError) {
           console.log('Quest result already processed by another request');
         } else {
+          // Feature 017: Close room when game ends (FR-001)
+          // Remove room from active rooms list
+          await updateRoomStatus(supabase, game.room_id, 'closed');
+
           // Feature 016: Broadcast game over (FR-014)
           await broadcastGameOver(
             gameId,
