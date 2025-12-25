@@ -100,6 +100,10 @@ src/
 ├── app/
 │   ├── page.tsx                         # MODIFY: Add "Watch" option for room codes
 │   ├── api/
+│   │   ├── rooms/
+│   │   │   └── [code]/
+│   │   │       └── watch-status/
+│   │   │           └── route.ts         # NEW: GET room watch status (watchable, count)
 │   │   └── watch/
 │   │       └── [gameId]/
 │   │           ├── route.ts             # NEW: GET watcher game state (neutral view)
@@ -115,9 +119,12 @@ src/
 │       └── GameBoard.tsx                # MODIFY: Add isWatcher prop for read-only mode
 ├── hooks/
 │   └── useWatcherState.ts               # NEW: Hook for watcher game state polling
+├── types/
+│   └── watcher.ts                       # NEW: Watcher TypeScript types
 └── lib/
     └── domain/
-        └── watcher-session.ts           # NEW: In-memory watcher session management
+        ├── watcher-session.ts           # NEW: In-memory watcher session management
+        └── watcher-game-state.ts        # NEW: Build neutral observer game state
 ```
 
 **Structure Decision**: Extends existing Next.js App Router structure. New `/app/watch/[gameId]` route for watcher view. New `/app/api/watch/` endpoints completely separate from player game APIs. Watcher logic isolated in `lib/domain/watcher-session.ts`.

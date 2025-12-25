@@ -109,6 +109,8 @@
 - [ ] T028 [P] Test responsive design on mobile for watcher view
 - [ ] T029 Run quickstart.md manual testing checklist
 - [ ] T030 Verify player API response times unchanged with watchers present
+- [ ] T031 [P] Verify room-scoped state: user can watch Room A and join Room B as player simultaneously
+- [ ] T032 [P] Verify FR-016/FR-017: watcher state does not persist outside room context
 
 ---
 
@@ -194,14 +196,14 @@ T001 → T002 → T003-T008 → T010 → T011 → T012 → T013 → T014 → T01
 
 | Metric | Value |
 |--------|-------|
-| Total Tasks | 30 |
+| Total Tasks | 32 |
 | Phase 1 (Setup) | 2 tasks |
 | Phase 2 (Foundational) | 6 tasks |
 | Phase 3 (US1+US2 - MVP) | 8 tasks |
 | Phase 4 (US3) | 4 tasks |
 | Phase 5 (US4) | 4 tasks |
-| Phase 6 (Polish) | 6 tasks |
-| Parallel Opportunities | 10+ |
+| Phase 6 (Polish) | 8 tasks |
+| Parallel Opportunities | 12+ |
 | MVP Scope | T001-T016 (16 tasks) |
 
 ---
