@@ -337,19 +337,19 @@ export default function Home() {
                 />
 
                 {/* Feature 015: Watch Status Indicator */}
-                {roomCodeInput.length === 6 && watchStatus && (
+                {roomCodeInput.length === 6 && (
                   <div className="text-xs text-center">
                     {isCheckingWatchStatus ? (
-                      <span className="text-avalon-text-muted">Checking status...</span>
-                    ) : watchStatus.watchable ? (
+                      <span className="text-avalon-text-muted">Checking room status...</span>
+                    ) : watchStatus?.watchable ? (
                       <span className="text-emerald-400">
                         👁️ Game in progress • {watchStatus.watcherCount}/{watchStatus.watcherLimit} watching
                       </span>
-                    ) : watchStatus.reason === 'GAME_NOT_STARTED' ? (
-                      <span className="text-avalon-text-muted">Game hasn&apos;t started yet</span>
-                    ) : watchStatus.reason === 'GAME_ENDED' ? (
+                    ) : watchStatus?.reason === 'GAME_NOT_STARTED' ? (
+                      <span className="text-blue-400">Room found • Game hasn&apos;t started yet</span>
+                    ) : watchStatus?.reason === 'GAME_ENDED' ? (
                       <span className="text-avalon-text-muted">Game has ended</span>
-                    ) : watchStatus.reason === 'ROOM_NOT_FOUND' ? (
+                    ) : watchStatus?.reason === 'ROOM_NOT_FOUND' ? (
                       <span className="text-red-400">Room not found</span>
                     ) : null}
                   </div>
@@ -367,15 +367,24 @@ export default function Home() {
                     Join Room
                   </Button>
 
-                  {/* Feature 015: Watch Button */}
-                  {watchStatus?.watchable && (
+                  {/* Feature 015: Watch Button - always show when room code entered */}
+                  {roomCodeInput.length === 6 && (
                     <Button
                       type="button"
                       variant="ghost"
                       onClick={handleWatchRoom}
                       isLoading={isWatchingRoom}
-                      disabled={isJoiningRoom || !watchStatus.watchable}
+                      disabled={isJoiningRoom || !watchStatus?.watchable || isCheckingWatchStatus}
                       className="flex-shrink-0"
+                      title={
+                        watchStatus?.reason === 'GAME_NOT_STARTED'
+                          ? 'Game hasn\'t started yet'
+                          : watchStatus?.reason === 'ROOM_NOT_FOUND'
+                          ? 'Room not found'
+                          : watchStatus?.reason === 'GAME_ENDED'
+                          ? 'Game has ended'
+                          : 'Watch this game'
+                      }
                     >
                       👁️ Watch
                     </Button>

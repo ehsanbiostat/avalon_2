@@ -6,13 +6,22 @@ import type { RoomListItem } from '@/types/room';
 interface RoomListProps {
   rooms: RoomListItem[];
   onJoin: (code: string) => void;
+  onWatch?: (code: string, gameId: string) => void;
   joiningCode?: string | null;
+  watchingCode?: string | null;
 }
 
 /**
  * List of active rooms
+ * Feature 015: Added onWatch handler for watcher mode
  */
-export function RoomList({ rooms, onJoin, joiningCode = null }: RoomListProps) {
+export function RoomList({
+  rooms,
+  onJoin,
+  onWatch,
+  joiningCode = null,
+  watchingCode = null,
+}: RoomListProps) {
   if (rooms.length === 0) {
     return (
       <div className="card text-center py-12">
@@ -46,7 +55,9 @@ export function RoomList({ rooms, onJoin, joiningCode = null }: RoomListProps) {
             key={room.id}
             room={room}
             onJoin={onJoin}
+            onWatch={onWatch}
             isJoining={joiningCode === room.code}
+            isWatching={watchingCode === room.code}
           />
         ))}
       </div>

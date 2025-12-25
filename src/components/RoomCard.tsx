@@ -6,14 +6,24 @@ import type { RoomListItem } from '@/types/room';
 interface RoomCardProps {
   room: RoomListItem;
   onJoin: (code: string) => void;
+  onWatch?: (code: string, gameId: string) => void;
   isJoining?: boolean;
+  isWatching?: boolean;
 }
 
 /**
  * Single room card for the room list
+ * Feature 015: Added Watch button for games in progress
  */
-export function RoomCard({ room, onJoin, isJoining = false }: RoomCardProps) {
+export function RoomCard({
+  room,
+  onJoin,
+  onWatch,
+  isJoining = false,
+  isWatching = false,
+}: RoomCardProps) {
   const isFull = room.current_players >= room.expected_players;
+  const isGameInProgress = room.status === 'started' && !!room.current_game_id;
 
   return (
     <div className="card hover:border-avalon-gold/30 transition-all">
@@ -24,9 +34,14 @@ export function RoomCard({ room, onJoin, isJoining = false }: RoomCardProps) {
             <span className="font-mono font-bold text-avalon-gold text-lg tracking-wider">
               {room.code}
             </span>
-            {isFull && (
+            {isFull && !isGameInProgress && (
               <span className="badge bg-avalon-silver/20 text-avalon-silver text-xs">
                 Full
+              </span>
+            )}
+            {isGameInProgress && (
+              <span className="badge bg-emerald-500/20 text-emerald-400 text-xs">
+                In Progress
               </span>
             )}
           </div>
@@ -45,16 +60,33 @@ export function RoomCard({ room, onJoin, isJoining = false }: RoomCardProps) {
           </div>
         </div>
 
-        {/* Join Button */}
-        <Button
-          variant={isFull ? 'ghost' : 'primary'}
-          size="sm"
-          onClick={() => onJoin(room.code)}
-          disabled={isFull || isJoining}
-          isLoading={isJoining}
-        >
-          {isFull ? 'Full' : 'Join'}
-        </Button>
+        {/* Action Buttons */}
+        <div className="flex gap-2">
+          {/* Watch Button - only show for games in progress */}
+          {isGameInProgress && onWatch && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onWatch(room.code, room.current_game_id!)}
+              disabled={isWatching || isJoining}
+              isLoading={isWatching}
+              title="Watch this game"
+            >
+              👁️
+            </Button>
+          )}
+
+          {/* Join Button */}
+          <Button
+            variant={isFull || isGameInProgress ? 'ghost' : 'primary'}
+            size="sm"
+            onClick={() => onJoin(room.code)}
+            disabled={isFull || isJoining || isGameInProgress || isWatching}
+            isLoading={isJoining}
+          >
+            {isGameInProgress ? 'Started' : isFull ? 'Full' : 'Join'}
+          </Button>
+        </div>
       </div>
 
       {/* Player slots visualization */}

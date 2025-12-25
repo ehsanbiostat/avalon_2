@@ -20,6 +20,7 @@ export interface RoomWithDetails extends Room {
 
 /**
  * Room list item for active rooms page
+ * Feature 015: Added status and current_game_id for watch functionality
  */
 export interface RoomListItem {
   id: string;
@@ -30,6 +31,9 @@ export interface RoomListItem {
   is_full: boolean;
   created_at: string;
   last_activity_at?: string;
+  // Feature 015: Watcher mode support
+  status: RoomStatus;
+  current_game_id: string | null;
 }
 
 /**

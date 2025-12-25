@@ -21,6 +21,7 @@ export default function RoomsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [joiningCode, setJoiningCode] = useState<string | null>(null);
+  const [watchingCode, setWatchingCode] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
 
@@ -122,6 +123,16 @@ export default function RoomsPage() {
   };
 
   /**
+   * Feature 015: Handle watching a game
+   */
+  const handleWatchRoom = (code: string, gameId: string) => {
+    setWatchingCode(code);
+    setError(null);
+    // Navigate to watcher view (join will happen on page load)
+    router.push(`/watch/${gameId}`);
+  };
+
+  /**
    * Handle room creation
    */
   const handleCreateRoom = async (expectedPlayers: number) => {
@@ -210,7 +221,9 @@ export default function RoomsPage() {
         <RoomList
           rooms={rooms}
           onJoin={handleJoinRoom}
+          onWatch={handleWatchRoom}
           joiningCode={joiningCode}
+          watchingCode={watchingCode}
         />
 
         {/* Refresh Button */}

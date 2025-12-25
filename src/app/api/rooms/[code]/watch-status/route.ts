@@ -38,13 +38,23 @@ export async function GET(request: Request, { params }: RouteParams) {
     const supabase = createServerClient();
 
     // Get room by code (READ ONLY)
+    // Use maybeSingle() to avoid errors when room doesn't exist
     const { data: room, error: roomError } = await supabase
       .from('rooms')
       .select('id, status, current_game_id')
       .eq('code', code.toUpperCase())
-      .single();
+      .maybeSingle();
 
-    if (roomError || !room) {
+    // Only treat as "not found" if room is null (not if there's a query error)
+    if (roomError) {
+      console.error('[Watch Status] Room query error:', roomError);
+      return NextResponse.json(
+        { error: { code: 'QUERY_ERROR', message: 'Failed to check room' } },
+        { status: 500 }
+      );
+    }
+
+    if (!room) {
       const response: WatchStatusResponse = {
         watchable: false,
         reason: 'ROOM_NOT_FOUND',

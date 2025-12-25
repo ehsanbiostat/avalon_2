@@ -4,7 +4,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Room, RoomInsert, RoomPlayer } from '@/types/database';
+import type { Room, RoomInsert, RoomPlayer, RoomStatus } from '@/types/database';
 import type { RoomListItem, RoomDetails, RoomPlayerInfo } from '@/types/room';
 import { getConnectionStatus } from '@/lib/domain/connection-status';
 
@@ -132,8 +132,9 @@ export async function updateLadyOfLakeHolder(
 }
 
 /**
- * Get all waiting rooms with player counts
+ * Get all active rooms (waiting and in_progress) with player counts
  * Filters out stale rooms (inactive for more than 24 hours)
+ * Feature 015: Also returns status and current_game_id for watch functionality
  */
 export async function getWaitingRooms(
   client: SupabaseClient
@@ -150,9 +151,11 @@ export async function getWaitingRooms(
       expected_players,
       created_at,
       last_activity_at,
+      status,
+      current_game_id,
       players:room_players(count)
     `)
-    .eq('status', 'waiting')
+    .in('status', ['waiting', 'started'])  // Feature 015: Include started games for watching
     .gte('last_activity_at', cutoffTime)  // Only show rooms active within 24h
     .order('last_activity_at', { ascending: false });  // Most recently active first
 
@@ -178,6 +181,8 @@ export async function getWaitingRooms(
     expected_players: number;
     created_at: string;
     last_activity_at: string;
+    status: string;
+    current_game_id: string | null;
     players: { count: number }[];
   }) => {
     const currentPlayers = room.players[0]?.count || 0;
@@ -190,6 +195,9 @@ export async function getWaitingRooms(
       is_full: currentPlayers >= room.expected_players,
       created_at: room.created_at,
       last_activity_at: room.last_activity_at,
+      // Feature 015: Include status and game ID for watch functionality
+      status: room.status as RoomStatus,
+      current_game_id: room.current_game_id,
     };
   });
 }
