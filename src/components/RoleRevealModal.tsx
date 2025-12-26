@@ -2,7 +2,7 @@
 
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
-import type { SplitIntelVisibility } from '@/types/game';
+import type { SplitIntelVisibility, OberonSplitIntelVisibility } from '@/types/game';
 
 // Special role type (Phase 2: includes oberon variants)
 type SpecialRole =
@@ -34,6 +34,8 @@ interface RoleRevealModalProps {
   decoyWarning?: string;
   // Feature 011: Merlin Split Intel Mode
   splitIntel?: SplitIntelVisibility;
+  // Feature 018: Oberon Split Intel Mode
+  oberonSplitIntel?: OberonSplitIntelVisibility;
 }
 
 // Role-specific icons (Phase 2: added oberon variants)
@@ -69,6 +71,7 @@ export function RoleRevealModal({
   hasDecoy,
   decoyWarning,
   splitIntel,
+  oberonSplitIntel,
 }: RoleRevealModalProps) {
   const isEvil = role === 'evil';
   const icon = specialRole ? ROLE_ICONS[specialRole] : (isEvil ? '🗡️' : '🛡️');
@@ -186,8 +189,75 @@ export function RoleRevealModal({
           </div>
         )}
 
-        {/* Known Players Section (for Merlin without Split Intel, Percival, Evil) */}
-        {knownPlayers && knownPlayers.length > 0 && knownPlayersLabel && !splitIntel?.enabled && (
+        {/* Feature 018: Oberon Split Intel Two-Group Display (Merlin only) */}
+        {specialRole === 'merlin' && oberonSplitIntel?.enabled && (
+          <div className="space-y-4">
+            {/* Certain Evil Group (Morgana, Assassin - NOT Oberon) */}
+            {oberonSplitIntel.certainEvil.length > 0 && (
+              <div className="p-4 rounded-lg bg-red-950/50 border border-red-500/40">
+                <h3 className="font-display text-sm uppercase tracking-wider mb-3 text-red-300 flex items-center gap-2">
+                  <span>🎯</span>
+                  <span>{oberonSplitIntel.certainLabel}</span>
+                </h3>
+                <p className="text-red-300/70 text-xs mb-3">{oberonSplitIntel.certainDescription}</p>
+                <div className="flex flex-wrap gap-2">
+                  {oberonSplitIntel.certainEvil.map((player) => (
+                    <span
+                      key={player.id}
+                      className="px-3 py-1.5 rounded-full text-sm bg-red-500/20 text-red-200 border border-red-500/30 font-medium"
+                    >
+                      {player.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Empty Certain Evil Group Message (when only Oberon is visible evil) */}
+            {oberonSplitIntel.certainEvil.length === 0 && (
+              <div className="p-4 rounded-lg bg-red-950/30 border border-red-500/20">
+                <h3 className="font-display text-sm uppercase tracking-wider mb-2 text-red-300/70 flex items-center gap-2">
+                  <span>🎯</span>
+                  <span>{oberonSplitIntel.certainLabel}</span>
+                </h3>
+                <p className="text-red-300/50 text-xs italic">
+                  No coordinated evil players visible (Oberon is the only visible evil)
+                </p>
+              </div>
+            )}
+
+            {/* Mixed Intel Group (Oberon + good player) */}
+            <div className="p-4 rounded-lg bg-teal-950/50 border border-teal-500/40">
+              <h3 className="font-display text-sm uppercase tracking-wider mb-3 text-teal-300 flex items-center gap-2">
+                <span>❓</span>
+                <span>{oberonSplitIntel.mixedLabel}</span>
+              </h3>
+              <p className="text-teal-300/70 text-xs mb-3">{oberonSplitIntel.mixedDescription}</p>
+              <div className="flex flex-wrap gap-2">
+                {oberonSplitIntel.mixedIntel.map((player) => (
+                  <span
+                    key={player.id}
+                    className="px-3 py-1.5 rounded-full text-sm bg-teal-500/20 text-teal-200 border border-teal-500/30 font-medium"
+                  >
+                    {player.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Hidden Evil Warning (only Mordred can be hidden in this mode) */}
+            {oberonSplitIntel.hiddenWarning && (
+              <div className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/30 text-center">
+                <p className="text-yellow-300 text-sm">
+                  ⚠️ <strong>{oberonSplitIntel.hiddenWarning}</strong>
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Known Players Section (for Merlin without Split Intel or Oberon Split Intel, Percival, Evil) */}
+        {knownPlayers && knownPlayers.length > 0 && knownPlayersLabel && !splitIntel?.enabled && !oberonSplitIntel?.enabled && (
           <div
             className={`
               p-4 rounded-lg border
@@ -242,8 +312,8 @@ export function RoleRevealModal({
           </div>
         )}
 
-        {/* Feature 009: Merlin Decoy Warning (only when NOT using split intel) */}
-        {specialRole === 'merlin' && hasDecoy && !splitIntel?.enabled && (
+        {/* Feature 009: Merlin Decoy Warning (only when NOT using split intel or oberon split intel) */}
+        {specialRole === 'merlin' && hasDecoy && !splitIntel?.enabled && !oberonSplitIntel?.enabled && (
           <div className="p-3 bg-amber-500/10 rounded-lg border border-amber-500/30 text-center">
             <p className="text-amber-300 text-sm">
               🃏 <strong>1 good player is hidden among the suspects!</strong>
@@ -251,8 +321,8 @@ export function RoleRevealModal({
           </div>
         )}
 
-        {/* Hidden Evil Warning (for Merlin without split intel) */}
-        {specialRole === 'merlin' && hiddenEvilCount !== undefined && hiddenEvilCount > 0 && !splitIntel?.enabled && (
+        {/* Hidden Evil Warning (for Merlin without split intel or oberon split intel) */}
+        {specialRole === 'merlin' && hiddenEvilCount !== undefined && hiddenEvilCount > 0 && !splitIntel?.enabled && !oberonSplitIntel?.enabled && (
           <div className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/30 text-center">
             <p className="text-yellow-300 text-sm">
               ⚠️ <strong>{hiddenEvilCount} evil {hiddenEvilCount === 1 ? 'player is' : 'players are'} hidden from you!</strong>
@@ -263,7 +333,13 @@ export function RoleRevealModal({
         {/* Instructions */}
         <div className="p-4 bg-avalon-midnight/50 rounded-lg border border-avalon-silver/20">
           <p className="text-avalon-parchment/70 text-sm text-center">
-            {specialRole === 'merlin' && splitIntel?.enabled ? (
+            {specialRole === 'merlin' && oberonSplitIntel?.enabled ? (
+              <>
+                🧙 <strong>You see the evil team divided!</strong> The Certain Evil group contains
+                the coordinated evil (Morgana, Assassin), but Oberon — the lone wolf — is mixed
+                with a good player. Deduce who Oberon is! Be careful, the Assassin is hunting you!
+              </>
+            ) : specialRole === 'merlin' && splitIntel?.enabled ? (
               <>
                 🧙 <strong>You see players divided into two groups!</strong> The Certain Evil
                 group is guaranteed evil, but the Mixed Intel group contains one evil and one good

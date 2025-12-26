@@ -44,6 +44,7 @@ export function RoleConfigPanel({
   };
 
   // T028: Handle Oberon mode toggle
+  // Feature 018: Auto-disable Oberon Split Intel when Oberon Standard is removed
   const handleOberonChange = (mode: OberonMode | false) => {
     const newConfig = { ...config };
     if (mode) {
@@ -51,6 +52,12 @@ export function RoleConfigPanel({
     } else {
       delete newConfig.oberon;
     }
+
+    // Feature 018: Auto-disable Oberon Split Intel if Oberon Standard is removed or changed to Chaos
+    if (newConfig.oberon_split_intel_enabled && mode !== 'standard') {
+      delete newConfig.oberon_split_intel_enabled;
+    }
+
     onChange(newConfig);
   };
 
@@ -189,9 +196,14 @@ export function RoleConfigPanel({
             role="merlin_decoy"
             enabled={config.merlin_decoy_enabled || false}
             onChange={(v) => {
-              // T018: Mutual exclusivity - disable Split Intel when enabling Decoy
-              if (v && config.merlin_split_intel_enabled) {
-                onChange({ ...config, merlin_decoy_enabled: true, merlin_split_intel_enabled: undefined });
+              // T018: Mutual exclusivity - disable Split Intel and Oberon Split Intel when enabling Decoy
+              if (v) {
+                onChange({
+                  ...config,
+                  merlin_decoy_enabled: true,
+                  merlin_split_intel_enabled: undefined,
+                  oberon_split_intel_enabled: undefined,
+                });
               } else {
                 handleToggle('merlin_decoy_enabled', v);
               }
@@ -199,8 +211,8 @@ export function RoleConfigPanel({
             label="Merlin Decoy Mode"
             description="One random good player appears evil to Merlin, creating uncertainty"
             emoji="🃏"
-            disabled={config.merlin_split_intel_enabled}
-            disabledReason="Cannot use with Split Intel Mode"
+            disabled={config.merlin_split_intel_enabled || config.oberon_split_intel_enabled}
+            disabledReason={config.oberon_split_intel_enabled ? "Cannot use with Oberon Split Intel Mode" : "Cannot use with Split Intel Mode"}
           />
 
           {/* Feature 011: Merlin Split Intel Mode */}
@@ -208,9 +220,14 @@ export function RoleConfigPanel({
             role="merlin_split_intel"
             enabled={config.merlin_split_intel_enabled || false}
             onChange={(v) => {
-              // T018: Mutual exclusivity - disable Decoy when enabling Split Intel
-              if (v && config.merlin_decoy_enabled) {
-                onChange({ ...config, merlin_split_intel_enabled: true, merlin_decoy_enabled: undefined });
+              // T018: Mutual exclusivity - disable Decoy and Oberon Split Intel when enabling Split Intel
+              if (v) {
+                onChange({
+                  ...config,
+                  merlin_split_intel_enabled: true,
+                  merlin_decoy_enabled: undefined,
+                  oberon_split_intel_enabled: undefined,
+                });
               } else {
                 handleToggle('merlin_split_intel_enabled', v);
               }
@@ -218,8 +235,46 @@ export function RoleConfigPanel({
             label="Merlin Split Intel Mode"
             description="Merlin sees two groups: certain evil players, and a mixed group with one evil and one good"
             emoji="🔀"
-            disabled={config.merlin_decoy_enabled}
-            disabledReason="Cannot use with Decoy Mode"
+            disabled={config.merlin_decoy_enabled || config.oberon_split_intel_enabled}
+            disabledReason={config.oberon_split_intel_enabled ? "Cannot use with Oberon Split Intel Mode" : "Cannot use with Decoy Mode"}
+          />
+
+          {/* Feature 018: Oberon Split Intel Mode */}
+          <RoleToggle
+            role="oberon_split_intel"
+            enabled={config.oberon_split_intel_enabled || false}
+            onChange={(v) => {
+              // Mutual exclusivity - disable Decoy and Split Intel when enabling Oberon Split Intel
+              if (v) {
+                onChange({
+                  ...config,
+                  oberon_split_intel_enabled: true,
+                  merlin_decoy_enabled: undefined,
+                  merlin_split_intel_enabled: undefined,
+                });
+              } else {
+                handleToggle('oberon_split_intel_enabled', v);
+              }
+            }}
+            label="Oberon Split Intel Mode"
+            description="Merlin sees Oberon mixed with a good player, while other evil (Morgana, Assassin) are shown as certain evil"
+            emoji="👤🔀"
+            disabled={
+              config.oberon !== 'standard' ||
+              config.merlin_decoy_enabled ||
+              config.merlin_split_intel_enabled
+            }
+            disabledReason={
+              config.oberon === 'chaos'
+                ? "Not available with Oberon (Chaos) - Oberon must be visible to Merlin"
+                : !config.oberon
+                ? "Requires Oberon (Standard) to be enabled"
+                : config.merlin_decoy_enabled
+                ? "Cannot use with Decoy Mode"
+                : config.merlin_split_intel_enabled
+                ? "Cannot use with Split Intel Mode"
+                : undefined
+            }
           />
 
           {/* T019: Warning for Mordred + Oberon Chaos with Split Intel - smooth transition */}

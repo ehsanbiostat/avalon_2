@@ -377,3 +377,56 @@ export async function getSplitIntelGroups(
     mixedGoodId: game.split_intel_mixed_good_id,
   };
 }
+
+// ============================================
+// FEATURE 018: OBERON SPLIT INTEL FUNCTIONS
+// ============================================
+
+/**
+ * Store the Oberon Split Intel groups for a game
+ * Oberon is always in the mixed group, so we only store:
+ * - certainEvilIds: Other visible evil (Morgana, Assassin)
+ * - mixedGoodId: The good player in mixed group with Oberon
+ *
+ * @param client - Supabase client
+ * @param gameId - Game identifier
+ * @param certainEvilIds - Array of player IDs in Certain Evil group (NOT Oberon)
+ * @param mixedGoodId - Good player ID in Mixed Intel group with Oberon
+ * @returns Updated game record
+ */
+export async function setOberonSplitIntelGroups(
+  client: SupabaseClient,
+  gameId: string,
+  certainEvilIds: string[],
+  mixedGoodId: string
+): Promise<Game> {
+  return updateGame(client, gameId, {
+    oberon_split_intel_certain_evil_ids: certainEvilIds,
+    oberon_split_intel_mixed_good_id: mixedGoodId,
+  });
+}
+
+/**
+ * Get the Oberon Split Intel groups for a game
+ * Returns null if oberon split intel mode is disabled or not yet configured
+ *
+ * @param client - Supabase client
+ * @param gameId - Game identifier
+ * @returns Oberon split intel groups or null
+ */
+export async function getOberonSplitIntelGroups(
+  client: SupabaseClient,
+  gameId: string
+): Promise<{
+  certainEvilIds: string[];
+  mixedGoodId: string;
+} | null> {
+  const game = await getGameById(client, gameId);
+  if (!game?.oberon_split_intel_mixed_good_id) {
+    return null;
+  }
+  return {
+    certainEvilIds: game.oberon_split_intel_certain_evil_ids || [],
+    mixedGoodId: game.oberon_split_intel_mixed_good_id,
+  };
+}

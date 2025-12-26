@@ -331,6 +331,7 @@ export function GameOver({
                         ${isCurrentPlayer ? 'ring-2 ring-avalon-gold' : ''}
                         ${player.was_decoy ? 'ring-1 ring-amber-400/50' : ''}
                         ${player.was_mixed_group ? 'ring-1 ring-cyan-400/50' : ''}
+                        ${player.was_mixed_group_with_oberon ? 'ring-1 ring-teal-400/50' : ''}
                       `}
                     >
                       <span className="text-xl">{roleDisplay.emoji}</span>
@@ -350,6 +351,12 @@ export function GameOver({
                               🔀
                             </span>
                           )}
+                          {/* Feature 018: Oberon Mixed Group indicator */}
+                          {player.was_mixed_group_with_oberon && (
+                            <span className="ml-1 text-teal-400" title="This player was mixed with Oberon in Merlin's view">
+                              👤🔀
+                            </span>
+                          )}
                         </div>
                         <div className={`text-xs ${roleDisplay.color} flex items-center gap-1`}>
                           {roleDisplay.label}
@@ -360,6 +367,10 @@ export function GameOver({
                           {/* Feature 011: Mixed Group label */}
                           {player.was_mixed_group && (
                             <span className="text-cyan-400 font-medium">(Mixed Group)</span>
+                          )}
+                          {/* Feature 018: Oberon Mixed Group label */}
+                          {player.was_mixed_group_with_oberon && (
+                            <span className="text-teal-400 font-medium">(Mixed with Oberon)</span>
                           )}
                         </div>
                       </div>

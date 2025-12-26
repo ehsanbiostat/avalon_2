@@ -186,6 +186,10 @@ export async function GET(request: Request, { params }: RouteParams) {
         game.split_intel_mixed_evil_id === pid || game.split_intel_mixed_good_id === pid
       ) ? true : undefined;
 
+      // Feature 018: Check if player was the good player in oberon split intel mixed group
+      const wasMixedGroupWithOberon = game.phase === 'game_over' &&
+        game.oberon_split_intel_mixed_good_id === pid ? true : undefined;
+
       return {
         id: pid,
         nickname: nicknameMap.get(pid) || 'Unknown',
@@ -201,6 +205,8 @@ export async function GET(request: Request, { params }: RouteParams) {
         was_decoy: game.phase === 'game_over' && game.merlin_decoy_player_id === pid ? true : undefined,
         // Feature 011: Split Intel mixed group indicator (only at game_over)
         was_mixed_group: wasMixedGroup,
+        // Feature 018: Oberon Split Intel mixed group indicator (only at game_over)
+        was_mixed_group_with_oberon: wasMixedGroupWithOberon,
       };
     });
 
