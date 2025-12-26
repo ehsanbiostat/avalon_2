@@ -10,7 +10,7 @@ import { useRoom } from '@/hooks/useRoom';
 import { usePlayer } from '@/hooks/usePlayer';
 import { useHeartbeat } from '@/hooks/useHeartbeat';
 import { getPlayerId } from '@/lib/utils/player-id';
-import type { SplitIntelVisibility } from '@/types/game';
+import type { SplitIntelVisibility, OberonSplitIntelVisibility } from '@/types/game';
 
 export default function RoomPage() {
   const params = useParams();
@@ -41,6 +41,8 @@ export default function RoomPage() {
     decoy_warning?: string;
     // Feature 011: Merlin Split Intel Mode
     split_intel?: SplitIntelVisibility;
+    // Feature 018: Oberon Split Intel Mode
+    oberon_split_intel?: OberonSplitIntelVisibility;
   } | null>(null);
   const [roleError, setRoleError] = useState<string | null>(null);
 
@@ -297,6 +299,7 @@ export default function RoomPage() {
             hasDecoy={roleData.has_decoy}
             decoyWarning={roleData.decoy_warning}
             splitIntel={roleData.split_intel}
+            oberonSplitIntel={roleData.oberon_split_intel}
           />
         )}
 

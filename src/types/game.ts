@@ -64,6 +64,9 @@ export interface Game {
   split_intel_certain_evil_ids: string[] | null;  // Array of guaranteed evil player IDs
   split_intel_mixed_evil_id: string | null;       // Evil player in mixed group
   split_intel_mixed_good_id: string | null;       // Good player in mixed group
+  // Feature 018: Oberon Split Intel Mode
+  oberon_split_intel_certain_evil_ids: string[] | null;  // Evil players in Certain group (excludes Oberon)
+  oberon_split_intel_mixed_good_id: string | null;       // Good player in Mixed group with Oberon
   created_at: string;
   updated_at: string;
   ended_at: string | null;
@@ -89,6 +92,9 @@ export interface GameInsert {
   split_intel_certain_evil_ids?: string[] | null;
   split_intel_mixed_evil_id?: string | null;
   split_intel_mixed_good_id?: string | null;
+  // Feature 018: Oberon Split Intel Mode
+  oberon_split_intel_certain_evil_ids?: string[] | null;
+  oberon_split_intel_mixed_good_id?: string | null;
   created_at?: string;
   updated_at?: string;
   ended_at?: string | null;
@@ -112,6 +118,9 @@ export interface GameUpdate {
   split_intel_certain_evil_ids?: string[] | null;
   split_intel_mixed_evil_id?: string | null;
   split_intel_mixed_good_id?: string | null;
+  // Feature 018: Oberon Split Intel Mode
+  oberon_split_intel_certain_evil_ids?: string[] | null;
+  oberon_split_intel_mixed_good_id?: string | null;
   ended_at?: string | null;
 }
 
@@ -274,6 +283,8 @@ export interface GamePlayer {
   was_decoy?: boolean;
   // Feature 011: Split Intel mixed group indicator (only shown at game_over)
   was_mixed_group?: boolean;
+  // Feature 018: Oberon Split Intel mixed group indicator (only shown at game_over)
+  was_mixed_group_with_oberon?: boolean;
 }
 
 /**
@@ -618,5 +629,42 @@ export interface SplitIntelVisibility {
 export interface SplitIntelViability {
   viable: boolean;
   visibleEvilCount: number;
+  reason?: string;
+}
+
+// ============================================
+// FEATURE 018: OBERON SPLIT INTEL TYPES
+// ============================================
+
+/**
+ * Oberon Split Intel group assignments (server-side)
+ * Oberon is ALWAYS in the mixed group
+ */
+export interface OberonSplitIntelGroups {
+  certainEvilIds: string[];   // Other visible evil players (Morgana, Assassin - NOT Oberon)
+  oberonId: string;           // Oberon's player ID (always in mixed group)
+  mixedGoodId: string;        // 1 good player in mixed group (not Merlin)
+}
+
+/**
+ * Oberon Split Intel visibility data for Merlin's role reveal
+ */
+export interface OberonSplitIntelVisibility {
+  enabled: true;
+  certainEvil: Array<{ id: string; name: string }>;  // Morgana, Assassin (NOT Oberon)
+  mixedIntel: Array<{ id: string; name: string }>;   // Oberon + 1 good (shuffled)
+  hiddenCount: number;  // Mordred count only (Oberon is visible in this mode)
+  certainLabel: string;  // "🎯 Certain Evil"
+  certainDescription: string;  // "These players are definitely evil"
+  mixedLabel: string;    // "❓ Mixed Intel"
+  mixedDescription: string;  // "One is evil (Oberon), one is good"
+  hiddenWarning?: string;  // "X evil player(s) hidden from you" (if applicable)
+}
+
+/**
+ * Oberon Split Intel prerequisite check result
+ */
+export interface OberonSplitIntelPrerequisite {
+  canUse: boolean;
   reason?: string;
 }

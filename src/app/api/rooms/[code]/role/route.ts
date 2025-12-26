@@ -17,12 +17,12 @@ import {
 } from '@/lib/supabase/roles';
 import { getGameByRoomId } from '@/lib/supabase/games';
 import { getRoleInfo } from '@/lib/domain/roles';
-import { countHiddenEvilFromMerlin, generateDecoyWarning, getSplitIntelVisibility, type RoleAssignment } from '@/lib/domain/visibility';
+import { countHiddenEvilFromMerlin, generateDecoyWarning, getSplitIntelVisibility, getOberonSplitIntelVisibility, type RoleAssignment } from '@/lib/domain/visibility';
 import { shuffleArray } from '@/lib/domain/decoy-selection';
 import { validateRoomCode } from '@/lib/domain/validation';
 import { errors, handleError } from '@/lib/utils/errors';
 import type { RoleConfig } from '@/types/role-config';
-import type { SplitIntelGroups, SplitIntelVisibility } from '@/types/game';
+import type { SplitIntelGroups, SplitIntelVisibility, OberonSplitIntelGroups, OberonSplitIntelVisibility } from '@/types/game';
 
 interface RouteParams {
   params: Promise<{ code: string }>;
@@ -103,6 +103,8 @@ export async function GET(request: Request, { params }: RouteParams) {
     let decoyWarning: string | undefined;
     // Feature 011: Merlin Split Intel fields
     let splitIntel: SplitIntelVisibility | undefined;
+    // Feature 018: Oberon Split Intel fields
+    let oberonSplitIntel: OberonSplitIntelVisibility | undefined;
 
     switch (playerRole.special_role) {
       // T064-T068: US8 - Merlin visibility with hidden count
@@ -111,8 +113,72 @@ export async function GET(request: Request, { params }: RouteParams) {
       case 'merlin': {
         hiddenEvilCount = countHiddenEvilFromMerlin(roleConfig);
 
+        // Feature 018: Handle Oberon Split Intel Mode (takes precedence)
+        if (roleConfig.oberon_split_intel_enabled) {
+          // Check for oberon split intel data - first from role_config (pre-game), then from game
+          let oberonSplitIntelGroups: OberonSplitIntelGroups | null = null;
+
+          // Try role_config first (works before game is created)
+          const rcData = roleConfig as Record<string, unknown>;
+          if (rcData._oberon_split_intel_oberon_id && rcData._oberon_split_intel_mixed_good_id) {
+            oberonSplitIntelGroups = {
+              certainEvilIds: (rcData._oberon_split_intel_certain_evil_ids as string[]) || [],
+              oberonId: rcData._oberon_split_intel_oberon_id as string,
+              mixedGoodId: rcData._oberon_split_intel_mixed_good_id as string,
+            };
+          } else {
+            // Fall back to game (for after game is created)
+            const game = await getGameByRoomId(supabase, room.id);
+            if (game?.oberon_split_intel_mixed_good_id) {
+              // Find Oberon's player ID from role assignments
+              const roleAssignmentsData = await getRoleAssignments(supabase, room.id);
+              const oberon = roleAssignmentsData.find(a => a.special_role === 'oberon_standard');
+              if (oberon) {
+                oberonSplitIntelGroups = {
+                  certainEvilIds: game.oberon_split_intel_certain_evil_ids || [],
+                  oberonId: oberon.player_id,
+                  mixedGoodId: game.oberon_split_intel_mixed_good_id,
+                };
+              }
+            }
+          }
+
+          if (oberonSplitIntelGroups) {
+            // Get all role assignments for player names
+            const roleAssignmentsData = await getRoleAssignments(supabase, room.id);
+
+            // Get player nicknames
+            const { data: playerData } = await supabase
+              .from('players')
+              .select('id, nickname')
+              .in('id', roleAssignmentsData.map(a => a.player_id));
+
+            const nicknameMap = new Map(
+              (playerData || []).map((p: { id: string; nickname: string }) => [p.id, p.nickname])
+            );
+
+            // Convert to RoleAssignment format
+            const visibilityAssignments: RoleAssignment[] = roleAssignmentsData.map(a => ({
+              playerId: a.player_id,
+              playerName: nicknameMap.get(a.player_id) || 'Unknown',
+              role: a.role as 'good' | 'evil',
+              specialRole: a.special_role,
+            }));
+
+            // Get oberon split intel visibility
+            oberonSplitIntel = getOberonSplitIntelVisibility(visibilityAssignments, roleConfig, oberonSplitIntelGroups);
+
+            // Set known players to empty (oberon split intel uses separate groups)
+            knownPlayers = [];
+            knownPlayersLabel = '';
+            abilityNote = 'You see evil players divided: coordinated evil are certain, but Oberon is mixed with a good player.';
+
+            // Update hidden count for Oberon Split Intel (only Mordred is hidden)
+            hiddenEvilCount = roleConfig.mordred ? 1 : 0;
+          }
+        }
         // Feature 011: Handle Merlin Split Intel Mode (takes precedence over standard visibility)
-        if (roleConfig.merlin_split_intel_enabled) {
+        else if (roleConfig.merlin_split_intel_enabled) {
           // Check for split intel data - first from role_config (pre-game), then from game
           let splitIntelGroups: SplitIntelGroups | null = null;
 
@@ -175,7 +241,7 @@ export async function GET(request: Request, { params }: RouteParams) {
           // The decoy ID is stored in role_config during distribution (before game exists)
           // and copied to the game when the game starts
           let decoyPlayerId: string | null = null;
-          
+
           // Try role_config first (works before game is created)
           if ((roleConfig as Record<string, unknown>)._merlin_decoy_player_id) {
             decoyPlayerId = (roleConfig as Record<string, unknown>)._merlin_decoy_player_id as string;
@@ -186,7 +252,7 @@ export async function GET(request: Request, { params }: RouteParams) {
               decoyPlayerId = game.merlin_decoy_player_id;
             }
           }
-          
+
           if (decoyPlayerId) {
             // Get decoy player's nickname
             const { data: decoyPlayer } = await supabase
@@ -317,6 +383,8 @@ export async function GET(request: Request, { params }: RouteParams) {
         decoy_warning: decoyWarning,
         // Feature 011: Merlin Split Intel fields
         split_intel: splitIntel,
+        // Feature 018: Oberon Split Intel fields
+        oberon_split_intel: oberonSplitIntel,
       },
     });
   } catch (error) {

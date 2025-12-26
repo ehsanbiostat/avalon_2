@@ -13,6 +13,7 @@ import { distributeRoles, getRoleRatio } from '@/lib/domain/roles';
 import { computeRolesInPlay, designateLadyOfLakeHolder } from '@/lib/domain/role-config';
 import { selectDecoyPlayer } from '@/lib/domain/decoy-selection';
 import { canUseSplitIntelMode, distributeSplitIntelGroups } from '@/lib/domain/split-intel';
+import { canUseOberonSplitIntelMode, distributeOberonSplitIntelGroups } from '@/lib/domain/oberon-split-intel';
 import { validateRoomCode } from '@/lib/domain/validation';
 import { errors, handleError } from '@/lib/utils/errors';
 import type { RoleConfig } from '@/types/role-config';
@@ -213,6 +214,61 @@ export async function POST(request: Request, { params }: RouteParams) {
           .update({ role_config: updatedRoleConfig })
           .eq('id', room.id);
       }
+    }
+
+    // Feature 018: Handle Oberon Split Intel selection during distribution
+    // Oberon is ALWAYS in the mixed group
+    if (roleConfig.oberon_split_intel_enabled) {
+      // Check prerequisites
+      const prerequisite = canUseOberonSplitIntelMode(roleConfig);
+      if (!prerequisite.canUse) {
+        return NextResponse.json(
+          {
+            error: {
+              code: 'OBERON_SPLIT_INTEL_BLOCKED',
+              message: prerequisite.reason || 'Cannot use Oberon Split Intel Mode with current role configuration.',
+            },
+          },
+          { status: 400 }
+        );
+      }
+
+      // Get role assignments for oberon split intel
+      const roleAssignmentsData = await getRoleAssignments(supabase, room.id);
+
+      // Get player nicknames for the role assignments
+      const { data: playerData } = await supabase
+        .from('players')
+        .select('id, nickname')
+        .in('id', roleAssignmentsData.map(a => a.player_id));
+
+      const nicknameMap = new Map(
+        (playerData || []).map((p: { id: string; nickname: string }) => [p.id, p.nickname])
+      );
+
+      // Convert to RoleAssignment format for oberon split intel
+      const visibilityAssignments: RoleAssignment[] = roleAssignmentsData.map(a => ({
+        playerId: a.player_id,
+        playerName: nicknameMap.get(a.player_id) || 'Unknown',
+        role: a.role as 'good' | 'evil',
+        specialRole: a.special_role,
+      }));
+
+      // Distribute oberon split intel groups (Oberon always in mixed)
+      const oberonSplitIntelGroups = distributeOberonSplitIntelGroups(visibilityAssignments, roleConfig);
+
+      // Store oberon split intel data in role_config for the /role API to use
+      const updatedRoleConfig = {
+        ...room.role_config,
+        _oberon_split_intel_certain_evil_ids: oberonSplitIntelGroups.certainEvilIds,
+        _oberon_split_intel_oberon_id: oberonSplitIntelGroups.oberonId,
+        _oberon_split_intel_mixed_good_id: oberonSplitIntelGroups.mixedGoodId,
+      };
+
+      await supabase
+        .from('rooms')
+        .update({ role_config: updatedRoleConfig })
+        .eq('id', room.id);
     }
 
     // Update room status

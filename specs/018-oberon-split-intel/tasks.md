@@ -19,12 +19,12 @@
 
 **Purpose**: Schema migration and type definitions that ALL user stories depend on
 
-- [ ] T001 Create migration file `supabase/migrations/018_oberon_split_intel.sql` with new game columns
+- [x] T001 Create migration file `supabase/migrations/018_oberon_split_intel.sql` with new game columns
 - [ ] T002 Run migration on Supabase to add `oberon_split_intel_certain_evil_ids` and `oberon_split_intel_mixed_good_id` columns
-- [ ] T003 [P] Add `oberon_split_intel_enabled` field to RoleConfig interface in `src/types/role-config.ts`
-- [ ] T004 [P] Add oberon split intel fields to Game type in `src/types/game.ts`
-- [ ] T005 [P] Update `isValidRoleConfig` type guard in `src/types/role-config.ts` to include new field
-- [ ] T006 Update database types in `src/types/database.ts` if needed
+- [x] T003 [P] Add `oberon_split_intel_enabled` field to RoleConfig interface in `src/types/role-config.ts`
+- [x] T004 [P] Add oberon split intel fields to Game type in `src/types/game.ts`
+- [x] T005 [P] Update `isValidRoleConfig` type guard in `src/types/role-config.ts` to include new field
+- [x] T006 Update database types in `src/types/database.ts` if needed
 
 **Checkpoint**: Database accepts new columns, TypeScript compiles
 
@@ -36,13 +36,13 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T007 Create `src/lib/domain/oberon-split-intel.ts` with OberonSplitIntelGroups interface
-- [ ] T008 Implement `canUseOberonSplitIntelMode()` in `src/lib/domain/oberon-split-intel.ts`
-- [ ] T009 Implement `distributeOberonSplitIntelGroups()` in `src/lib/domain/oberon-split-intel.ts`
-- [ ] T010 Add `getOberonSplitIntelVisibility()` function to `src/lib/domain/visibility.ts`
-- [ ] T011 Update `validateRoleConfig()` in `src/lib/domain/role-config.ts` for triple mutual exclusivity
-- [ ] T012 Add prerequisite validation (oberon === 'standard') to `src/lib/domain/role-config.ts`
-- [ ] T013 [P] Update `src/lib/supabase/games.ts` to include oberon split intel fields in queries
+- [x] T007 Create `src/lib/domain/oberon-split-intel.ts` with OberonSplitIntelGroups interface
+- [x] T008 Implement `canUseOberonSplitIntelMode()` in `src/lib/domain/oberon-split-intel.ts`
+- [x] T009 Implement `distributeOberonSplitIntelGroups()` in `src/lib/domain/oberon-split-intel.ts`
+- [x] T010 Add `getOberonSplitIntelVisibility()` function to `src/lib/domain/visibility.ts`
+- [x] T011 Update `validateRoleConfig()` in `src/lib/domain/role-config.ts` for triple mutual exclusivity
+- [x] T012 Add prerequisite validation (oberon === 'standard') to `src/lib/domain/role-config.ts`
+- [x] T013 [P] Update `src/lib/supabase/games.ts` to include oberon split intel fields in queries
 
 **Checkpoint**: Domain logic complete - user story implementation can now begin
 
@@ -56,13 +56,13 @@
 
 ### Implementation for User Story 1
 
-- [ ] T014 [US1] Add "Oberon Split Intel Mode" toggle to `src/components/RoleConfigPanel.tsx`
-- [ ] T015 [US1] Implement disabled state with tooltip when Oberon Standard not enabled in `src/components/RoleConfigPanel.tsx`
-- [ ] T016 [US1] Implement disabled state with tooltip when Oberon Chaos is selected in `src/components/RoleConfigPanel.tsx`
-- [ ] T017 [US1] Implement triple mutual exclusivity UI logic (disable other modes when this is on) in `src/components/RoleConfigPanel.tsx`
-- [ ] T018 [US1] Implement auto-disable when Oberon Standard is removed in `src/components/RoleConfigPanel.tsx`
-- [ ] T019 [US1] Add "👤🔀 Oberon Split Intel" indicator to `src/components/RolesInPlay.tsx`
-- [ ] T020 [US1] Add description tooltip: "Merlin sees Oberon mixed with a good player" in `src/components/RoleConfigPanel.tsx`
+- [x] T014 [US1] Add "Oberon Split Intel Mode" toggle to `src/components/RoleConfigPanel.tsx`
+- [x] T015 [US1] Implement disabled state with tooltip when Oberon Standard not enabled in `src/components/RoleConfigPanel.tsx`
+- [x] T016 [US1] Implement disabled state with tooltip when Oberon Chaos is selected in `src/components/RoleConfigPanel.tsx`
+- [x] T017 [US1] Implement triple mutual exclusivity UI logic (disable other modes when this is on) in `src/components/RoleConfigPanel.tsx`
+- [x] T018 [US1] Implement auto-disable when Oberon Standard is removed in `src/components/RoleConfigPanel.tsx`
+- [x] T019 [US1] Add "👤🔀 Oberon Split Intel" indicator to `src/components/RolesInPlay.tsx`
+- [x] T020 [US1] Add description tooltip: "Merlin sees Oberon mixed with a good player" in `src/components/RoleConfigPanel.tsx`
 
 **Checkpoint**: Room manager can enable/disable Oberon Split Intel Mode with proper validation
 
@@ -76,15 +76,15 @@
 
 ### Implementation for User Story 2
 
-- [ ] T021 [US2] Update `POST /api/rooms/[code]/distribute/route.ts` to call `distributeOberonSplitIntelGroups()` when enabled
-- [ ] T022 [US2] Update `POST /api/rooms/[code]/distribute/route.ts` to store group IDs in games table
-- [ ] T023 [US2] Update `GET /api/rooms/[code]/role/route.ts` to return `oberon_split_intel` object for Merlin
-- [ ] T024 [US2] Update `src/components/RoleRevealModal.tsx` to detect and handle `oberon_split_intel` data
-- [ ] T025 [US2] Reuse two-group display UI from Merlin Split Intel (011) in `src/components/RoleRevealModal.tsx`
-- [ ] T026 [US2] Display "🎯 Certain Evil" group with label "These players are definitely evil" in `src/components/RoleRevealModal.tsx`
-- [ ] T027 [US2] Display "❓ Mixed Intel" group with label "One is evil (Oberon), one is good" in `src/components/RoleRevealModal.tsx`
-- [ ] T028 [US2] Handle edge case: empty Certain group when only Mordred + Oberon in `src/components/RoleRevealModal.tsx`
-- [ ] T029 [US2] Verify Mordred is excluded from both groups when present (test with Mordred + Oberon + Morgana config)
+- [x] T021 [US2] Update `POST /api/rooms/[code]/distribute/route.ts` to call `distributeOberonSplitIntelGroups()` when enabled
+- [x] T022 [US2] Update `POST /api/rooms/[code]/distribute/route.ts` to store group IDs in games table
+- [x] T023 [US2] Update `GET /api/rooms/[code]/role/route.ts` to return `oberon_split_intel` object for Merlin
+- [x] T024 [US2] Update `src/components/RoleRevealModal.tsx` to detect and handle `oberon_split_intel` data
+- [x] T025 [US2] Reuse two-group display UI from Merlin Split Intel (011) in `src/components/RoleRevealModal.tsx`
+- [x] T026 [US2] Display "🎯 Certain Evil" group with label "These players are definitely evil" in `src/components/RoleRevealModal.tsx`
+- [x] T027 [US2] Display "❓ Mixed Intel" group with label "One is evil (Oberon), one is good" in `src/components/RoleRevealModal.tsx`
+- [x] T028 [US2] Handle edge case: empty Certain group when only Mordred + Oberon in `src/components/RoleRevealModal.tsx`
+- [x] T029 [US2] Verify Mordred is excluded from both groups when present (test with Mordred + Oberon + Morgana config)
 
 **Checkpoint**: Merlin sees correctly formatted two-group display with Oberon always in mixed
 
@@ -98,11 +98,11 @@
 
 ### Implementation for User Story 3
 
-- [ ] T030 [US3] Update `GET /api/games/[gameId]/route.ts` to include oberon split intel fields in response
-- [ ] T031 [US3] Add `was_mixed_group_with_oberon` flag to player list in game response
-- [ ] T032 [US3] Update `src/components/game/GameOver.tsx` to show "👤🔀 Mixed with Oberon" indicator
-- [ ] T033 [US3] Only show indicator when `oberon_split_intel_enabled` was true in `src/components/game/GameOver.tsx`
-- [ ] T034 [US3] Verify good player sees normal role reveal with no mixed group indication (no changes needed - just verify)
+- [x] T030 [US3] Update `GET /api/games/[gameId]/route.ts` to include oberon split intel fields in response
+- [x] T031 [US3] Add `was_mixed_group_with_oberon` flag to player list in game response
+- [x] T032 [US3] Update `src/components/game/GameOver.tsx` to show "👤🔀 Mixed with Oberon" indicator
+- [x] T033 [US3] Only show indicator when `oberon_split_intel_enabled` was true in `src/components/game/GameOver.tsx`
+- [x] T034 [US3] Verify good player sees normal role reveal with no mixed group indication (no changes needed - just verify)
 
 **Checkpoint**: Game end reveals mixed group composition correctly
 
@@ -116,8 +116,8 @@
 
 ### Implementation for User Story 4
 
-- [ ] T035 [US4] Verify Oberon role reveal shows standard message (no mixed group info) - no code changes needed
-- [ ] T036 [US4] Verify no client-side hints about mixed group status for Oberon player
+- [x] T035 [US4] Verify Oberon role reveal shows standard message (no mixed group info) - no code changes needed
+- [x] T036 [US4] Verify no client-side hints about mixed group status for Oberon player
 
 **Checkpoint**: Oberon experience unchanged; no information leakage
 
@@ -134,6 +134,8 @@
 - [ ] T041 Mobile responsiveness check for RoleRevealModal two-group display
 - [ ] T042 Run quickstart.md test scenarios manually
 - [ ] T043 Verify all acceptance scenarios from spec.md
+
+**Note**: Unit tests (T037-T039) are optional per plan.md. Core implementation is complete and build passes.
 
 ---
 

@@ -86,10 +86,10 @@ export function RolesInPlay({
       </div>
 
       {/* Game Mode Indicators */}
-      {(hasOberon || roleConfig?.merlin_decoy_enabled || roleConfig?.merlin_split_intel_enabled) && (
+      {(hasOberon || roleConfig?.merlin_decoy_enabled || roleConfig?.merlin_split_intel_enabled || roleConfig?.oberon_split_intel_enabled) && (
         <div className="mt-3 pt-3 border-t border-avalon-dark-border space-y-2">
-          {/* T035: Oberon mode indicator */}
-          {hasOberon && oberonMode && (
+          {/* T035: Oberon mode indicator (only show if NOT using Oberon Split Intel) */}
+          {hasOberon && oberonMode && !roleConfig?.oberon_split_intel_enabled && (
             <div className="flex items-center gap-2 text-sm font-medium">
               {oberonMode === 'chaos' ? (
                 <>
@@ -121,6 +121,16 @@ export function RolesInPlay({
               <span className="text-cyan-400">🔀</span>
               <span className="text-cyan-300 font-semibold">
                 Split Intel Mode: Merlin sees two groups with different certainty!
+              </span>
+            </div>
+          )}
+
+          {/* Feature 018: Oberon Split Intel indicator */}
+          {roleConfig?.oberon_split_intel_enabled && (
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <span className="text-teal-400">👤🔀</span>
+              <span className="text-teal-300 font-semibold">
+                Oberon Split Intel: Merlin sees Oberon mixed with a good player!
               </span>
             </div>
           )}

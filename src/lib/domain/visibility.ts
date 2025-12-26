@@ -17,9 +17,10 @@
 
 import type { SpecialRole } from '@/types/database';
 import type { RoleConfig } from '@/types/role-config';
-import type { SplitIntelGroups, SplitIntelVisibility } from '@/types/game';
+import type { SplitIntelGroups, SplitIntelVisibility, OberonSplitIntelGroups, OberonSplitIntelVisibility } from '@/types/game';
 import { shuffleArray } from './decoy-selection';
 import { countHiddenEvil } from './split-intel';
+import { countHiddenEvilForOberonSplitIntel } from './oberon-split-intel';
 
 /**
  * Role assignment for visibility calculations
@@ -202,6 +203,56 @@ export function getSplitIntelVisibility(
     certainDescription: 'These players are definitely evil',
     mixedLabel: '❓ Mixed Intel',
     mixedDescription: "One is evil, one is good - you don't know which",
+    hiddenWarning,
+  };
+}
+
+/**
+ * T010: Get Oberon Split Intel visibility for Merlin
+ * Feature 018: Returns two-group visibility structure with Oberon always in mixed
+ */
+export function getOberonSplitIntelVisibility(
+  allAssignments: RoleAssignment[],
+  roleConfig: RoleConfig,
+  oberonSplitIntelGroups: OberonSplitIntelGroups
+): OberonSplitIntelVisibility {
+  const hiddenCount = countHiddenEvilForOberonSplitIntel(roleConfig);
+
+  // Build Certain Evil group with names (Morgana, Assassin - NOT Oberon)
+  const certainEvil = oberonSplitIntelGroups.certainEvilIds.map((id) => {
+    const player = allAssignments.find((a) => a.playerId === id);
+    return { id, name: player?.playerName || 'Unknown' };
+  });
+
+  // Build Mixed Intel group (Oberon + 1 good, shuffled to hide which is which)
+  const mixedPlayers = [
+    oberonSplitIntelGroups.oberonId,
+    oberonSplitIntelGroups.mixedGoodId,
+  ].map((id) => {
+    const player = allAssignments.find((a) => a.playerId === id);
+    return { id, name: player?.playerName || 'Unknown' };
+  });
+  // Shuffle to hide order (Oberon vs good)
+  const mixedIntel = shuffleArray([...mixedPlayers]);
+
+  // Generate hidden warning if applicable (only Mordred can be hidden)
+  let hiddenWarning: string | undefined;
+  if (hiddenCount === 1) {
+    hiddenWarning = '1 evil player is hidden from you';
+  } else if (hiddenCount >= 2) {
+    // This shouldn't happen with Oberon Split Intel (no Oberon Chaos)
+    hiddenWarning = `${hiddenCount} evil players are hidden from you`;
+  }
+
+  return {
+    enabled: true,
+    certainEvil,
+    mixedIntel,
+    hiddenCount,
+    certainLabel: '🎯 Certain Evil',
+    certainDescription: 'These players are definitely evil',
+    mixedLabel: '❓ Mixed Intel',
+    mixedDescription: 'One is evil (Oberon), one is good',
     hiddenWarning,
   };
 }

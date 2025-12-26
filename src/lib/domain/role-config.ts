@@ -39,9 +39,24 @@ export function validateRoleConfig(
     return { valid: false, errors, warnings };
   }
 
-  // Feature 011: Check mutual exclusivity of Merlin modes
-  if (config.merlin_decoy_enabled && config.merlin_split_intel_enabled) {
-    errors.push('Cannot enable both Merlin Decoy Mode and Split Intel Mode. Choose one.');
+  // Feature 011 + 018: Check triple mutual exclusivity of Merlin intel modes
+  const intelModes = [
+    config.merlin_decoy_enabled,
+    config.merlin_split_intel_enabled,
+    config.oberon_split_intel_enabled,
+  ].filter(Boolean).length;
+
+  if (intelModes > 1) {
+    errors.push('Only one intel mode can be active: Merlin Decoy, Split Intel, or Oberon Split Intel. Choose one.');
+  }
+
+  // Feature 018: Check Oberon Split Intel prerequisites
+  if (config.oberon_split_intel_enabled) {
+    if (!config.oberon) {
+      errors.push('Oberon Split Intel Mode requires Oberon (Standard) to be enabled.');
+    } else if (config.oberon === 'chaos') {
+      errors.push('Oberon Split Intel Mode is not available with Oberon (Chaos) - Oberon must be visible to Merlin.');
+    }
   }
 
   // Count special roles by team
@@ -233,7 +248,8 @@ export function isDefaultConfig(config: RoleConfig): boolean {
     !config.oberon &&
     !config.ladyOfLake &&
     !config.merlin_decoy_enabled &&
-    !config.merlin_split_intel_enabled
+    !config.merlin_split_intel_enabled &&
+    !config.oberon_split_intel_enabled
   );
 }
 
