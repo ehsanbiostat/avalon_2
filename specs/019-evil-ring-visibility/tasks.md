@@ -19,11 +19,11 @@
 
 **Purpose**: Database schema and type definitions
 
-- [ ] T001 Create database migration for evil_ring_assignments column in `supabase/migrations/019_evil_ring_visibility.sql`
-- [ ] T002 [P] Add `evil_ring_visibility_enabled` field to RoleConfig interface in `src/types/role-config.ts`
-- [ ] T003 [P] Add EvilRingVisibility types and interfaces to `src/types/game.ts`
-- [ ] T004 [P] Update DEFAULT_ROLE_CONFIG with evil_ring_visibility_enabled: false in `src/types/role-config.ts`
-- [ ] T005 [P] Add type guard isValidRoleConfig check for evil_ring_visibility_enabled in `src/types/role-config.ts`
+- [x] T001 Create database migration for evil_ring_assignments column in `supabase/migrations/019_evil_ring_visibility.sql`
+- [x] T002 [P] Add `evil_ring_visibility_enabled` field to RoleConfig interface in `src/types/role-config.ts`
+- [x] T003 [P] Add EvilRingVisibility types and interfaces to `src/types/game.ts`
+- [x] T004 [P] Update DEFAULT_ROLE_CONFIG with evil_ring_visibility_enabled: false in `src/types/role-config.ts`
+- [x] T005 [P] Add type guard isValidRoleConfig check for evil_ring_visibility_enabled in `src/types/role-config.ts`
 
 ---
 
@@ -33,13 +33,13 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T006 Create `src/lib/domain/evil-ring-visibility.ts` with exports placeholder
-- [ ] T007 Implement `canEnableEvilRingVisibility(playerCount, oberon)` function in `src/lib/domain/evil-ring-visibility.ts`
-- [ ] T008 Implement `calculateNonOberonEvilCount(playerCount, oberon)` helper in `src/lib/domain/evil-ring-visibility.ts`
-- [ ] T009 Implement `formEvilRing(evilPlayerIds)` ring formation algorithm in `src/lib/domain/evil-ring-visibility.ts`
-- [ ] T010 Implement `getKnownTeammate(playerId, ringAssignments)` lookup function in `src/lib/domain/evil-ring-visibility.ts`
-- [ ] T011 Implement `calculateHiddenCount(ringSize, hasOberon)` counter in `src/lib/domain/evil-ring-visibility.ts`
-- [ ] T012 Add Game type fields for evil_ring_assignments in `src/lib/supabase/games.ts`
+- [x] T006 Create `src/lib/domain/evil-ring-visibility.ts` with exports placeholder
+- [x] T007 Implement `canEnableEvilRingVisibility(playerCount, oberon)` function in `src/lib/domain/evil-ring-visibility.ts`
+- [x] T008 Implement `calculateNonOberonEvilCount(playerCount, oberon)` helper in `src/lib/domain/evil-ring-visibility.ts`
+- [x] T009 Implement `formEvilRing(evilPlayerIds)` ring formation algorithm in `src/lib/domain/evil-ring-visibility.ts`
+- [x] T010 Implement `getKnownTeammate(playerId, ringAssignments)` lookup function in `src/lib/domain/evil-ring-visibility.ts`
+- [x] T011 Implement `calculateHiddenCount(ringSize, hasOberon)` counter in `src/lib/domain/evil-ring-visibility.ts`
+- [x] T012 Add Game type fields for evil_ring_assignments in `src/lib/supabase/games.ts`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
@@ -53,13 +53,13 @@
 
 ### Implementation for User Story 1
 
-- [ ] T013 [US1] Add prerequisite validation in `src/lib/domain/role-config.ts` - check 3+ non-Oberon evil
-- [ ] T014 [US1] Add auto-disable logic when Oberon enables and invalidates ring mode in `src/lib/domain/role-config.ts`
-- [ ] T015 [US1] Add Evil Ring Visibility toggle to `src/components/RoleConfigPanel.tsx` with disabled state logic and config summary display (FR-001, FR-004)
-- [ ] T016 [US1] Add tooltip for disabled state explaining prerequisite in `src/components/RoleConfigPanel.tsx`
-- [ ] T017 [US1] Add auto-disable notification when Oberon/player count changes in `src/components/RoleConfigPanel.tsx`
-- [ ] T018 [US1] Add Evil Ring Visibility indicator to `src/components/RolesInPlay.tsx`
-- [ ] T019 [US1] Add toggle description: "Evil players only know one teammate each (chain pattern)" in `src/components/RoleConfigPanel.tsx`
+- [x] T013 [US1] Add prerequisite validation in `src/lib/domain/role-config.ts` - check 3+ non-Oberon evil
+- [x] T014 [US1] Add auto-disable logic when Oberon enables and invalidates ring mode in `src/lib/domain/role-config.ts`
+- [x] T015 [US1] Add Evil Ring Visibility toggle to `src/components/RoleConfigPanel.tsx` with disabled state logic and config summary display (FR-001, FR-004)
+- [x] T016 [US1] Add tooltip for disabled state explaining prerequisite in `src/components/RoleConfigPanel.tsx`
+- [x] T017 [US1] Add auto-disable notification when Oberon/player count changes in `src/components/RoleConfigPanel.tsx`
+- [x] T018 [US1] Add Evil Ring Visibility indicator to `src/components/RolesInPlay.tsx`
+- [x] T019 [US1] Add toggle description: "Evil players only know one teammate each (chain pattern)" in `src/components/RoleConfigPanel.tsx`
 
 **Checkpoint**: Room manager can configure Evil Ring Visibility Mode with all prerequisite validations
 
@@ -73,14 +73,14 @@
 
 ### Implementation for User Story 2
 
-- [ ] T020 [US2] Implement `getEvilRingVisibility()` in `src/lib/domain/visibility.ts` that returns ring visibility for evil player
-- [ ] T021 [US2] Add ring formation during role distribution in `src/app/api/rooms/[code]/distribute/route.ts`
-- [ ] T022 [US2] Store evil_ring_assignments in database during distribution in `src/app/api/rooms/[code]/distribute/route.ts`
-- [ ] T023 [US2] Return ring visibility data in `/api/rooms/[code]/role` endpoint in `src/app/api/rooms/[code]/role/route.ts`
-- [ ] T024 [US2] Add ring visibility display section to `src/components/RoleRevealModal.tsx` for evil players
-- [ ] T025 [US2] Display known teammate as "Name is Evil" (not role) in `src/components/RoleRevealModal.tsx`
-- [ ] T026 [US2] Display explanation message: "Ring Visibility Mode: You only know one teammate." in `src/components/RoleRevealModal.tsx`
-- [ ] T027 [US2] Display hidden count: "X other evil player(s) are hidden from you" in `src/components/RoleRevealModal.tsx`
+- [x] T020 [US2] Implement `getEvilRingVisibility()` in `src/lib/domain/visibility.ts` that returns ring visibility for evil player
+- [x] T021 [US2] Add ring formation during role distribution in `src/app/api/rooms/[code]/distribute/route.ts`
+- [x] T022 [US2] Store evil_ring_assignments in database during distribution in `src/app/api/rooms/[code]/distribute/route.ts`
+- [x] T023 [US2] Return ring visibility data in `/api/rooms/[code]/role` endpoint in `src/app/api/rooms/[code]/role/route.ts`
+- [x] T024 [US2] Add ring visibility display section to `src/components/RoleRevealModal.tsx` for evil players
+- [x] T025 [US2] Display known teammate as "Name is Evil" (not role) in `src/components/RoleRevealModal.tsx`
+- [x] T026 [US2] Display explanation message: "Ring Visibility Mode: You only know one teammate." in `src/components/RoleRevealModal.tsx`
+- [x] T027 [US2] Display hidden count: "X other evil player(s) are hidden from you" in `src/components/RoleRevealModal.tsx`
 
 **Checkpoint**: Evil players see correct ring visibility in role reveal
 
@@ -94,10 +94,10 @@
 
 ### Implementation for User Story 3
 
-- [ ] T028 [US3] Filter out Oberon (standard and chaos) from ring formation in `src/lib/domain/evil-ring-visibility.ts`
-- [ ] T029 [US3] Ensure Oberon excluded from ring in distribute route in `src/app/api/rooms/[code]/distribute/route.ts`
-- [ ] T030 [US3] Include Oberon in hidden count for ring members in `src/lib/domain/evil-ring-visibility.ts`
-- [ ] T031 [US3] Verify Oberon visibility unchanged (sees nothing) in `src/lib/domain/visibility.ts`
+- [x] T028 [US3] Filter out Oberon (standard and chaos) from ring formation in `src/lib/domain/evil-ring-visibility.ts`
+- [x] T029 [US3] Ensure Oberon excluded from ring in distribute route in `src/app/api/rooms/[code]/distribute/route.ts`
+- [x] T030 [US3] Include Oberon in hidden count for ring members in `src/lib/domain/evil-ring-visibility.ts`
+- [x] T031 [US3] Verify Oberon visibility unchanged (sees nothing) in `src/lib/domain/visibility.ts`
 
 **Checkpoint**: Oberon behavior is unchanged, properly excluded from ring
 
@@ -111,8 +111,8 @@
 
 ### Implementation for User Story 4
 
-- [ ] T032 [US4] Verify ring assignments loaded from database (not regenerated) in `src/app/api/rooms/[code]/role/route.ts`
-- [ ] T033 [US4] Ensure game end reveals all roles normally (not just ring structure) in `src/components/game/GameOver.tsx`
+- [x] T032 [US4] Verify ring assignments loaded from database (not regenerated) in `src/app/api/rooms/[code]/role/route.ts`
+- [x] T033 [US4] Ensure game end reveals all roles normally (not just ring structure) in `src/components/game/GameOver.tsx`
 
 **Checkpoint**: Ring assignments persist correctly throughout game
 
@@ -126,8 +126,8 @@
 
 ### Implementation for User Story 5
 
-- [ ] T034 [US5] Verify watcher game state excludes ring information in `src/lib/domain/watcher-game-state.ts`
-- [ ] T035 [US5] Ensure game end shows all roles to watchers normally in `src/components/game/WatcherGameBoard.tsx`
+- [x] T034 [US5] Verify watcher game state excludes ring information in `src/lib/domain/watcher-game-state.ts`
+- [x] T035 [US5] Ensure game end shows all roles to watchers normally in `src/components/game/WatcherGameBoard.tsx`
 
 **Checkpoint**: Watcher experience properly maintains neutrality
 
@@ -137,13 +137,13 @@
 
 **Purpose**: Unit tests and validation
 
-- [ ] T036 [P] Create unit test file `tests/unit/domain/evil-ring-visibility.test.ts`
-- [ ] T037 [P] Test `canEnableEvilRingVisibility()` with various player counts in `tests/unit/domain/evil-ring-visibility.test.ts`
-- [ ] T038 [P] Test `formEvilRing()` creates valid circular chain in `tests/unit/domain/evil-ring-visibility.test.ts`
-- [ ] T039 [P] Test ring excludes Oberon correctly in `tests/unit/domain/evil-ring-visibility.test.ts`
-- [ ] T040 [P] Test `calculateHiddenCount()` includes Oberon in `tests/unit/domain/evil-ring-visibility.test.ts`
-- [ ] T041 Run quickstart.md validation scenarios
-- [ ] T042 Verify mode compatibility: (1) Ring + Merlin Split Intel @ 8 players, (2) Ring + Oberon Split Intel @ 10 players, (3) Ring + Decoy @ 7 players
+- [x] T036 [P] Create unit test file `tests/unit/domain/evil-ring-visibility.test.ts`
+- [x] T037 [P] Test `canEnableEvilRingVisibility()` with various player counts in `tests/unit/domain/evil-ring-visibility.test.ts`
+- [x] T038 [P] Test `formEvilRing()` creates valid circular chain in `tests/unit/domain/evil-ring-visibility.test.ts`
+- [x] T039 [P] Test ring excludes Oberon correctly in `tests/unit/domain/evil-ring-visibility.test.ts`
+- [x] T040 [P] Test `calculateHiddenCount()` includes Oberon in `tests/unit/domain/evil-ring-visibility.test.ts`
+- [x] T041 Run quickstart.md validation scenarios
+- [x] T042 Verify mode compatibility: (1) Ring + Merlin Split Intel @ 8 players, (2) Ring + Oberon Split Intel @ 10 players, (3) Ring + Decoy @ 7 players
 
 ---
 

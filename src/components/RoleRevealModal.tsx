@@ -2,7 +2,7 @@
 
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
-import type { SplitIntelVisibility, OberonSplitIntelVisibility } from '@/types/game';
+import type { SplitIntelVisibility, OberonSplitIntelVisibility, EvilRingVisibility } from '@/types/game';
 
 // Special role type (Phase 2: includes oberon variants)
 type SpecialRole =
@@ -36,6 +36,8 @@ interface RoleRevealModalProps {
   splitIntel?: SplitIntelVisibility;
   // Feature 018: Oberon Split Intel Mode
   oberonSplitIntel?: OberonSplitIntelVisibility;
+  // Feature 019: Evil Ring Visibility Mode
+  evilRingVisibility?: EvilRingVisibility;
 }
 
 // Role-specific icons (Phase 2: added oberon variants)
@@ -72,6 +74,7 @@ export function RoleRevealModal({
   decoyWarning,
   splitIntel,
   oberonSplitIntel,
+  evilRingVisibility,
 }: RoleRevealModalProps) {
   const isEvil = role === 'evil';
   const icon = specialRole ? ROLE_ICONS[specialRole] : (isEvil ? '🗡️' : '🛡️');
@@ -256,8 +259,39 @@ export function RoleRevealModal({
           </div>
         )}
 
-        {/* Known Players Section (for Merlin without Split Intel or Oberon Split Intel, Percival, Evil) */}
-        {knownPlayers && knownPlayers.length > 0 && knownPlayersLabel && !splitIntel?.enabled && !oberonSplitIntel?.enabled && (
+        {/* Feature 019: Evil Ring Visibility Display (for evil players in ring mode) */}
+        {evilRingVisibility?.enabled && (
+          <div className="space-y-4">
+            {/* Ring Visibility Explanation */}
+            <div className="p-4 rounded-lg bg-rose-950/50 border border-rose-500/40">
+              <h3 className="font-display text-sm uppercase tracking-wider mb-3 text-rose-300 flex items-center gap-2">
+                <span>⭕</span>
+                <span>Ring Visibility Mode</span>
+              </h3>
+              <p className="text-rose-300/70 text-xs mb-3">{evilRingVisibility.explanation}</p>
+
+              {/* Known Teammate */}
+              <div className="text-center">
+                <p className="text-rose-200/80 text-sm mb-2">You know:</p>
+                <span className="inline-block px-4 py-2 rounded-full text-lg bg-rose-500/20 text-rose-100 border border-rose-500/30 font-semibold">
+                  {evilRingVisibility.knownTeammate.name} is Evil
+                </span>
+              </div>
+            </div>
+
+            {/* Hidden Count Warning */}
+            {evilRingVisibility.hiddenCount > 0 && (
+              <div className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/30 text-center">
+                <p className="text-yellow-300 text-sm">
+                  ⚠️ <strong>{evilRingVisibility.hiddenCount} other evil player{evilRingVisibility.hiddenCount === 1 ? ' is' : 's are'} hidden from you</strong>
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Known Players Section (for Merlin without Split Intel or Oberon Split Intel, Percival, Evil without Ring) */}
+        {knownPlayers && knownPlayers.length > 0 && knownPlayersLabel && !splitIntel?.enabled && !oberonSplitIntel?.enabled && !evilRingVisibility?.enabled && (
           <div
             className={`
               p-4 rounded-lg border

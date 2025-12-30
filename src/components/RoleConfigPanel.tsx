@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { validateRoleConfig, getRoleDetails } from '@/lib/domain/role-config';
 import { SPECIAL_ROLES, LADY_OF_LAKE_MIN_RECOMMENDED } from '@/lib/utils/constants';
+import { canEnableEvilRingVisibility, shouldAutoDisableRing } from '@/lib/domain/evil-ring-visibility';
 import type { RoleConfig, OberonMode } from '@/types/role-config';
 
 interface RoleConfigPanelProps {
@@ -45,6 +46,7 @@ export function RoleConfigPanel({
 
   // T028: Handle Oberon mode toggle
   // Feature 018: Auto-disable Oberon Split Intel when Oberon Standard is removed
+  // Feature 019: Auto-disable Evil Ring Visibility when prerequisites no longer met
   const handleOberonChange = (mode: OberonMode | false) => {
     const newConfig = { ...config };
     if (mode) {
@@ -58,8 +60,29 @@ export function RoleConfigPanel({
       delete newConfig.oberon_split_intel_enabled;
     }
 
+    // Feature 019: Auto-disable Evil Ring Visibility if prerequisites no longer met
+    const ringAutoDisable = shouldAutoDisableRing(
+      newConfig,
+      expectedPlayers,
+      mode || undefined
+    );
+    if (ringAutoDisable.shouldDisable) {
+      delete newConfig.evil_ring_visibility_enabled;
+    }
+
     onChange(newConfig);
   };
+
+  // Feature 019: Auto-disable Evil Ring Visibility when player count changes
+  useEffect(() => {
+    const ringAutoDisable = shouldAutoDisableRing(config, expectedPlayers, config.oberon);
+    if (ringAutoDisable.shouldDisable && config.evil_ring_visibility_enabled) {
+      onChange({
+        ...config,
+        evil_ring_visibility_enabled: undefined,
+      });
+    }
+  }, [expectedPlayers]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className={`space-y-6 ${className}`}>
@@ -276,6 +299,23 @@ export function RoleConfigPanel({
                 : undefined
             }
           />
+
+          {/* Feature 019: Evil Ring Visibility Mode */}
+          {(() => {
+            const ringPrereq = canEnableEvilRingVisibility(expectedPlayers, config.oberon);
+            return (
+              <RoleToggle
+                role="evil_ring_visibility"
+                enabled={config.evil_ring_visibility_enabled || false}
+                onChange={(v) => handleToggle('evil_ring_visibility_enabled', v)}
+                label="Evil Ring Visibility"
+                description="Evil players only know one teammate each (chain pattern)"
+                emoji="⭕"
+                disabled={!ringPrereq.canEnable}
+                disabledReason={ringPrereq.reason}
+              />
+            );
+          })()}
 
           {/* T019: Warning for Mordred + Oberon Chaos with Split Intel - smooth transition */}
           <div className={`overflow-hidden transition-all duration-200 ${

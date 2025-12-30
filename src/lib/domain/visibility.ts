@@ -17,10 +17,11 @@
 
 import type { SpecialRole } from '@/types/database';
 import type { RoleConfig } from '@/types/role-config';
-import type { SplitIntelGroups, SplitIntelVisibility, OberonSplitIntelGroups, OberonSplitIntelVisibility } from '@/types/game';
+import type { SplitIntelGroups, SplitIntelVisibility, OberonSplitIntelGroups, OberonSplitIntelVisibility, EvilRingAssignments, EvilRingVisibility } from '@/types/game';
 import { shuffleArray } from './decoy-selection';
 import { countHiddenEvil } from './split-intel';
 import { countHiddenEvilForOberonSplitIntel } from './oberon-split-intel';
+import { getKnownTeammate, calculateHiddenCount } from './evil-ring-visibility';
 
 /**
  * Role assignment for visibility calculations
@@ -254,6 +255,52 @@ export function getOberonSplitIntelVisibility(
     mixedLabel: '❓ Mixed Intel',
     mixedDescription: 'One is evil (Oberon), one is good',
     hiddenWarning,
+  };
+}
+
+/**
+ * T020: Get Evil Ring visibility for an evil player
+ * Feature 019: Returns the single known teammate for ring visibility mode
+ */
+export function getEvilRingVisibility(
+  myPlayerId: string,
+  allAssignments: RoleAssignment[],
+  ringAssignments: EvilRingAssignments,
+  roleConfig: RoleConfig
+): EvilRingVisibility | null {
+  // Get the known teammate ID from ring assignments
+  const knownTeammateId = getKnownTeammate(myPlayerId, ringAssignments);
+  if (!knownTeammateId) {
+    // Player not in ring (e.g., Oberon)
+    return null;
+  }
+
+  // Find the teammate's name
+  const teammate = allAssignments.find((a) => a.playerId === knownTeammateId);
+  if (!teammate) {
+    return null;
+  }
+
+  // Calculate ring size (non-Oberon evil count)
+  const nonOberonEvil = allAssignments.filter(
+    (a) =>
+      a.role === 'evil' &&
+      a.specialRole !== 'oberon_standard' &&
+      a.specialRole !== 'oberon_chaos'
+  );
+  const ringSize = nonOberonEvil.length;
+
+  // Check if Oberon is in the game
+  const hasOberon = !!roleConfig.oberon;
+
+  return {
+    enabled: true,
+    knownTeammate: {
+      id: knownTeammateId,
+      name: teammate.playerName,
+    },
+    hiddenCount: calculateHiddenCount(ringSize, hasOberon),
+    explanation: 'Ring Visibility Mode: You only know one teammate.',
   };
 }
 

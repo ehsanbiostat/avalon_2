@@ -42,6 +42,12 @@ export interface RoleConfig {
   // Prerequisite: oberon === 'standard' (not available with Oberon Chaos or no Oberon)
   // Mutually exclusive with merlin_decoy_enabled AND merlin_split_intel_enabled
   oberon_split_intel_enabled?: boolean;
+
+  // Feature 019: Evil Ring Visibility Mode
+  // When enabled, evil players only see ONE teammate each in a circular chain pattern
+  // Prerequisite: 3+ non-Oberon evil players (7+ total players without Oberon, 10 with Oberon)
+  // Compatible with all Merlin visibility modes (Split Intel, Oberon Split Intel, Decoy)
+  evil_ring_visibility_enabled?: boolean;
 }
 
 /**
@@ -51,6 +57,7 @@ export const DEFAULT_ROLE_CONFIG: RoleConfig = {
   merlin_decoy_enabled: false,
   merlin_split_intel_enabled: false,
   oberon_split_intel_enabled: false,
+  evil_ring_visibility_enabled: false,
 };
 
 /**
@@ -125,6 +132,7 @@ export function isValidRoleConfig(config: unknown): config is RoleConfig {
   if (c.merlin_decoy_enabled !== undefined && typeof c.merlin_decoy_enabled !== 'boolean') return false;
   if (c.merlin_split_intel_enabled !== undefined && typeof c.merlin_split_intel_enabled !== 'boolean') return false;
   if (c.oberon_split_intel_enabled !== undefined && typeof c.oberon_split_intel_enabled !== 'boolean') return false;
+  if (c.evil_ring_visibility_enabled !== undefined && typeof c.evil_ring_visibility_enabled !== 'boolean') return false;
 
   // Check oberon mode
   if (c.oberon !== undefined && !isValidOberonMode(c.oberon)) return false;

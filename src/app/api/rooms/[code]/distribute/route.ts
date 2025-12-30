@@ -14,6 +14,7 @@ import { computeRolesInPlay, designateLadyOfLakeHolder } from '@/lib/domain/role
 import { selectDecoyPlayer } from '@/lib/domain/decoy-selection';
 import { canUseSplitIntelMode, distributeSplitIntelGroups } from '@/lib/domain/split-intel';
 import { canUseOberonSplitIntelMode, distributeOberonSplitIntelGroups } from '@/lib/domain/oberon-split-intel';
+import { canEnableEvilRingVisibility, formEvilRing, getNonOberonEvilIds } from '@/lib/domain/evil-ring-visibility';
 import { validateRoomCode } from '@/lib/domain/validation';
 import { errors, handleError } from '@/lib/utils/errors';
 import type { RoleConfig } from '@/types/role-config';
@@ -263,6 +264,63 @@ export async function POST(request: Request, { params }: RouteParams) {
         _oberon_split_intel_certain_evil_ids: oberonSplitIntelGroups.certainEvilIds,
         _oberon_split_intel_oberon_id: oberonSplitIntelGroups.oberonId,
         _oberon_split_intel_mixed_good_id: oberonSplitIntelGroups.mixedGoodId,
+      };
+
+      await supabase
+        .from('rooms')
+        .update({ role_config: updatedRoleConfig })
+        .eq('id', room.id);
+    }
+
+    // Feature 019: Handle Evil Ring Visibility during distribution
+    if (roleConfig.evil_ring_visibility_enabled) {
+      // Check prerequisites
+      const ringPrereq = canEnableEvilRingVisibility(playerCount, roleConfig.oberon);
+      if (!ringPrereq.canEnable) {
+        return NextResponse.json(
+          {
+            error: {
+              code: 'EVIL_RING_BLOCKED',
+              message: ringPrereq.reason || 'Cannot use Evil Ring Visibility Mode with current configuration.',
+            },
+          },
+          { status: 400 }
+        );
+      }
+
+      // Get role assignments for ring formation
+      const roleAssignmentsData = await getRoleAssignments(supabase, room.id);
+
+      // Find all evil player IDs
+      const evilPlayerIds = roleAssignmentsData
+        .filter(a => a.role === 'evil')
+        .map(a => a.player_id);
+
+      // Find Oberon's player ID if present
+      const oberonAssignment = roleAssignmentsData.find(
+        a => a.special_role === 'oberon_standard' || a.special_role === 'oberon_chaos'
+      );
+      const oberonId = oberonAssignment?.player_id || null;
+
+      // Get non-Oberon evil IDs for the ring
+      const nonOberonEvilIds = getNonOberonEvilIds(evilPlayerIds, oberonId);
+
+      // Form the evil ring
+      const ringAssignments = formEvilRing(nonOberonEvilIds);
+
+      // Store ring assignments in role_config for the /role API to use
+      // (will be copied to game.evil_ring_assignments when game starts)
+      const currentRoleConfig = (
+        await supabase
+          .from('rooms')
+          .select('role_config')
+          .eq('id', room.id)
+          .single()
+      ).data?.role_config || {};
+
+      const updatedRoleConfig = {
+        ...currentRoleConfig,
+        _evil_ring_assignments: ringAssignments,
       };
 
       await supabase
