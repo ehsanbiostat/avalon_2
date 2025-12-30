@@ -71,7 +71,8 @@ src/
 └── app/
     └── api/
         └── rooms/[code]/
-            └── distribute/route.ts  # MODIFY: Form ring during distribution
+            ├── distribute/route.ts  # MODIFY: Form ring during distribution
+            └── role/route.ts        # MODIFY: Return ring visibility data
 
 supabase/
 └── migrations/

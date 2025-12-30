@@ -55,7 +55,7 @@
 
 - [ ] T013 [US1] Add prerequisite validation in `src/lib/domain/role-config.ts` - check 3+ non-Oberon evil
 - [ ] T014 [US1] Add auto-disable logic when Oberon enables and invalidates ring mode in `src/lib/domain/role-config.ts`
-- [ ] T015 [US1] Add Evil Ring Visibility toggle to `src/components/RoleConfigPanel.tsx` with disabled state logic
+- [ ] T015 [US1] Add Evil Ring Visibility toggle to `src/components/RoleConfigPanel.tsx` with disabled state logic and config summary display (FR-001, FR-004)
 - [ ] T016 [US1] Add tooltip for disabled state explaining prerequisite in `src/components/RoleConfigPanel.tsx`
 - [ ] T017 [US1] Add auto-disable notification when Oberon/player count changes in `src/components/RoleConfigPanel.tsx`
 - [ ] T018 [US1] Add Evil Ring Visibility indicator to `src/components/RolesInPlay.tsx`
@@ -143,7 +143,7 @@
 - [ ] T039 [P] Test ring excludes Oberon correctly in `tests/unit/domain/evil-ring-visibility.test.ts`
 - [ ] T040 [P] Test `calculateHiddenCount()` includes Oberon in `tests/unit/domain/evil-ring-visibility.test.ts`
 - [ ] T041 Run quickstart.md validation scenarios
-- [ ] T042 Verify mode compatibility with Merlin Split Intel, Oberon Split Intel, and Decoy modes
+- [ ] T042 Verify mode compatibility: (1) Ring + Merlin Split Intel @ 8 players, (2) Ring + Oberon Split Intel @ 10 players, (3) Ring + Decoy @ 7 players
 
 ---
 
