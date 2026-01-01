@@ -72,6 +72,32 @@ export const GAME_MODES: GameModeInfo[] = [
       'Cannot be used with Decoy Mode',
     ],
   },
+  {
+    id: 'oberon_split_intel',
+    name: 'Oberon Split Intel Mode',
+    emoji: '👤🔀',
+    description: 'Merlin sees Oberon mixed with a good player',
+    details: [
+      'Requires Oberon (Standard) to be enabled',
+      'Oberon is always in the Mixed Intel group',
+      'Certain Evil group: Morgana, Assassin (not Oberon)',
+      'Cannot be used with Decoy or regular Split Intel',
+    ],
+  },
+  {
+    id: 'evil_ring_visibility',
+    name: 'Evil Ring Visibility',
+    emoji: '⭕',
+    description: 'Evil players only know one teammate each (chain pattern)',
+    details: [
+      'Requires 3+ non-Oberon evil players (7+ players)',
+      'Each evil sees only ONE other evil player',
+      'Forms a ring: A knows B, B knows C, C knows A',
+      'You only see your teammate\'s name, not their role',
+      'Other evil players are hidden from you',
+      'Oberon is excluded from the ring (still isolated)',
+    ],
+  },
 ];
 
 // ============================================================================
@@ -95,12 +121,12 @@ export const VISUAL_INDICATORS: VisualIndicator[] = [
   { id: 'blue_fill', symbol: '🔵', name: 'Blue Fill', description: 'Selected for team', category: 'avatar' },
   { id: 'green_fill', symbol: '🟢', name: 'Green Fill', description: 'On proposed team', category: 'avatar' },
   { id: 'red_nickname', symbol: '🔴', name: 'Red Nickname', description: 'Disconnected player', category: 'avatar' },
-  
+
   // Team colors
   { id: 'good_color', symbol: '🔷', name: 'Sky Blue', description: 'Good team', category: 'color' },
   { id: 'evil_color', symbol: '🟧', name: 'Orange', description: 'Evil team', category: 'color' },
   { id: 'gold_color', symbol: '🟨', name: 'Gold', description: 'Accents and highlights', category: 'color' },
-  
+
   // Quest results
   { id: 'quest_success', symbol: '✓', name: 'Green Checkmark', description: 'Quest succeeded', category: 'quest' },
   { id: 'quest_fail', symbol: '✗', name: 'Red X', description: 'Quest failed', category: 'quest' },
@@ -204,4 +230,3 @@ export const WIN_CONDITIONS: WinCondition[] = [
   { team: 'evil', description: '5 rejected team proposals in a row' },
   { team: 'evil', description: 'Assassin correctly identifies Merlin' },
 ];
-

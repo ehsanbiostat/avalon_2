@@ -17,12 +17,12 @@ import {
 } from '@/lib/supabase/roles';
 import { getGameByRoomId } from '@/lib/supabase/games';
 import { getRoleInfo } from '@/lib/domain/roles';
-import { countHiddenEvilFromMerlin, generateDecoyWarning, getSplitIntelVisibility, getOberonSplitIntelVisibility, type RoleAssignment } from '@/lib/domain/visibility';
+import { countHiddenEvilFromMerlin, generateDecoyWarning, getSplitIntelVisibility, getOberonSplitIntelVisibility, getEvilRingVisibility, type RoleAssignment } from '@/lib/domain/visibility';
 import { shuffleArray } from '@/lib/domain/decoy-selection';
 import { validateRoomCode } from '@/lib/domain/validation';
 import { errors, handleError } from '@/lib/utils/errors';
 import type { RoleConfig } from '@/types/role-config';
-import type { SplitIntelGroups, SplitIntelVisibility, OberonSplitIntelGroups, OberonSplitIntelVisibility } from '@/types/game';
+import type { SplitIntelGroups, SplitIntelVisibility, OberonSplitIntelGroups, OberonSplitIntelVisibility, EvilRingAssignments, EvilRingVisibility } from '@/types/game';
 
 interface RouteParams {
   params: Promise<{ code: string }>;
@@ -105,6 +105,8 @@ export async function GET(request: Request, { params }: RouteParams) {
     let splitIntel: SplitIntelVisibility | undefined;
     // Feature 018: Oberon Split Intel fields
     let oberonSplitIntel: OberonSplitIntelVisibility | undefined;
+    // Feature 019: Evil Ring Visibility fields
+    let evilRingVisibility: EvilRingVisibility | undefined;
 
     switch (playerRole.special_role) {
       // T064-T068: US8 - Merlin visibility with hidden count
@@ -310,7 +312,65 @@ export async function GET(request: Request, { params }: RouteParams) {
         break;
 
       // T052-T055: US5 - Morgana knows her disguise
-      case 'morgana':
+      case 'morgana': {
+        // Feature 019: Handle Evil Ring Visibility Mode
+        if (roleConfig.evil_ring_visibility_enabled) {
+          // Get ring assignments from role_config (pre-game) or game
+          let ringAssignments: EvilRingAssignments | null = null;
+
+          const rcData = roleConfig as Record<string, unknown>;
+          if (rcData._evil_ring_assignments) {
+            ringAssignments = rcData._evil_ring_assignments as EvilRingAssignments;
+          } else {
+            const game = await getGameByRoomId(supabase, room.id);
+            if (game?.evil_ring_assignments) {
+              ringAssignments = game.evil_ring_assignments;
+            }
+          }
+
+          if (ringAssignments && ringAssignments[player.id]) {
+            // Get all role assignments for visibility calculation
+            const roleAssignmentsData = await getRoleAssignments(supabase, room.id);
+
+            // Get player nicknames
+            const { data: playerData } = await supabase
+              .from('players')
+              .select('id, nickname')
+              .in('id', roleAssignmentsData.map(a => a.player_id));
+
+            const nicknameMap = new Map(
+              (playerData || []).map((p: { id: string; nickname: string }) => [p.id, p.nickname])
+            );
+
+            // Convert to RoleAssignment format
+            const visibilityAssignments: RoleAssignment[] = roleAssignmentsData.map(a => ({
+              playerId: a.player_id,
+              playerName: nicknameMap.get(a.player_id) || 'Unknown',
+              role: a.role as 'good' | 'evil',
+              specialRole: a.special_role,
+            }));
+
+            // Get ring visibility
+            evilRingVisibility = getEvilRingVisibility(
+              player.id,
+              visibilityAssignments,
+              ringAssignments,
+              roleConfig
+            ) ?? undefined;
+
+            if (evilRingVisibility) {
+              // Ring mode: show only one teammate's name
+              knownPlayers = [evilRingVisibility.knownTeammate.name];
+              knownPlayersLabel = 'Your Known Teammate';
+              abilityNote = roleConfig.percival
+                ? 'Ring Visibility: You only know one teammate. You appear as Merlin to Percival!'
+                : 'Ring Visibility: You only know one teammate. Percival is not in this game.';
+              break;
+            }
+          }
+        }
+
+        // Standard visibility
         knownPlayers = await getEvilTeammates(supabase, room.id, player.id);
         knownPlayersLabel = 'Your Evil Teammates';
         // T055: Edge case - Morgana without Percival
@@ -320,13 +380,71 @@ export async function GET(request: Request, { params }: RouteParams) {
           abilityNote = 'Percival is not in this game, so your disguise ability has no effect.';
         }
         break;
+      }
 
       // T056-T058: US6 - Mordred knows he's hidden
-      case 'mordred':
+      case 'mordred': {
+        // Feature 019: Handle Evil Ring Visibility Mode
+        if (roleConfig.evil_ring_visibility_enabled) {
+          // Get ring assignments from role_config (pre-game) or game
+          let ringAssignments: EvilRingAssignments | null = null;
+
+          const rcData = roleConfig as Record<string, unknown>;
+          if (rcData._evil_ring_assignments) {
+            ringAssignments = rcData._evil_ring_assignments as EvilRingAssignments;
+          } else {
+            const game = await getGameByRoomId(supabase, room.id);
+            if (game?.evil_ring_assignments) {
+              ringAssignments = game.evil_ring_assignments;
+            }
+          }
+
+          if (ringAssignments && ringAssignments[player.id]) {
+            // Get all role assignments for visibility calculation
+            const roleAssignmentsData = await getRoleAssignments(supabase, room.id);
+
+            // Get player nicknames
+            const { data: playerData } = await supabase
+              .from('players')
+              .select('id, nickname')
+              .in('id', roleAssignmentsData.map(a => a.player_id));
+
+            const nicknameMap = new Map(
+              (playerData || []).map((p: { id: string; nickname: string }) => [p.id, p.nickname])
+            );
+
+            // Convert to RoleAssignment format
+            const visibilityAssignments: RoleAssignment[] = roleAssignmentsData.map(a => ({
+              playerId: a.player_id,
+              playerName: nicknameMap.get(a.player_id) || 'Unknown',
+              role: a.role as 'good' | 'evil',
+              specialRole: a.special_role,
+            }));
+
+            // Get ring visibility
+            evilRingVisibility = getEvilRingVisibility(
+              player.id,
+              visibilityAssignments,
+              ringAssignments,
+              roleConfig
+            ) ?? undefined;
+
+            if (evilRingVisibility) {
+              // Ring mode: show only one teammate's name
+              knownPlayers = [evilRingVisibility.knownTeammate.name];
+              knownPlayersLabel = 'Your Known Teammate';
+              abilityNote = 'Ring Visibility: You only know one teammate. Merlin does not know you are evil!';
+              break;
+            }
+          }
+        }
+
+        // Standard visibility
         knownPlayers = await getEvilTeammates(supabase, room.id, player.id);
         knownPlayersLabel = 'Your Evil Teammates';
         abilityNote = 'Merlin does not know you are evil. Lead from the shadows!';
         break;
+      }
 
       // T059-T063: US7 - Oberon Standard
       case 'oberon_standard':
@@ -346,16 +464,72 @@ export async function GET(request: Request, { params }: RouteParams) {
 
       // Regular evil (Assassin, Minion)
       case 'assassin':
-        knownPlayers = await getEvilTeammates(supabase, room.id, player.id);
-        knownPlayersLabel = 'Your Evil Teammates';
-        abilityNote = 'If the good team wins 3 quests, you have one chance to identify Merlin!';
-        break;
+      case 'minion': {
+        // Feature 019: Handle Evil Ring Visibility Mode
+        if (roleConfig.evil_ring_visibility_enabled) {
+          // Get ring assignments from role_config (pre-game) or game
+          let ringAssignments: EvilRingAssignments | null = null;
 
-      case 'minion':
+          const rcData = roleConfig as Record<string, unknown>;
+          if (rcData._evil_ring_assignments) {
+            ringAssignments = rcData._evil_ring_assignments as EvilRingAssignments;
+          } else {
+            const game = await getGameByRoomId(supabase, room.id);
+            if (game?.evil_ring_assignments) {
+              ringAssignments = game.evil_ring_assignments;
+            }
+          }
+
+          if (ringAssignments && ringAssignments[player.id]) {
+            // Get all role assignments for visibility calculation
+            const roleAssignmentsData = await getRoleAssignments(supabase, room.id);
+
+            // Get player nicknames
+            const { data: playerData } = await supabase
+              .from('players')
+              .select('id, nickname')
+              .in('id', roleAssignmentsData.map(a => a.player_id));
+
+            const nicknameMap = new Map(
+              (playerData || []).map((p: { id: string; nickname: string }) => [p.id, p.nickname])
+            );
+
+            // Convert to RoleAssignment format
+            const visibilityAssignments: RoleAssignment[] = roleAssignmentsData.map(a => ({
+              playerId: a.player_id,
+              playerName: nicknameMap.get(a.player_id) || 'Unknown',
+              role: a.role as 'good' | 'evil',
+              specialRole: a.special_role,
+            }));
+
+            // Get ring visibility
+            evilRingVisibility = getEvilRingVisibility(
+              player.id,
+              visibilityAssignments,
+              ringAssignments,
+              roleConfig
+            ) ?? undefined;
+
+            if (evilRingVisibility) {
+              // Ring mode: show only one teammate's name
+              knownPlayers = [evilRingVisibility.knownTeammate.name];
+              knownPlayersLabel = 'Your Known Teammate';
+              abilityNote = playerRole.special_role === 'assassin'
+                ? 'Ring Visibility: You only know one teammate. If the good team wins 3 quests, you have one chance to identify Merlin!'
+                : 'Ring Visibility: You only know one teammate. Work in the shadows!';
+              break;
+            }
+          }
+        }
+
+        // Standard visibility (ring not enabled or player not in ring)
         knownPlayers = await getEvilTeammates(supabase, room.id, player.id);
         knownPlayersLabel = 'Your Evil Teammates';
-        abilityNote = 'Work with your fellow minions to sabotage the quests!';
+        abilityNote = playerRole.special_role === 'assassin'
+          ? 'If the good team wins 3 quests, you have one chance to identify Merlin!'
+          : 'Work with your fellow minions to sabotage the quests!';
         break;
+      }
 
       // Regular good (Servant)
       case 'servant':
@@ -385,6 +559,8 @@ export async function GET(request: Request, { params }: RouteParams) {
         split_intel: splitIntel,
         // Feature 018: Oberon Split Intel fields
         oberon_split_intel: oberonSplitIntel,
+        // Feature 019: Evil Ring Visibility fields
+        evil_ring_visibility: evilRingVisibility,
       },
     });
   } catch (error) {

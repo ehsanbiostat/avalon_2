@@ -7,6 +7,7 @@ import { ROLE_RATIOS, SPECIAL_ROLES, LADY_OF_LAKE_MIN_RECOMMENDED } from '@/lib/
 import type { RoleConfig, RoleConfigValidation } from '@/types/role-config';
 import type { SpecialRole } from '@/types/database';
 import type { RoleDistribution } from '@/types/role';
+import { canEnableEvilRingVisibility } from './evil-ring-visibility';
 
 /**
  * T009: Get default role configuration (MVP behavior)
@@ -56,6 +57,14 @@ export function validateRoleConfig(
       errors.push('Oberon Split Intel Mode requires Oberon (Standard) to be enabled.');
     } else if (config.oberon === 'chaos') {
       errors.push('Oberon Split Intel Mode is not available with Oberon (Chaos) - Oberon must be visible to Merlin.');
+    }
+  }
+
+  // Feature 019: Check Evil Ring Visibility prerequisites (3+ non-Oberon evil)
+  if (config.evil_ring_visibility_enabled) {
+    const ringPrereq = canEnableEvilRingVisibility(playerCount, config.oberon);
+    if (!ringPrereq.canEnable) {
+      errors.push(ringPrereq.reason || 'Evil Ring Visibility requires 3+ non-Oberon evil players.');
     }
   }
 
@@ -249,7 +258,8 @@ export function isDefaultConfig(config: RoleConfig): boolean {
     !config.ladyOfLake &&
     !config.merlin_decoy_enabled &&
     !config.merlin_split_intel_enabled &&
-    !config.oberon_split_intel_enabled
+    !config.oberon_split_intel_enabled &&
+    !config.evil_ring_visibility_enabled
   );
 }
 

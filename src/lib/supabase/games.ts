@@ -430,3 +430,44 @@ export async function getOberonSplitIntelGroups(
     mixedGoodId: game.oberon_split_intel_mixed_good_id,
   };
 }
+
+// ============================================
+// FEATURE 019: EVIL RING VISIBILITY FUNCTIONS
+// ============================================
+
+import type { EvilRingAssignments } from '@/types/game';
+
+/**
+ * Store the Evil Ring assignments for a game
+ * Each evil player in the ring knows exactly one other evil player
+ *
+ * @param client - Supabase client
+ * @param gameId - Game identifier
+ * @param ringAssignments - Map of player ID to their one known teammate ID
+ * @returns Updated game record
+ */
+export async function setEvilRingAssignments(
+  client: SupabaseClient,
+  gameId: string,
+  ringAssignments: EvilRingAssignments
+): Promise<Game> {
+  return updateGame(client, gameId, {
+    evil_ring_assignments: ringAssignments,
+  });
+}
+
+/**
+ * Get the Evil Ring assignments for a game
+ * Returns null if ring visibility mode is disabled or not yet configured
+ *
+ * @param client - Supabase client
+ * @param gameId - Game identifier
+ * @returns Evil ring assignments or null
+ */
+export async function getEvilRingAssignments(
+  client: SupabaseClient,
+  gameId: string
+): Promise<EvilRingAssignments | null> {
+  const game = await getGameById(client, gameId);
+  return game?.evil_ring_assignments ?? null;
+}

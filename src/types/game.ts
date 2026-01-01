@@ -67,6 +67,8 @@ export interface Game {
   // Feature 018: Oberon Split Intel Mode
   oberon_split_intel_certain_evil_ids: string[] | null;  // Evil players in Certain group (excludes Oberon)
   oberon_split_intel_mixed_good_id: string | null;       // Good player in Mixed group with Oberon
+  // Feature 019: Evil Ring Visibility Mode
+  evil_ring_assignments: EvilRingAssignments | null;  // Maps each evil player to their one known teammate
   created_at: string;
   updated_at: string;
   ended_at: string | null;
@@ -95,6 +97,8 @@ export interface GameInsert {
   // Feature 018: Oberon Split Intel Mode
   oberon_split_intel_certain_evil_ids?: string[] | null;
   oberon_split_intel_mixed_good_id?: string | null;
+  // Feature 019: Evil Ring Visibility Mode
+  evil_ring_assignments?: EvilRingAssignments | null;
   created_at?: string;
   updated_at?: string;
   ended_at?: string | null;
@@ -121,6 +125,8 @@ export interface GameUpdate {
   // Feature 018: Oberon Split Intel Mode
   oberon_split_intel_certain_evil_ids?: string[] | null;
   oberon_split_intel_mixed_good_id?: string | null;
+  // Feature 019: Evil Ring Visibility Mode
+  evil_ring_assignments?: EvilRingAssignments | null;
   ended_at?: string | null;
 }
 
@@ -666,5 +672,34 @@ export interface OberonSplitIntelVisibility {
  */
 export interface OberonSplitIntelPrerequisite {
   canUse: boolean;
+  reason?: string;
+}
+
+// ============================================
+// FEATURE 019: EVIL RING VISIBILITY TYPES
+// ============================================
+
+/**
+ * Evil Ring assignments (server-side)
+ * Maps each evil player to their one known teammate in a circular chain
+ */
+export type EvilRingAssignments = Record<string, string>;
+
+/**
+ * Evil Ring visibility data for evil player's role reveal
+ */
+export interface EvilRingVisibility {
+  enabled: true;
+  knownTeammate: { id: string; name: string };  // Name only, no role revealed
+  hiddenCount: number;  // Other ring members + Oberon (if present)
+  explanation: string;  // "Ring Visibility Mode: You only know one teammate."
+}
+
+/**
+ * Evil Ring prerequisite check result
+ */
+export interface EvilRingPrerequisite {
+  canEnable: boolean;
+  nonOberonEvilCount: number;
   reason?: string;
 }

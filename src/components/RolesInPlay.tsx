@@ -86,7 +86,7 @@ export function RolesInPlay({
       </div>
 
       {/* Game Mode Indicators */}
-      {(hasOberon || roleConfig?.merlin_decoy_enabled || roleConfig?.merlin_split_intel_enabled || roleConfig?.oberon_split_intel_enabled) && (
+      {(hasOberon || roleConfig?.merlin_decoy_enabled || roleConfig?.merlin_split_intel_enabled || roleConfig?.oberon_split_intel_enabled || roleConfig?.evil_ring_visibility_enabled) && (
         <div className="mt-3 pt-3 border-t border-avalon-dark-border space-y-2">
           {/* T035: Oberon mode indicator (only show if NOT using Oberon Split Intel) */}
           {hasOberon && oberonMode && !roleConfig?.oberon_split_intel_enabled && (
@@ -131,6 +131,16 @@ export function RolesInPlay({
               <span className="text-teal-400">👤🔀</span>
               <span className="text-teal-300 font-semibold">
                 Oberon Split Intel: Merlin sees Oberon mixed with a good player!
+              </span>
+            </div>
+          )}
+
+          {/* Feature 019: Evil Ring Visibility indicator */}
+          {roleConfig?.evil_ring_visibility_enabled && (
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <span className="text-rose-400">⭕</span>
+              <span className="text-rose-300 font-semibold">
+                Evil Ring Visibility: Evil players only know one teammate each!
               </span>
             </div>
           )}
