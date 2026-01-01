@@ -13,3 +13,4 @@ COMMENT ON COLUMN games.evil_ring_assignments IS
 
 -- Note: Ring assignments are never exposed to clients in full.
 -- Each evil player only sees their own mapping entry via the role API.
+-- for PR
