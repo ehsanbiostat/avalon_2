@@ -414,6 +414,14 @@ export function RoleRevealModal({
                 👻 <strong>Complete isolation!</strong> No one knows you are evil —
                 not even Merlin! Work alone to sabotage the quests.
               </>
+            ) : isEvil && evilRingVisibility?.enabled ? (
+              <>
+                ⭕ <strong>Ring Visibility Mode!</strong> You only see ONE teammate.
+                {evilRingVisibility.hiddenCount > 0 && (
+                  <> {evilRingVisibility.hiddenCount} other evil player{evilRingVisibility.hiddenCount === 1 ? ' is' : 's are'} hidden from you.</>
+                )}
+                {' '}Work carefully — you don&apos;t know all your allies!
+              </>
             ) : isEvil ? (
               <>
                 🤫 <strong>Keep your identity secret!</strong> Work with your
