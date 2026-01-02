@@ -198,8 +198,36 @@ export async function POST(request: Request, { params }: RouteParams) {
 
       // CRITICAL FIX: Use optimistic locking to prevent race condition
       // Multiple quest actions could arrive simultaneously
-      if (winCheck.assassinPhase) {
-        // Good won 3 quests but Assassin gets a chance to find Merlin
+
+      // Feature 021: Check for parallel quiz phase (new) before legacy assassin phase
+      if (winCheck.parallelQuizPhase) {
+        // Parallel quiz + assassination (or just quiz for Evil wins)
+        const { error: updateError } = await supabase
+          .from('games')
+          .update({
+            quest_results: updatedResults,
+            phase: 'parallel_quiz',
+            // For Evil wins, set the winner/reason now (quiz is for engagement only)
+            winner: winCheck.winner,
+            win_reason: winCheck.reason,
+          })
+          .eq('id', gameId)
+          .eq('phase', 'quest'); // Only update if still in quest phase
+
+        if (updateError) {
+          console.log('Quest result already processed by another request');
+        } else {
+          // Feature 016: Broadcast phase transition (FR-013)
+          await broadcastPhaseTransition(
+            gameId,
+            'parallel_quiz',
+            'quest',
+            winCheck.parallelQuizOutcome === 'good_win' ? 'parallel_quiz_good' : 'parallel_quiz_evil',
+            game.current_quest
+          );
+        }
+      } else if (winCheck.assassinPhase) {
+        // Legacy: Good won 3 quests but Assassin gets a chance to find Merlin
         const { error: updateError } = await supabase
           .from('games')
           .update({

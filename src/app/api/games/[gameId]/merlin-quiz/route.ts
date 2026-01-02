@@ -1,6 +1,7 @@
 /**
  * API Routes: /api/games/[gameId]/merlin-quiz
  * Feature 010: Endgame Merlin Quiz
+ * Feature 021: Support for parallel_quiz phase
  *
  * POST - Submit a quiz vote
  * GET - Get current quiz state
@@ -9,7 +10,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient, getPlayerIdFromRequest } from '@/lib/supabase/server';
 import { findPlayerByPlayerId } from '@/lib/supabase/players';
-import { getGameById } from '@/lib/supabase/games';
+import { getGameById, updateGame } from '@/lib/supabase/games';
+import { updateRoomStatus } from '@/lib/supabase/rooms';
+import { logGameOver } from '@/lib/supabase/game-events';
 import {
   submitQuizVote,
   getQuizVotes,
@@ -23,7 +26,12 @@ import {
   validateQuizVote,
   isQuizComplete,
   getPlayerVoteStatus,
+  isParallelQuizComplete,
+  canCompleteParallelPhase,
 } from '@/lib/domain/merlin-quiz';
+import { getEligibleQuizPlayers } from '@/lib/domain/quiz-eligibility';
+import { checkAssassinGuess } from '@/lib/domain/win-conditions';
+import { broadcastQuizVoteSubmitted } from '@/lib/broadcast';
 import { errors, handleError } from '@/lib/utils/errors';
 import type { MerlinQuizState, MerlinQuizVoteResponse } from '@/types/game';
 
@@ -65,10 +73,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Verify game is in game_over phase
-    if (game.phase !== 'game_over') {
+    // Feature 021: Support both game_over and parallel_quiz phases
+    if (game.phase !== 'game_over' && game.phase !== 'parallel_quiz') {
       return NextResponse.json(
-        { error: { code: 'INVALID_PHASE', message: 'Quiz is only available at game over' } },
+        { error: { code: 'INVALID_PHASE', message: 'Quiz is only available at game over or during parallel quiz phase' } },
         { status: 400 }
       );
     }
@@ -151,6 +159,62 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const quizComplete = isQuizComplete(voteCount, connectedCount, quizStartTime);
 
+    // Feature 021: Broadcast quiz vote submission during parallel phase
+    if (game.phase === 'parallel_quiz') {
+      await broadcastQuizVoteSubmitted(gameId, voteCount, connectedCount);
+    }
+
+    // Feature 021: Handle parallel phase completion
+    if (game.phase === 'parallel_quiz' && quizComplete) {
+      // Get roles to determine outcome and check for Assassin
+      const { data: playerRoles } = await supabase
+        .from('player_roles')
+        .select('player_id, role, special_role')
+        .eq('room_id', game.room_id);
+
+      const hasAssassin = playerRoles?.some(r => r.special_role === 'assassin') ?? false;
+      const assassinSubmitted = game.assassin_guess_id !== null;
+
+      // Determine outcome based on quest results
+      const goodWins = game.quest_results.filter(r => r.result === 'success').length;
+      const outcome: 'good_win' | 'evil_win' = goodWins >= 3 ? 'good_win' : 'evil_win';
+
+      // Check if we can complete the parallel phase
+      const canComplete = canCompleteParallelPhase(outcome, hasAssassin, assassinSubmitted, true);
+
+      if (canComplete) {
+        // Determine final winner
+        let winner = game.winner;
+        let winReason = game.win_reason;
+
+        // For Good wins, check if Assassin found Merlin
+        if (outcome === 'good_win' && hasAssassin && game.assassin_guess_id) {
+          const merlin = playerRoles?.find(r => r.special_role === 'merlin');
+          if (merlin) {
+            const assassinResult = checkAssassinGuess(game.assassin_guess_id, merlin.player_id);
+            winner = assassinResult.winner;
+            winReason = assassinResult.reason;
+          }
+        }
+
+        // Transition to game_over
+        await updateGame(supabase, gameId, {
+          phase: 'game_over',
+          winner,
+          win_reason: winReason,
+        });
+
+        // Close room
+        await updateRoomStatus(supabase, game.room_id, 'closed');
+
+        // Log game over
+        if (winner && winReason) {
+          const assassinFoundMerlin = outcome === 'good_win' && winner === 'evil';
+          await logGameOver(supabase, gameId, winner, winReason, assassinFoundMerlin);
+        }
+      }
+    }
+
     const response: MerlinQuizVoteResponse = {
       success: true,
       votes_submitted: voteCount,
@@ -215,7 +279,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .single();
 
     const hasMerlin = !!merlinRole;
-    const quizEnabled = canShowQuiz(hasMerlin) && game.phase === 'game_over';
+    // Feature 021: Support both game_over and parallel_quiz phases
+    const quizEnabled = canShowQuiz(hasMerlin) && (game.phase === 'game_over' || game.phase === 'parallel_quiz');
 
     if (!quizEnabled) {
       const state: MerlinQuizState = {

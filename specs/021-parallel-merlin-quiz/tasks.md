@@ -19,10 +19,10 @@
 
 **Purpose**: Add new types and extend game phase enum before implementing logic
 
-- [ ] T001 Add `parallel_quiz` to GamePhase type and ParallelQuizState interface in `src/types/game.ts`
-- [ ] T002 [P] Add QuizEligibility and QuizEligibilityInput types in `src/types/game.ts`
-- [ ] T003 [P] Add IndividualQuizVote and MerlinQuizResultsEnhanced types in `src/types/game.ts`
-- [ ] T004 Update GameState interface to include parallel_quiz and quiz_eligibility fields in `src/types/game.ts`
+- [x] T001 Add `parallel_quiz` to GamePhase type and ParallelQuizState interface in `src/types/game.ts`
+- [x] T002 [P] Add QuizEligibility and QuizEligibilityInput types in `src/types/game.ts`
+- [x] T003 [P] Add IndividualQuizVote and MerlinQuizResultsEnhanced types in `src/types/game.ts`
+- [x] T004 Update GameState interface to include parallel_quiz and quiz_eligibility fields in `src/types/game.ts`
 
 ---
 
@@ -32,13 +32,13 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T005 Create quiz eligibility domain module with getQuizEligibility() function in `src/lib/domain/quiz-eligibility.ts`
-- [ ] T006 [P] Add getEligibleQuizPlayers() helper function in `src/lib/domain/quiz-eligibility.ts`
-- [ ] T007 [P] Add unit tests for quiz eligibility logic in `tests/unit/quiz-eligibility.test.ts`
-- [ ] T008 Add `parallel_quiz` phase to VALID_TRANSITIONS in `src/lib/domain/game-state-machine.ts`
-- [ ] T009 [P] Add isParallelQuizComplete() function in `src/lib/domain/merlin-quiz.ts`
-- [ ] T010 [P] Add canCompleteParallelPhase() function in `src/lib/domain/merlin-quiz.ts`
-- [ ] T011 Modify checkWinConditions() to trigger parallel_quiz phase instead of assassin in `src/lib/domain/win-conditions.ts`
+- [x] T005 Create quiz eligibility domain module with getQuizEligibility() function in `src/lib/domain/quiz-eligibility.ts`
+- [x] T006 [P] Add getEligibleQuizPlayers() helper function in `src/lib/domain/quiz-eligibility.ts`
+- [x] T007 [P] Add unit tests for quiz eligibility logic in `tests/unit/quiz-eligibility.test.ts`
+- [x] T008 Add `parallel_quiz` phase to VALID_TRANSITIONS in `src/lib/domain/game-state-machine.ts`
+- [x] T009 [P] Add isParallelQuizComplete() function in `src/lib/domain/merlin-quiz.ts`
+- [x] T010 [P] Add canCompleteParallelPhase() function in `src/lib/domain/merlin-quiz.ts`
+- [x] T011 Modify checkWinConditions() to trigger parallel_quiz phase instead of assassin in `src/lib/domain/win-conditions.ts`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
@@ -52,13 +52,13 @@
 
 ### Implementation for User Story 1
 
-- [ ] T012 [US1] Update GET /api/games/[gameId] to build ParallelQuizState when phase is parallel_quiz in `src/app/api/games/[gameId]/route.ts`
-- [ ] T013 [US1] Add quiz_eligibility computation for current player in GET /api/games/[gameId] route in `src/app/api/games/[gameId]/route.ts`
-- [ ] T014 [P] [US1] Create ParallelQuizWaiting component with vote count display in `src/components/game/ParallelQuizWaiting.tsx`
-- [ ] T015 [US1] Update GameBoard to route players based on quiz_eligibility during parallel_quiz phase in `src/components/game/GameBoard.tsx`
-- [ ] T016 [US1] Update POST /api/games/[gameId]/assassin-guess to check quiz completion before transitioning in `src/app/api/games/[gameId]/assassin-guess/route.ts`
-- [ ] T017 [US1] Add assassin_submitted tracking to parallel phase state in `src/app/api/games/[gameId]/assassin-guess/route.ts`
-- [ ] T018 [US1] Implement parallel phase transition logic (both conditions met → game_over) in `src/app/api/games/[gameId]/assassin-guess/route.ts`
+- [x] T012 [US1] Update GET /api/games/[gameId] to build ParallelQuizState when phase is parallel_quiz in `src/app/api/games/[gameId]/route.ts`
+- [x] T013 [US1] Add quiz_eligibility computation for current player in GET /api/games/[gameId] route in `src/app/api/games/[gameId]/route.ts`
+- [x] T014 [P] [US1] Create ParallelQuizWaiting component with vote count display in `src/components/game/ParallelQuizWaiting.tsx`
+- [x] T015 [US1] Update GameBoard to route players based on quiz_eligibility during parallel_quiz phase in `src/components/game/GameBoard.tsx`
+- [x] T016 [US1] Update POST /api/games/[gameId]/assassin-guess to check quiz completion before transitioning in `src/app/api/games/[gameId]/assassin-guess/route.ts`
+- [x] T017 [US1] Add assassin_submitted tracking to parallel phase state in `src/app/api/games/[gameId]/assassin-guess/route.ts`
+- [x] T018 [US1] Implement parallel phase transition logic (both conditions met → game_over) in `src/app/api/games/[gameId]/assassin-guess/route.ts`
 
 **Checkpoint**: Good win parallel flow works - Assassin sees assassination, others see quiz
 
@@ -72,11 +72,11 @@
 
 ### Implementation for User Story 2
 
-- [ ] T019 [US2] Add Evil win detection to trigger parallel_quiz phase in win-conditions or quest action route in `src/lib/domain/win-conditions.ts`
-- [ ] T020 [US2] Add 5-rejections Evil win trigger for parallel_quiz phase in `src/app/api/games/[gameId]/vote/route.ts` (if exists) or relevant vote handling
-- [ ] T021 [US2] Update quiz eligibility for Percival based on Morgana presence in `src/lib/domain/quiz-eligibility.ts`
-- [ ] T022 [US2] Update ParallelQuizWaiting to show role-specific messages (Merlin vs Percival) in `src/components/game/ParallelQuizWaiting.tsx`
-- [ ] T023 [US2] Handle Evil win parallel phase completion (no Assassin needed) in `src/app/api/games/[gameId]/merlin-quiz/route.ts`
+- [x] T019 [US2] Add Evil win detection to trigger parallel_quiz phase in win-conditions or quest action route in `src/lib/domain/win-conditions.ts`
+- [x] T020 [US2] Add 5-rejections Evil win trigger for parallel_quiz phase in `src/app/api/games/[gameId]/vote/route.ts` (if exists) or relevant vote handling
+- [x] T021 [US2] Update quiz eligibility for Percival based on Morgana presence in `src/lib/domain/quiz-eligibility.ts`
+- [x] T022 [US2] Update ParallelQuizWaiting to show role-specific messages (Merlin vs Percival) in `src/components/game/ParallelQuizWaiting.tsx`
+- [x] T023 [US2] Handle Evil win parallel phase completion (no Assassin needed) in `src/app/api/games/[gameId]/merlin-quiz/route.ts`
 
 **Checkpoint**: Evil win quiz flow works - Merlin/Percival(certain) wait, others take quiz
 
@@ -90,13 +90,13 @@
 
 ### Implementation for User Story 3
 
-- [ ] T024 [US3] Update POST /api/games/[gameId]/merlin-quiz to validate eligibility for parallel phase in `src/app/api/games/[gameId]/merlin-quiz/route.ts`
-- [ ] T025 [US3] Add parallel_quiz_vote broadcast event when vote submitted in `src/app/api/games/[gameId]/merlin-quiz/route.ts`
-- [ ] T026 [US3] Update MerlinQuiz component to support parallel mode with isParallelMode prop in `src/components/game/MerlinQuiz.tsx`
-- [ ] T027 [US3] Add real-time vote count listener in MerlinQuiz component in `src/components/game/MerlinQuiz.tsx`
-- [ ] T028 [US3] Implement 60-second countdown timer with timeout handling in `src/components/game/MerlinQuiz.tsx`
-- [ ] T029 [US3] Add quiz completion check (all votes OR timeout) in merlin-quiz route in `src/app/api/games/[gameId]/merlin-quiz/route.ts`
-- [ ] T030 [US3] Trigger parallel phase transition when quiz completes in `src/app/api/games/[gameId]/merlin-quiz/route.ts`
+- [x] T024 [US3] Update POST /api/games/[gameId]/merlin-quiz to validate eligibility for parallel phase in `src/app/api/games/[gameId]/merlin-quiz/route.ts`
+- [x] T025 [US3] Add parallel_quiz_vote broadcast event when vote submitted in `src/app/api/games/[gameId]/merlin-quiz/route.ts`
+- [x] T026 [US3] Update MerlinQuiz component to support parallel mode with isParallelMode prop in `src/components/game/MerlinQuiz.tsx`
+- [x] T027 [US3] Add real-time vote count listener in MerlinQuiz component in `src/components/game/MerlinQuiz.tsx`
+- [x] T028 [US3] Implement 60-second countdown timer with timeout handling in `src/components/game/MerlinQuiz.tsx`
+- [x] T029 [US3] Add quiz completion check (all votes OR timeout) in merlin-quiz route in `src/app/api/games/[gameId]/merlin-quiz/route.ts`
+- [x] T030 [US3] Trigger parallel phase transition when quiz completes in `src/app/api/games/[gameId]/merlin-quiz/route.ts`
 
 **Checkpoint**: Quiz submission works with real-time updates and proper timeout handling
 
@@ -110,10 +110,10 @@
 
 ### Implementation for User Story 4
 
-- [ ] T031 [US4] Handle missing Assassin case in quiz eligibility (all players eligible) in `src/lib/domain/quiz-eligibility.ts`
-- [ ] T032 [US4] Update parallel phase completion to skip assassination check when no Assassin in `src/lib/domain/merlin-quiz.ts`
-- [ ] T033 [US4] Update GameBoard routing to handle no-Assassin parallel phase (no AssassinPhase shown) in `src/components/game/GameBoard.tsx`
-- [ ] T034 [US4] Ensure Good victory is persisted when quiz completes (no Assassin case) in `src/app/api/games/[gameId]/merlin-quiz/route.ts`
+- [x] T031 [US4] Handle missing Assassin case in quiz eligibility (all players eligible) in `src/lib/domain/quiz-eligibility.ts`
+- [x] T032 [US4] Update parallel phase completion to skip assassination check when no Assassin in `src/lib/domain/merlin-quiz.ts`
+- [x] T033 [US4] Update GameBoard routing to handle no-Assassin parallel phase (no AssassinPhase shown) in `src/components/game/GameBoard.tsx`
+- [x] T034 [US4] Ensure Good victory is persisted when quiz completes (no Assassin case) in `src/app/api/games/[gameId]/merlin-quiz/route.ts`
 
 **Checkpoint**: No-Assassin Good win works - all see quiz, Good wins after quiz completes
 
@@ -127,13 +127,13 @@
 
 ### Implementation for User Story 5
 
-- [ ] T035 [US5] Add individual_votes field to merlin-quiz results API response in `src/app/api/games/[gameId]/merlin-quiz/route.ts`
-- [ ] T036 [US5] Create calculateEnhancedQuizResults() function with individual vote breakdown in `src/lib/domain/merlin-quiz.ts`
-- [ ] T037 [P] [US5] Update MerlinQuizResults component to show individual vote breakdown table in `src/components/game/MerlinQuizResults.tsx`
-- [ ] T038 [P] [US5] Add aggregate statistics display (X of Y correct, percentage) in `src/components/game/MerlinQuizResults.tsx`
-- [ ] T039 [US5] Style quiz results with light, intuitive UI per spec requirements in `src/components/game/MerlinQuizResults.tsx`
-- [ ] T040 [US5] Handle "did not vote" display for players who timed out in `src/components/game/MerlinQuizResults.tsx`
-- [ ] T041 [US5] Update GameOver component to properly integrate enhanced quiz results in `src/components/game/GameOver.tsx`
+- [x] T035 [US5] Add individual_votes field to merlin-quiz results API response in `src/app/api/games/[gameId]/merlin-quiz/route.ts`
+- [x] T036 [US5] Create calculateEnhancedQuizResults() function with individual vote breakdown in `src/lib/domain/merlin-quiz.ts`
+- [x] T037 [P] [US5] Update MerlinQuizResults component to show individual vote breakdown table in `src/components/game/MerlinQuizResults.tsx`
+- [x] T038 [P] [US5] Add aggregate statistics display (X of Y correct, percentage) in `src/components/game/MerlinQuizResults.tsx`
+- [x] T039 [US5] Style quiz results with light, intuitive UI per spec requirements in `src/components/game/MerlinQuizResults.tsx`
+- [x] T040 [US5] Handle "did not vote" display for players who timed out in `src/components/game/MerlinQuizResults.tsx`
+- [x] T041 [US5] Update GameOver component to properly integrate enhanced quiz results in `src/components/game/GameOver.tsx`
 
 **Checkpoint**: Results display complete with individual breakdown and aggregate stats
 
@@ -143,13 +143,13 @@
 
 **Purpose**: Integration testing, edge cases, and final polish
 
-- [ ] T042 Add parallel_phase_complete broadcast event for all players in relevant API routes
-- [ ] T043 [P] Handle player disconnection during parallel phase gracefully
-- [ ] T044 [P] Add watcher mode support for parallel_quiz phase in `src/components/game/WatcherGameBoard.tsx`
-- [ ] T045 Verify backward compatibility with legacy `assassin` phase (existing games)
-- [ ] T046 [P] Update useGameState hook to handle parallel_quiz state in `src/hooks/useGameState.ts`
-- [ ] T047 Run quickstart.md validation scenarios manually
-- [ ] T048 Code cleanup: remove any console.logs, add proper error handling
+- [x] T042 Add parallel_phase_complete broadcast event for all players in relevant API routes
+- [x] T043 [P] Handle player disconnection during parallel phase gracefully
+- [x] T044 [P] Add watcher mode support for parallel_quiz phase in `src/components/game/WatcherGameBoard.tsx`
+- [x] T045 Verify backward compatibility with legacy `assassin` phase (existing games)
+- [x] T046 [P] Update useGameState hook to handle parallel_quiz state in `src/hooks/useGameState.ts`
+- [x] T047 Run quickstart.md validation scenarios manually
+- [x] T048 Code cleanup: remove any console.logs, add proper error handling
 
 ---
 

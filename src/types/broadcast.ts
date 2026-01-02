@@ -20,7 +20,8 @@ export type BroadcastEventType =
   | 'vote_submitted' // A player submitted their vote
   | 'action_submitted' // A team member submitted quest action
   | 'phase_transition' // Game phase changed
-  | 'game_over'; // Game ended
+  | 'game_over' // Game ended
+  | 'quiz_vote_submitted'; // Feature 021: A player submitted their Merlin quiz vote
 
 // ============================================
 // EVENT PAYLOADS
@@ -81,7 +82,20 @@ export type PhaseTransitionTrigger =
   | 'quest_result_shown' // Continue button pressed
   | 'lady_complete' // Lady investigation done
   | 'assassin_phase' // Good won 3, assassin's turn
+  | 'parallel_quiz_good' // Feature 021: Good won 3, parallel quiz starts
+  | 'parallel_quiz_evil' // Feature 021: Evil won, parallel quiz starts
   | 'game_ended'; // Game is over
+
+/**
+ * Feature 021: Payload for quiz_vote_submitted event
+ * Sent when a player submits their Merlin quiz vote during parallel phase
+ *
+ * Security: Does NOT include who they voted for
+ */
+export interface QuizVoteSubmittedPayload {
+  votes_count: number; // Total quiz votes submitted so far
+  total_eligible: number; // Total eligible quiz participants
+}
 
 /**
  * Payload for game_over event
@@ -104,7 +118,8 @@ export type BroadcastPayload =
   | VoteSubmittedPayload
   | ActionSubmittedPayload
   | PhaseTransitionPayload
-  | GameOverPayload;
+  | GameOverPayload
+  | QuizVoteSubmittedPayload;
 
 /**
  * Discriminated union for type-safe event handling
@@ -115,7 +130,8 @@ export type BroadcastMessage =
   | { event: 'vote_submitted'; payload: VoteSubmittedPayload }
   | { event: 'action_submitted'; payload: ActionSubmittedPayload }
   | { event: 'phase_transition'; payload: PhaseTransitionPayload }
-  | { event: 'game_over'; payload: GameOverPayload };
+  | { event: 'game_over'; payload: GameOverPayload }
+  | { event: 'quiz_vote_submitted'; payload: QuizVoteSubmittedPayload };
 
 // ============================================
 // CHANNEL TYPES
@@ -160,6 +176,7 @@ export interface BroadcastHandlers {
   onActionSubmitted?: BroadcastHandler<ActionSubmittedPayload>;
   onPhaseTransition?: BroadcastHandler<PhaseTransitionPayload>;
   onGameOver?: BroadcastHandler<GameOverPayload>;
+  onQuizVoteSubmitted?: BroadcastHandler<QuizVoteSubmittedPayload>;
   onConnectionChange?: (status: ChannelStatus, error?: Error) => void;
 }
 

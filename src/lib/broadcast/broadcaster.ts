@@ -16,6 +16,7 @@ import {
   type PhaseTransitionPayload,
   type GameOverPayload,
   type PhaseTransitionTrigger,
+  type QuizVoteSubmittedPayload,
 } from '@/types/broadcast';
 import type { GamePhase, WinReason } from '@/types/game';
 import { debouncedBroadcast } from './debounce';
@@ -205,4 +206,24 @@ export async function broadcastGameOver(
     reason,
   };
   await broadcastEvent(gameId, 'game_over', payload);
+}
+
+/**
+ * Feature 021: Broadcast quiz vote submission
+ * Sent when a player submits their Merlin quiz vote during parallel phase
+ *
+ * @param gameId - The game UUID
+ * @param votesCount - Total quiz votes submitted so far
+ * @param totalEligible - Total eligible quiz participants
+ */
+export async function broadcastQuizVoteSubmitted(
+  gameId: string,
+  votesCount: number,
+  totalEligible: number
+): Promise<void> {
+  const payload: QuizVoteSubmittedPayload = {
+    votes_count: votesCount,
+    total_eligible: totalEligible,
+  };
+  await broadcastEvent(gameId, 'quiz_vote_submitted', payload);
 }

@@ -13,7 +13,8 @@ export type GamePhase =
   | 'quest'           // Team executing quest
   | 'quest_result'    // Showing quest result
   | 'lady_of_lake'    // Lady of the Lake investigation (after Quest 2, 3, 4)
-  | 'assassin'        // Assassin guessing Merlin (Good won 3 quests)
+  | 'assassin'        // Assassin guessing Merlin (DEPRECATED: kept for backward compatibility)
+  | 'parallel_quiz'   // Feature 021: Parallel quiz + assassination phase
   | 'game_over';      // Game ended
 
 export type ProposalStatus = 'pending' | 'approved' | 'rejected';
@@ -258,6 +259,9 @@ export interface GameState {
   // Feature 007: Draft team selection
   draft_team: string[] | null;
   is_draft_in_progress: boolean;
+  // Feature 021: Parallel quiz state
+  parallel_quiz: ParallelQuizState | null;
+  quiz_eligibility: QuizEligibility | null;
 }
 
 /**
@@ -585,6 +589,86 @@ export interface MerlinQuizVoteResponse {
   votes_submitted: number;
   total_players: number;
   quiz_complete: boolean;
+}
+
+// ============================================
+// FEATURE 021: PARALLEL QUIZ TYPES
+// ============================================
+
+/**
+ * Parallel quiz/assassination phase state
+ * Feature 021: Tracks both quiz votes and assassination in parallel
+ */
+export interface ParallelQuizState {
+  // Phase metadata
+  outcome: 'good_win' | 'evil_win';         // What triggered this phase
+  quiz_start_time: string;                   // ISO timestamp for 60s timeout
+
+  // Assassination tracking (only for good_win)
+  assassin_id: string | null;                // Assassin player ID (null if no assassin)
+  assassin_submitted: boolean;               // Has assassin made their choice
+  assassin_guess_id: string | null;          // Who assassin targeted
+
+  // Quiz tracking
+  eligible_player_ids: string[];             // Players who can/should take quiz
+  quiz_votes_submitted: number;              // Count of votes submitted
+  quiz_complete: boolean;                    // All votes in OR timeout
+
+  // Completion status
+  can_transition_to_game_over: boolean;      // Both conditions met
+}
+
+/**
+ * Quiz eligibility result for a single player
+ * Feature 021: Determines what UI each player sees during parallel phase
+ */
+export interface QuizEligibility {
+  canTakeQuiz: boolean;           // Player can submit a quiz vote
+  showAssassination: boolean;     // Player sees assassination UI (Assassin only)
+  showWaiting: boolean;           // Player sees waiting screen (ineligible for quiz)
+  reason: QuizEligibilityReason;  // Why this eligibility was assigned
+}
+
+export type QuizEligibilityReason =
+  | 'is_assassin'              // Good win: Assassin does assassination, not quiz
+  | 'is_merlin'                // Evil win: Merlin knows themselves
+  | 'is_percival_certain'      // Evil win, no Morgana: Percival knows Merlin
+  | 'is_percival_uncertain'    // Evil win, with Morgana: Percival has 50/50
+  | 'is_eligible'              // Can take quiz normally
+  | 'no_assassin_good_win';    // Good win without Assassin: everyone takes quiz
+
+/**
+ * Input for quiz eligibility calculation
+ */
+export interface QuizEligibilityInput {
+  outcome: 'good_win' | 'evil_win';
+  playerSpecialRole: string | null;
+  hasMorgana: boolean;
+  hasAssassin: boolean;
+}
+
+/**
+ * Enhanced quiz results with individual vote breakdown
+ * Feature 021: Shows who voted for whom
+ */
+export interface MerlinQuizResultsEnhanced extends MerlinQuizResults {
+  // Individual vote breakdown
+  individual_votes: IndividualQuizVote[];
+  // Aggregate statistics
+  correct_count: number;
+  eligible_count: number;
+  correct_percentage: number;
+}
+
+/**
+ * Individual quiz vote for results display
+ */
+export interface IndividualQuizVote {
+  voter_id: string;
+  voter_nickname: string;
+  guessed_id: string | null;         // null = did not vote
+  guessed_nickname: string | null;   // null = did not vote
+  is_correct: boolean;
 }
 
 // ============================================

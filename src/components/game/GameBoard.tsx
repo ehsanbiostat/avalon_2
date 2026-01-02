@@ -18,6 +18,8 @@ import { PlayerSeats } from './PlayerSeats';
 import { InvestigationResult } from './InvestigationResult';
 import { AssassinPhase } from './AssassinPhase';
 import { GameOver } from './GameOver';
+import { ParallelQuizWaiting } from './ParallelQuizWaiting';
+import { MerlinQuiz } from './MerlinQuiz';
 import { SessionTakeoverAlert } from '@/components/SessionTakeoverAlert';
 import { RulebookModal } from '@/components/rulebook/RulebookModal';
 import { Modal } from '@/components/ui/Modal';
@@ -182,7 +184,7 @@ export function GameBoard({ gameId }: GameBoardProps) {
     );
   }
 
-  // Assassin Phase
+  // Assassin Phase (legacy - for backward compatibility)
   if (game.phase === 'assassin' && gameState.assassin_phase) {
     return (
       <div className="max-w-2xl mx-auto space-y-6">
@@ -203,6 +205,92 @@ export function GameBoard({ gameId }: GameBoardProps) {
           currentPlayerId={currentPlayerId ?? ''}
           onGuessSubmitted={handleAction}
         />
+      </div>
+    );
+  }
+
+  // Feature 021: Parallel Quiz Phase
+  if (game.phase === 'parallel_quiz' && gameState.parallel_quiz && gameState.quiz_eligibility) {
+    const { quiz_eligibility, parallel_quiz } = gameState;
+
+    // Route based on player eligibility
+    if (quiz_eligibility.showAssassination) {
+      // Assassin sees the assassination UI
+      const assassinPhase = {
+        assassin_id: parallel_quiz.assassin_id!,
+        assassin_nickname: players.find(p => p.id === parallel_quiz.assassin_id)?.nickname || 'Assassin',
+        merlin_id: '', // Not revealed to client
+        can_guess: true,
+      };
+
+      return (
+        <div className="max-w-2xl mx-auto space-y-6">
+          {/* Quest Tracker */}
+          <QuestTracker
+            playerCount={game.player_count}
+            currentQuest={game.current_quest}
+            questResults={game.quest_results}
+            voteTrack={game.vote_track}
+          />
+
+          {/* Assassin sees unchanged assassination UI */}
+          <AssassinPhase
+            gameId={gameId}
+            players={players}
+            assassinPhase={assassinPhase}
+            isAssassin={true}
+            currentPlayerId={currentPlayerId ?? ''}
+            onGuessSubmitted={handleAction}
+          />
+        </div>
+      );
+    }
+
+    if (quiz_eligibility.canTakeQuiz) {
+      // Player can take the quiz
+      return (
+        <div className="max-w-2xl mx-auto space-y-6">
+          {/* Quest Tracker */}
+          <QuestTracker
+            playerCount={game.player_count}
+            currentQuest={game.current_quest}
+            questResults={game.quest_results}
+            voteTrack={game.vote_track}
+          />
+
+          {/* Merlin Quiz with parallel mode */}
+          <div className="bg-avalon-dark-blue/30 rounded-xl p-6 border border-avalon-silver/10">
+            <MerlinQuiz
+              gameId={gameId}
+              players={players}
+              currentPlayerId={currentPlayerId ?? ''}
+              isParallelMode={true}
+              parallelQuizState={parallel_quiz}
+              onVoteSubmitted={handleAction}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // Player is waiting (Merlin or Percival with certainty)
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        {/* Quest Tracker */}
+        <QuestTracker
+          playerCount={game.player_count}
+          currentQuest={game.current_quest}
+          questResults={game.quest_results}
+          voteTrack={game.vote_track}
+        />
+
+        {/* Waiting screen */}
+        <div className="bg-avalon-dark-blue/30 rounded-xl p-6 border border-avalon-silver/10">
+          <ParallelQuizWaiting
+            parallelQuizState={parallel_quiz}
+            quizEligibility={quiz_eligibility}
+          />
+        </div>
       </div>
     );
   }

@@ -3,13 +3,19 @@
 /**
  * MerlinQuizResults Component
  * Feature 010: Endgame Merlin Quiz
+ * Feature 021: Enhanced with individual vote breakdown
  *
  * Displays the quiz results showing vote counts for each player
  * and reveals who the actual Merlin was.
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import type { MerlinQuizResults as QuizResults, MerlinQuizResultEntry } from '@/types/game';
+import type {
+  MerlinQuizResults as QuizResults,
+  MerlinQuizResultEntry,
+  MerlinQuizResultsEnhanced,
+  IndividualQuizVote,
+} from '@/types/game';
 
 interface MerlinQuizResultsProps {
   gameId: string;
@@ -22,10 +28,11 @@ export function MerlinQuizResults({
   currentPlayerId,
   onShowRoles,
 }: MerlinQuizResultsProps) {
-  const [results, setResults] = useState<QuizResults | null>(null);
+  const [results, setResults] = useState<QuizResults | MerlinQuizResultsEnhanced | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showMerlin, setShowMerlin] = useState(false);
+  const [showIndividualVotes, setShowIndividualVotes] = useState(false);
 
   // Fetch quiz results
   const fetchResults = useCallback(async () => {
@@ -105,6 +112,9 @@ export function MerlinQuizResults({
   // Get entries sorted by vote count
   const sortedResults = [...results.results].sort((a, b) => b.vote_count - a.vote_count);
 
+  // Feature 021: Check for enhanced results with individual votes
+  const enhancedResults = 'individual_votes' in results ? results as MerlinQuizResultsEnhanced : null;
+
   return (
     <div className="bg-gradient-to-br from-slate-900 to-indigo-900 rounded-xl p-6 shadow-2xl border border-indigo-500/30">
       {/* Header */}
@@ -119,7 +129,7 @@ export function MerlinQuizResults({
       </div>
 
       {/* Stats */}
-      <div className="flex justify-center gap-4 mb-6">
+      <div className="flex justify-center gap-4 mb-6 flex-wrap">
         <div className="text-center px-4 py-2 bg-slate-800/50 rounded-lg">
           <div className="text-lg font-bold text-indigo-300">{results.total_votes}</div>
           <div className="text-xs text-slate-400">Votes Cast</div>
@@ -130,10 +140,25 @@ export function MerlinQuizResults({
             <div className="text-xs text-slate-400">Skipped</div>
           </div>
         )}
+        {/* Feature 021: Enhanced aggregate statistics */}
+        {enhancedResults && (
+          <>
+            <div className="text-center px-4 py-2 bg-emerald-900/30 rounded-lg border border-emerald-500/30">
+              <div className="text-lg font-bold text-emerald-300">
+                {enhancedResults.correct_count}/{enhancedResults.eligible_count}
+              </div>
+              <div className="text-xs text-emerald-400">Correct Guesses</div>
+            </div>
+            <div className="text-center px-4 py-2 bg-amber-900/30 rounded-lg border border-amber-500/30">
+              <div className="text-lg font-bold text-amber-300">{enhancedResults.correct_percentage}%</div>
+              <div className="text-xs text-amber-400">Accuracy</div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Results Table */}
-      <div className="bg-slate-800/50 rounded-lg overflow-hidden mb-6">
+      <div className="bg-slate-800/50 rounded-lg overflow-hidden mb-4">
         <table className="w-full">
           <thead>
             <tr className="border-b border-slate-700">
@@ -153,6 +178,34 @@ export function MerlinQuizResults({
           </tbody>
         </table>
       </div>
+
+      {/* Feature 021: Individual Vote Breakdown Toggle */}
+      {enhancedResults && enhancedResults.individual_votes.length > 0 && (
+        <div className="mb-4">
+          <button
+            onClick={() => setShowIndividualVotes(!showIndividualVotes)}
+            className="w-full py-2 px-4 rounded-lg font-medium text-sm bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 border border-slate-600 transition-colors flex items-center justify-center gap-2"
+          >
+            <span>{showIndividualVotes ? '▼' : '▶'}</span>
+            <span>Who Voted For Whom</span>
+            <span className="text-slate-500 text-xs">({enhancedResults.individual_votes.length} votes)</span>
+          </button>
+
+          {showIndividualVotes && (
+            <div className="mt-3 bg-slate-800/30 rounded-lg border border-slate-700/50 overflow-hidden">
+              <div className="max-h-64 overflow-y-auto">
+                {enhancedResults.individual_votes.map((vote) => (
+                  <IndividualVoteRow
+                    key={vote.voter_id}
+                    vote={vote}
+                    showMerlin={showMerlin}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Reveal Merlin Button */}
       {!showMerlin && (
@@ -263,5 +316,53 @@ function ResultRow({
         </span>
       </td>
     </tr>
+  );
+}
+
+/**
+ * Feature 021: Individual vote row showing who voted for whom
+ */
+function IndividualVoteRow({
+  vote,
+  showMerlin,
+}: {
+  vote: IndividualQuizVote;
+  showMerlin: boolean;
+}) {
+  const didNotVote = vote.guessed_id === null;
+  const isCorrect = vote.is_correct && showMerlin;
+
+  return (
+    <div
+      className={`
+        flex items-center justify-between px-4 py-2.5 border-b border-slate-700/30 last:border-b-0
+        ${isCorrect ? 'bg-emerald-900/20' : ''}
+        ${didNotVote ? 'opacity-60' : ''}
+      `}
+    >
+      {/* Voter */}
+      <div className="flex items-center gap-2">
+        <span className="text-slate-300 font-medium text-sm">{vote.voter_nickname}</span>
+      </div>
+
+      {/* Arrow */}
+      <span className="text-slate-500 text-xs px-2">→</span>
+
+      {/* Guessed player */}
+      <div className="flex items-center gap-2">
+        {didNotVote ? (
+          <span className="text-slate-500 italic text-sm">did not vote</span>
+        ) : (
+          <>
+            <span className={`font-medium text-sm ${isCorrect ? 'text-emerald-300' : 'text-slate-300'}`}>
+              {vote.guessed_nickname}
+            </span>
+            {isCorrect && (
+              <span className="text-emerald-400 text-xs">✓</span>
+            )}
+          </>
+        )}
+      </div>
+    </div>
   );
 }

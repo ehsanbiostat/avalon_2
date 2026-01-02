@@ -15,6 +15,7 @@ export {
   broadcastActionSubmitted,
   broadcastPhaseTransition,
   broadcastGameOver,
+  broadcastQuizVoteSubmitted,
 } from './broadcaster';
 
 // ============================================

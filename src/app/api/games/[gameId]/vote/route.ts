@@ -193,9 +193,45 @@ export async function POST(request: Request, { params }: RouteParams) {
 
         if (wouldBeFifthRejection(game.vote_track)) {
           // 5th rejection - Evil wins!
-          await endGame(supabase, gameId, 'evil', '5_rejections');
-          // Feature 016: Broadcast game over (FR-014)
-          await broadcastGameOver(gameId, 'evil', '5_rejections');
+          // Feature 021: Check if Merlin exists to determine if we go to parallel_quiz or game_over
+          const { data: merlinCheck } = await supabase
+            .from('player_roles')
+            .select('id')
+            .eq('room_id', game.room_id)
+            .eq('special_role', 'merlin')
+            .single();
+
+          const hasMerlin = !!merlinCheck;
+
+          if (hasMerlin) {
+            // Feature 021: Go to parallel_quiz phase for engagement
+            const { error: updateError } = await supabase
+              .from('games')
+              .update({
+                phase: 'parallel_quiz',
+                vote_track: game.vote_track + 1,
+                winner: 'evil',
+                win_reason: '5_rejections',
+              })
+              .eq('id', gameId)
+              .eq('phase', 'voting');
+
+            if (!updateError) {
+              // Feature 016: Broadcast phase transition
+              await broadcastPhaseTransition(
+                gameId,
+                'parallel_quiz',
+                'voting',
+                'parallel_quiz_evil',
+                game.current_quest
+              );
+            }
+          } else {
+            // No Merlin - immediate game over
+            await endGame(supabase, gameId, 'evil', '5_rejections');
+            // Feature 016: Broadcast game over (FR-014)
+            await broadcastGameOver(gameId, 'evil', '5_rejections');
+          }
         } else {
           // CRITICAL FIX: Use optimistic locking to prevent race condition
           // Calculate new leader index and update atomically

@@ -8,14 +8,17 @@ import type { GamePhase } from '@/types/game';
 /**
  * Valid state transitions
  * Maps current phase to allowed next phases
+ *
+ * Feature 021: Added parallel_quiz phase for parallel quiz/assassination
  */
 export const VALID_TRANSITIONS: Record<GamePhase, GamePhase[]> = {
   team_building: ['voting'],
   voting: ['team_building', 'quest', 'game_over'], // rejected -> team_building, approved -> quest, 5 rejections -> game_over
-  quest: ['quest_result', 'assassin'], // quest -> result OR assassin (if Good wins 3)
-  quest_result: ['team_building', 'lady_of_lake', 'assassin', 'game_over'], // next quest, lady phase, assassin phase, or game ends
+  quest: ['quest_result', 'assassin', 'parallel_quiz'], // quest -> result OR assassin (legacy) OR parallel_quiz (new)
+  quest_result: ['team_building', 'lady_of_lake', 'assassin', 'parallel_quiz', 'game_over'], // next quest, lady phase, assassin/parallel phase, or game ends
   lady_of_lake: ['team_building'], // Lady phase leads to next team building
-  assassin: ['game_over'], // Assassin phase always leads to game_over
+  assassin: ['game_over'], // Assassin phase always leads to game_over (legacy support)
+  parallel_quiz: ['game_over'], // Feature 021: Parallel phase leads to game_over when both conditions met
   game_over: [], // Terminal state
 };
 
@@ -127,6 +130,8 @@ export function getPhaseName(phase: GamePhase): string {
       return 'Lady of the Lake';
     case 'assassin':
       return 'Assassin\'s Gambit';
+    case 'parallel_quiz':
+      return 'Final Reckoning';
     case 'game_over':
       return 'Game Over';
     default:
@@ -151,6 +156,8 @@ export function getPhaseDescription(phase: GamePhase): string {
       return 'The Lady of the Lake holder is investigating a player';
     case 'assassin':
       return 'The Assassin has one chance to find Merlin';
+    case 'parallel_quiz':
+      return 'Guess who Merlin was while the Assassin makes their choice';
     case 'game_over':
       return 'The game has ended';
     default:
@@ -164,4 +171,3 @@ export function getPhaseDescription(phase: GamePhase): string {
 export function isLadyPhase(phase: GamePhase): boolean {
   return phase === 'lady_of_lake';
 }
-

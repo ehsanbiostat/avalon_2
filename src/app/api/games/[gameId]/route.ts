@@ -15,8 +15,9 @@ import { getPlayerRole } from '@/lib/supabase/roles';
 import { getQuestRequirementsMap } from '@/lib/domain/quest-config';
 import { isLadyPhase } from '@/lib/domain/game-state-machine';
 import { getConnectionStatus } from '@/lib/domain/connection-status';
+import { getQuizEligibility, getEligibleQuizPlayers } from '@/lib/domain/quiz-eligibility';
 import { errors, handleError } from '@/lib/utils/errors';
-import type { GameState, GamePlayer, LadyOfLakeState } from '@/types/game';
+import type { GameState, GamePlayer, LadyOfLakeState, ParallelQuizState, QuizEligibility } from '@/types/game';
 
 interface RouteParams {
   params: Promise<{ gameId: string }>;
@@ -155,9 +156,9 @@ export async function GET(request: Request, { params }: RouteParams) {
       }
     }
 
-    // Get all player roles (for revealing at game end or assassin phase)
+    // Get all player roles (for revealing at game end, assassin phase, or parallel quiz)
     let playerRolesMap = new Map<string, { role: string; special_role: string | null }>();
-    if (game.phase === 'game_over' || game.phase === 'assassin') {
+    if (game.phase === 'game_over' || game.phase === 'assassin' || game.phase === 'parallel_quiz') {
       const { data: allRoles } = await supabase
         .from('player_roles')
         .select('player_id, role, special_role')
@@ -288,6 +289,73 @@ export async function GET(request: Request, { params }: RouteParams) {
     // Feature 007: Calculate is_draft_in_progress
     const isDraftInProgress = game.draft_team !== null && game.draft_team !== undefined && (game.draft_team as string[]).length > 0;
 
+    // Feature 021: Build parallel quiz state if in parallel_quiz phase
+    let parallelQuiz: ParallelQuizState | null = null;
+    let quizEligibility: QuizEligibility | null = null;
+
+    if (game.phase === 'parallel_quiz') {
+      // Determine outcome based on quest results
+      const goodWins = game.quest_results.filter(r => r.result === 'success').length;
+      const outcome: 'good_win' | 'evil_win' = goodWins >= 3 ? 'good_win' : 'evil_win';
+
+      // Get role information for eligibility calculation
+      const hasMorgana = Array.from(playerRolesMap.values()).some(r => r.special_role === 'morgana');
+      const hasAssassin = Array.from(playerRolesMap.values()).some(r => r.special_role === 'assassin');
+
+      // Find Assassin player ID
+      const assassinEntry = Array.from(playerRolesMap.entries()).find(([, r]) => r.special_role === 'assassin');
+      const assassinId = assassinEntry ? assassinEntry[0] : null;
+
+      // Get current player's eligibility
+      quizEligibility = getQuizEligibility({
+        outcome,
+        playerSpecialRole: playerRoleData?.special_role ?? null,
+        hasMorgana,
+        hasAssassin,
+      });
+
+      // Get all eligible player IDs
+      const allPlayersWithRoles = game.seating_order.map(pid => ({
+        id: pid,
+        special_role: playerRolesMap.get(pid)?.special_role ?? null,
+      }));
+      const eligiblePlayerIds = getEligibleQuizPlayers(outcome, allPlayersWithRoles, hasMorgana);
+
+      // Get quiz votes count
+      const { count: quizVotesCount } = await supabase
+        .from('merlin_quiz_votes')
+        .select('*', { count: 'exact', head: true })
+        .eq('game_id', gameId);
+
+      // Get quiz start time (first vote timestamp or current time)
+      const { data: firstVote } = await supabase
+        .from('merlin_quiz_votes')
+        .select('submitted_at')
+        .eq('game_id', gameId)
+        .order('submitted_at', { ascending: true })
+        .limit(1)
+        .single();
+
+      const quizStartTime = firstVote?.submitted_at ?? new Date().toISOString();
+      const votesSubmitted = quizVotesCount ?? 0;
+      const quizComplete = votesSubmitted >= eligiblePlayerIds.length;
+
+      // Check if assassin has submitted (only for good_win)
+      const assassinSubmitted = outcome === 'evil_win' || game.assassin_guess_id !== null;
+
+      parallelQuiz = {
+        outcome,
+        quiz_start_time: quizStartTime,
+        assassin_id: assassinId,
+        assassin_submitted: assassinSubmitted,
+        assassin_guess_id: game.assassin_guess_id,
+        eligible_player_ids: eligiblePlayerIds,
+        quiz_votes_submitted: votesSubmitted,
+        quiz_complete: quizComplete,
+        can_transition_to_game_over: assassinSubmitted && quizComplete,
+      };
+    }
+
     const gameState: GameState = {
       game,
       players,
@@ -308,6 +376,9 @@ export async function GET(request: Request, { params }: RouteParams) {
       // Feature 007: Draft team selection
       draft_team: game.draft_team ?? null,  // Backward compatibility: treat undefined as null
       is_draft_in_progress: isDraftInProgress,
+      // Feature 021: Parallel quiz state
+      parallel_quiz: parallelQuiz,
+      quiz_eligibility: quizEligibility,
     };
 
     // Include current player's database ID and role for proper identification

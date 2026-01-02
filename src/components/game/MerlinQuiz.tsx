@@ -10,16 +10,20 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createBrowserClient } from '@/lib/supabase/client';
-import type { GamePlayer, MerlinQuizState, MerlinQuizVote } from '@/types/game';
+import type { GamePlayer, MerlinQuizState, MerlinQuizVote, ParallelQuizState } from '@/types/game';
 import { QUIZ_TIMEOUT_SECONDS, getRemainingSeconds } from '@/lib/domain/merlin-quiz';
 
 interface MerlinQuizProps {
   gameId: string;
   players: GamePlayer[];
   currentPlayerId: string;
-  currentPlayerDbId: string;
-  onQuizComplete: () => void;
-  onSkip: () => void;
+  currentPlayerDbId?: string;
+  onQuizComplete?: () => void;
+  onSkip?: () => void;
+  // Feature 021: Parallel mode props
+  isParallelMode?: boolean;
+  parallelQuizState?: ParallelQuizState;
+  onVoteSubmitted?: () => void;
 }
 
 export function MerlinQuiz({
@@ -29,7 +33,13 @@ export function MerlinQuiz({
   currentPlayerDbId,
   onQuizComplete,
   onSkip,
+  // Feature 021: Parallel mode
+  isParallelMode = false,
+  parallelQuizState,
+  onVoteSubmitted,
 }: MerlinQuizProps) {
+  // For parallel mode, use the parallel state's eligible players instead of total players
+  const effectivePlayerId = currentPlayerDbId ?? currentPlayerId;
   const [quizState, setQuizState] = useState<MerlinQuizState | null>(null);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,7 +67,7 @@ export function MerlinQuiz({
         }
 
         // Check if quiz is complete
-        if (data.data.quiz_complete) {
+        if (data.data.quiz_complete && onQuizComplete) {
           onQuizComplete();
         }
       } else {
@@ -87,7 +97,7 @@ export function MerlinQuiz({
     const timer = setInterval(() => {
       setRemainingSeconds((prev) => {
         const newValue = Math.max(0, prev - 1);
-        if (newValue === 0) {
+        if (newValue === 0 && onQuizComplete) {
           onQuizComplete();
         }
         return newValue;
@@ -124,7 +134,7 @@ export function MerlinQuiz({
   }, [gameId, fetchQuizState]);
 
   // Get other players (exclude self)
-  const otherPlayers = players.filter((p) => p.id !== currentPlayerDbId);
+  const otherPlayers = players.filter((p) => p.id !== effectivePlayerId);
 
   const handleSubmitVote = async (suspectedId: string | null) => {
     setIsSubmitting(true);
@@ -162,8 +172,13 @@ export function MerlinQuiz({
           : null
       );
 
+      // Feature 021: In parallel mode, call onVoteSubmitted
+      if (isParallelMode && onVoteSubmitted) {
+        onVoteSubmitted();
+      }
+
       // Check if quiz is complete
-      if (data.data.quiz_complete) {
+      if (data.data.quiz_complete && onQuizComplete) {
         onQuizComplete();
       }
     } catch (err) {
@@ -177,19 +192,21 @@ export function MerlinQuiz({
     handleSubmitVote(null);
   };
 
-  // Loading error state - allow skip to role reveal
+  // Loading error state - allow skip to role reveal (only in non-parallel mode)
   if (loadError) {
     return (
       <div className="bg-gradient-to-br from-slate-900 to-indigo-900 rounded-xl p-6 shadow-2xl border border-indigo-500/30">
         <div className="text-center">
           <div className="text-4xl mb-3">🔮</div>
           <p className="text-slate-400 mb-4 text-sm">{loadError}</p>
-          <button
-            onClick={onSkip}
-            className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
-          >
-            Skip to Role Reveal →
-          </button>
+          {onSkip && (
+            <button
+              onClick={onSkip}
+              className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
+            >
+              Skip to Role Reveal →
+            </button>
+          )}
         </div>
       </div>
     );
@@ -253,8 +270,8 @@ export function MerlinQuiz({
           </div>
         </div>
 
-        {/* Skip button to go to results */}
-        {quizState.votes_submitted >= quizState.connected_players && (
+        {/* Skip button to go to results (only in non-parallel mode) */}
+        {!isParallelMode && onSkip && quizState.votes_submitted >= quizState.connected_players && (
           <button
             onClick={onSkip}
             className="mt-4 w-full py-2 px-4 rounded-lg font-medium text-sm bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
@@ -266,9 +283,20 @@ export function MerlinQuiz({
     );
   }
 
+  // Feature 021: Get vote counts from parallel state or quiz state
+  const displayVotesSubmitted = isParallelMode && parallelQuizState
+    ? parallelQuizState.quiz_votes_submitted
+    : quizState?.votes_submitted ?? 0;
+  const displayTotalPlayers = isParallelMode && parallelQuizState
+    ? parallelQuizState.eligible_player_ids.length
+    : quizState?.total_players ?? 0;
+
   // Main quiz interface
   return (
-    <div className="bg-gradient-to-br from-slate-900 to-indigo-900 rounded-xl p-6 shadow-2xl border border-indigo-500/30">
+    <div className={isParallelMode
+      ? "space-y-6"
+      : "bg-gradient-to-br from-slate-900 to-indigo-900 rounded-xl p-6 shadow-2xl border border-indigo-500/30"
+    }>
       {/* Header */}
       <div className="text-center mb-6">
         <div className="text-5xl mb-2">🔮</div>
@@ -276,7 +304,9 @@ export function MerlinQuiz({
           Who Was Merlin?
         </h2>
         <p className="text-slate-300 text-sm">
-          Before the roles are revealed, guess who you think was Merlin!
+          {isParallelMode
+            ? 'Make your guess before the Assassin makes their choice!'
+            : 'Before the roles are revealed, guess who you think was Merlin!'}
         </p>
       </div>
 
@@ -359,8 +389,8 @@ export function MerlinQuiz({
       {/* Progress indicator */}
       <div className="mt-4 pt-4 border-t border-slate-700/50">
         <div className="flex justify-between items-center text-xs text-slate-400">
-          <span>Votes: {quizState.votes_submitted}/{quizState.total_players}</span>
-          <span>Connected: {quizState.connected_players}</span>
+          <span>Votes: {displayVotesSubmitted}/{displayTotalPlayers}</span>
+          {!isParallelMode && quizState && <span>Connected: {quizState.connected_players}</span>}
         </div>
       </div>
     </div>

@@ -13,6 +13,7 @@ import type {
   ActionSubmittedPayload,
   PhaseTransitionPayload,
   GameOverPayload,
+  QuizVoteSubmittedPayload,
 } from '@/types/broadcast';
 
 // ============================================
@@ -29,6 +30,7 @@ export const BROADCAST_EVENT_TYPES: readonly BroadcastEventType[] = [
   'action_submitted',
   'phase_transition',
   'game_over',
+  'quiz_vote_submitted', // Feature 021
 ] as const;
 
 /**
@@ -40,6 +42,7 @@ export const EVENT_DESCRIPTIONS: Record<BroadcastEventType, string> = {
   action_submitted: 'Quest action submitted',
   phase_transition: 'Game phase changed',
   game_over: 'Game ended',
+  quiz_vote_submitted: 'Quiz vote submitted', // Feature 021
 };
 
 // ============================================
@@ -126,6 +129,20 @@ export function isGameOverPayload(
   );
 }
 
+/**
+ * Feature 021: Type guard for quiz_vote_submitted payload
+ */
+export function isQuizVoteSubmittedPayload(
+  payload: unknown
+): payload is QuizVoteSubmittedPayload {
+  return (
+    typeof payload === 'object' &&
+    payload !== null &&
+    'votes_count' in payload &&
+    'total_eligible' in payload
+  );
+}
+
 // ============================================
 // PAYLOAD VALIDATORS
 // ============================================
@@ -172,6 +189,11 @@ export function validateBroadcastMessage(
       break;
     case 'game_over':
       if (isGameOverPayload(payload)) {
+        return { event, payload };
+      }
+      break;
+    case 'quiz_vote_submitted':
+      if (isQuizVoteSubmittedPayload(payload)) {
         return { event, payload };
       }
       break;

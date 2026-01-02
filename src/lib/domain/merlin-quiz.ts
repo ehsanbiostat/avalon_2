@@ -192,3 +192,105 @@ export function getPlayerVoteStatus(
 
   return { hasVoted: true, hasSkipped: false, votedFor: vote.suspected_player_id };
 }
+
+// ============================================
+// FEATURE 021: PARALLEL QUIZ COMPLETION LOGIC
+// ============================================
+
+/**
+ * Check if the parallel quiz is complete
+ * Quiz completes when:
+ * 1. All eligible players have voted, OR
+ * 2. 60-second timeout has elapsed since quiz start
+ */
+export function isParallelQuizComplete(
+  votesSubmitted: number,
+  eligiblePlayerCount: number,
+  quizStartTime: string
+): boolean {
+  // All eligible players voted
+  if (votesSubmitted >= eligiblePlayerCount) {
+    return true;
+  }
+
+  // Check timeout
+  const startTime = new Date(quizStartTime).getTime();
+  const now = Date.now();
+  const elapsedSeconds = (now - startTime) / 1000;
+
+  return elapsedSeconds >= QUIZ_TIMEOUT_SECONDS;
+}
+
+/**
+ * Check if the parallel phase can transition to game_over
+ *
+ * Transition conditions depend on game outcome:
+ * - Good win with Assassin: Assassin submitted AND quiz complete
+ * - Good win without Assassin: Quiz complete only
+ * - Evil win: Quiz complete only (no assassination)
+ */
+export function canCompleteParallelPhase(
+  outcome: 'good_win' | 'evil_win',
+  hasAssassin: boolean,
+  assassinSubmitted: boolean,
+  quizComplete: boolean
+): boolean {
+  // Evil win: only need quiz complete
+  if (outcome === 'evil_win') {
+    return quizComplete;
+  }
+
+  // Good win without Assassin: only need quiz complete
+  if (!hasAssassin) {
+    return quizComplete;
+  }
+
+  // Good win with Assassin: need both conditions
+  return assassinSubmitted && quizComplete;
+}
+
+/**
+ * Calculate enhanced quiz results with individual vote breakdown
+ * Feature 021: Shows who voted for whom
+ */
+export function calculateEnhancedQuizResults(
+  votes: MerlinQuizVote[],
+  players: GamePlayer[],
+  merlinId: string,
+  eligiblePlayerIds: string[]
+): import('@/types/game').MerlinQuizResultsEnhanced {
+  // Get base results
+  const baseResults = calculateQuizResults(votes, players, merlinId);
+
+  // Build individual vote breakdown
+  const individualVotes: import('@/types/game').IndividualQuizVote[] = eligiblePlayerIds.map(playerId => {
+    const voter = players.find(p => p.id === playerId);
+    const vote = votes.find(v => v.voter_player_id === playerId);
+    const guessedPlayer = vote?.suspected_player_id
+      ? players.find(p => p.id === vote.suspected_player_id)
+      : null;
+
+    return {
+      voter_id: playerId,
+      voter_nickname: voter?.nickname ?? 'Unknown',
+      guessed_id: vote?.suspected_player_id ?? null,
+      guessed_nickname: guessedPlayer?.nickname ?? null,
+      is_correct: vote?.suspected_player_id === merlinId,
+    };
+  });
+
+  // Calculate aggregate statistics
+  const correctCount = individualVotes.filter(v => v.is_correct).length;
+  const eligibleCount = eligiblePlayerIds.length;
+  const correctPercentage = eligibleCount > 0
+    ? Math.round((correctCount / eligibleCount) * 100)
+    : 0;
+
+  return {
+    ...baseResults,
+    individual_votes: individualVotes,
+    correct_count: correctCount,
+    eligible_count: eligibleCount,
+    correct_percentage: correctPercentage,
+  };
+}

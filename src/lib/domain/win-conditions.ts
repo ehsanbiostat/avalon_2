@@ -1,6 +1,8 @@
 /**
  * Win Conditions
  * Detect game end states
+ *
+ * Feature 021: Added parallel_quiz phase support
  */
 
 import type { QuestResult, GameWinner, WinReason, GameScore } from '@/types/game';
@@ -10,7 +12,9 @@ import type { QuestResult, GameWinner, WinReason, GameScore } from '@/types/game
  */
 export interface WinConditionResult {
   gameOver: boolean;
-  assassinPhase: boolean; // True if Good won 3 quests and Assassin gets a chance
+  assassinPhase: boolean; // DEPRECATED: Use parallelQuizPhase instead
+  parallelQuizPhase: boolean; // Feature 021: True if parallel quiz/assassination phase should start
+  parallelQuizOutcome: 'good_win' | 'evil_win' | null; // Feature 021: What triggered the parallel phase
   winner: GameWinner | null;
   reason: WinReason | null;
 }
@@ -29,36 +33,66 @@ export function countQuestResults(
 
 /**
  * Check win conditions based on quest results
- * 
+ *
+ * Feature 021: Now triggers parallel_quiz phase instead of just assassin phase
+ *
  * @param questResults Array of completed quest results
  * @param voteTrack Current consecutive rejection count
- * @param hasMerlin Whether the game has a Merlin role (enables assassin phase)
+ * @param hasMerlin Whether the game has a Merlin role (enables parallel quiz phase)
+ * @param useParallelQuiz Whether to use new parallel quiz flow (default: true)
  */
 export function checkWinConditions(
   questResults: QuestResult[],
   voteTrack: number,
-  hasMerlin: boolean = true
+  hasMerlin: boolean = true,
+  useParallelQuiz: boolean = true
 ): WinConditionResult {
-  // Check 5 rejections first (immediate Evil win)
+  // Check 5 rejections first (Evil win)
+  // Feature 021: If Merlin exists, trigger parallel quiz for engagement
   if (voteTrack >= 5) {
+    if (hasMerlin && useParallelQuiz) {
+      return {
+        gameOver: false,
+        assassinPhase: false,
+        parallelQuizPhase: true,
+        parallelQuizOutcome: 'evil_win',
+        winner: 'evil',
+        reason: '5_rejections',
+      };
+    }
     return {
       gameOver: true,
       assassinPhase: false,
+      parallelQuizPhase: false,
+      parallelQuizOutcome: null,
       winner: 'evil',
       reason: '5_rejections',
     };
   }
-  
+
   const score = countQuestResults(questResults);
-  
+
   // Good wins with 3 successful quests
-  // If Merlin exists, trigger assassin phase instead of immediate win
+  // If Merlin exists, trigger parallel quiz phase
   if (score.good >= 3) {
     if (hasMerlin) {
-      // Assassin gets a chance to find Merlin
+      if (useParallelQuiz) {
+        // Feature 021: Parallel quiz + assassination
+        return {
+          gameOver: false,
+          assassinPhase: false,
+          parallelQuizPhase: true,
+          parallelQuizOutcome: 'good_win',
+          winner: null,
+          reason: null,
+        };
+      }
+      // Legacy: Assassin-only phase
       return {
         gameOver: false,
         assassinPhase: true,
+        parallelQuizPhase: false,
+        parallelQuizOutcome: null,
         winner: null,
         reason: null,
       };
@@ -67,25 +101,42 @@ export function checkWinConditions(
     return {
       gameOver: true,
       assassinPhase: false,
+      parallelQuizPhase: false,
+      parallelQuizOutcome: null,
       winner: 'good',
       reason: '3_quest_successes',
     };
   }
-  
+
   // Evil wins with 3 failed quests
+  // Feature 021: Trigger parallel quiz for engagement
   if (score.evil >= 3) {
+    if (hasMerlin && useParallelQuiz) {
+      return {
+        gameOver: false,
+        assassinPhase: false,
+        parallelQuizPhase: true,
+        parallelQuizOutcome: 'evil_win',
+        winner: 'evil',
+        reason: '3_quest_failures',
+      };
+    }
     return {
       gameOver: true,
       assassinPhase: false,
+      parallelQuizPhase: false,
+      parallelQuizOutcome: null,
       winner: 'evil',
       reason: '3_quest_failures',
     };
   }
-  
+
   // Game continues
   return {
     gameOver: false,
     assassinPhase: false,
+    parallelQuizPhase: false,
+    parallelQuizOutcome: null,
     winner: null,
     reason: null,
   };
@@ -142,15 +193,15 @@ export function getWinnerAnnouncement(
   if (winner === 'good') {
     return '🎉 The Loyal Servants of Arthur have triumphed!';
   }
-  
+
   if (reason === '5_rejections') {
     return '😈 Evil wins through chaos and indecision!';
   }
-  
+
   if (reason === 'assassin_found_merlin') {
     return '🗡️ The Assassin found Merlin! Evil wins!';
   }
-  
+
   return '😈 The Minions of Mordred have corrupted Camelot!';
 }
 
@@ -162,10 +213,12 @@ export function checkAssassinGuess(
   merlinPlayerId: string
 ): WinConditionResult {
   const assassinFoundMerlin = guessedPlayerId === merlinPlayerId;
-  
+
   return {
     gameOver: true,
     assassinPhase: false,
+    parallelQuizPhase: false,
+    parallelQuizOutcome: null,
     winner: assassinFoundMerlin ? 'evil' : 'good',
     reason: assassinFoundMerlin ? 'assassin_found_merlin' : '3_quest_successes',
   };
@@ -195,4 +248,3 @@ export function getQuestsToWin(questResults: QuestResult[]): {
     evilNeeds: Math.max(0, 3 - score.evil),
   };
 }
-
