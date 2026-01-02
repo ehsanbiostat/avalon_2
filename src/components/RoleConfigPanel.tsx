@@ -183,6 +183,31 @@ export function RoleConfigPanel({
               </div>
             </div>
           </div>
+
+          {/* Feature 020: Big Box Expansion Roles (7+ players only) */}
+          {expectedPlayers >= 7 && (
+            <>
+              {/* Lunatic */}
+              <RoleToggle
+                role="lunatic"
+                enabled={config.lunatic || false}
+                onChange={(v) => handleToggle('lunatic', v)}
+                label="Lunatic"
+                description={SPECIAL_ROLES.lunatic.description}
+                emoji={SPECIAL_ROLES.lunatic.emoji}
+              />
+
+              {/* Brute */}
+              <RoleToggle
+                role="brute"
+                enabled={config.brute || false}
+                onChange={(v) => handleToggle('brute', v)}
+                label="Brute"
+                description={SPECIAL_ROLES.brute.description}
+                emoji={SPECIAL_ROLES.brute.emoji}
+              />
+            </>
+          )}
         </div>
       </div>
 

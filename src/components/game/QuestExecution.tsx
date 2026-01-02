@@ -3,12 +3,15 @@
 /**
  * QuestExecution Component
  * For team members to submit success/fail
+ * Feature 020: Updated to support Lunatic/Brute quest action constraints
  */
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import type { GamePlayer, TeamProposal, QuestRequirement, QuestActionType } from '@/types/game';
+import type { SpecialRole } from '@/types/database';
 import { submitQuestAction } from '@/lib/api/game';
+import { getQuestActionConstraints } from '@/lib/domain/quest-resolver';
 
 interface QuestExecutionProps {
   gameId: string;
@@ -23,6 +26,7 @@ interface QuestExecutionProps {
   actionsSubmitted: number;
   totalTeamMembers: number;
   playerRole?: 'good' | 'evil';
+  specialRole?: SpecialRole;
   onActionSubmitted: () => void;
 }
 
@@ -39,20 +43,29 @@ export function QuestExecution({
   actionsSubmitted,
   totalTeamMembers,
   playerRole,
+  specialRole,
   onActionSubmitted,
 }: QuestExecutionProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const teamMembers = players.filter((p) => proposal.team_member_ids.includes(p.id));
-  const canFail = playerRole === 'evil';
+
+  // Feature 020: Get quest action constraints based on role and quest number
+  const actionConstraints = getQuestActionConstraints(
+    playerRole || 'good',
+    specialRole,
+    questNumber
+  );
+  const canSuccess = actionConstraints.canSuccess;
+  const canFail = actionConstraints.canFail;
 
   const handleAction = async (action: QuestActionType) => {
     if (!canSubmitAction || submitting) return;
-    
+
     setSubmitting(true);
     setError(null);
-    
+
     try {
       await submitQuestAction(gameId, action);
       onActionSubmitted();
@@ -110,7 +123,7 @@ export function QuestExecution({
         <p className="text-avalon-silver/60 text-sm mb-2">
           {actionsSubmitted} / {totalTeamMembers} actions submitted
         </p>
-        
+
         {/* Progress bar */}
         <div className="w-full max-w-xs mx-auto h-2 bg-avalon-dark-blue rounded-full overflow-hidden">
           <div
@@ -134,34 +147,45 @@ export function QuestExecution({
             <p className="text-center text-avalon-silver/80 text-sm">
               Choose your action:
             </p>
-            
+
             <div className="flex justify-center gap-4">
+              {/* Success Button */}
               <Button
                 variant="primary"
                 onClick={() => handleAction('success')}
-                disabled={submitting}
+                disabled={submitting || !canSuccess}
                 isLoading={submitting}
-                className="!bg-emerald-600 hover:!bg-emerald-500 min-w-[140px]"
+                className={`min-w-[140px] ${
+                  canSuccess
+                    ? '!bg-emerald-600 hover:!bg-emerald-500'
+                    : '!bg-emerald-600/30 !cursor-not-allowed !opacity-50'
+                }`}
               >
                 ✓ Success
               </Button>
-              
-              {canFail && (
+
+              {/* Fail Button - Show for evil players, but disabled based on constraints */}
+              {playerRole === 'evil' && (
                 <Button
                   variant="primary"
                   onClick={() => handleAction('fail')}
-                  disabled={submitting}
+                  disabled={submitting || !canFail}
                   isLoading={submitting}
-                  className="!bg-red-600 hover:!bg-red-500 min-w-[140px]"
+                  className={`min-w-[140px] ${
+                    canFail
+                      ? '!bg-red-600 hover:!bg-red-500'
+                      : '!bg-red-600/30 !cursor-not-allowed !opacity-50'
+                  }`}
                 >
                   ✗ Fail
                 </Button>
               )}
             </div>
-            
-            {!canFail && (
+
+            {/* Constraint explanation */}
+            {actionConstraints.constraintReason && (
               <p className="text-center text-avalon-silver/60 text-xs">
-                As a loyal servant of Arthur, you can only play Success
+                {actionConstraints.constraintReason}
               </p>
             )}
           </div>
@@ -181,4 +205,3 @@ export function QuestExecution({
     </div>
   );
 }
-

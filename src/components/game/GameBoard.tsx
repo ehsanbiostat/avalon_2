@@ -398,6 +398,7 @@ export function GameBoard({ gameId }: GameBoardProps) {
                 actionsSubmitted={gameState.actions_submitted}
                 totalTeamMembers={gameState.total_team_members}
                 playerRole={playerRole}
+                specialRole={specialRole as import('@/types/database').SpecialRole | undefined}
                 onActionSubmitted={handleAction}
               />
             )}

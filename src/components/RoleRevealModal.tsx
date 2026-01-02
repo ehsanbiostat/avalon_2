@@ -4,7 +4,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import type { SplitIntelVisibility, OberonSplitIntelVisibility, EvilRingVisibility } from '@/types/game';
 
-// Special role type (Phase 2: includes oberon variants)
+// Special role type (Phase 2: includes oberon variants, Feature 020: Big Box roles)
 type SpecialRole =
   | 'merlin'
   | 'percival'
@@ -14,7 +14,9 @@ type SpecialRole =
   | 'mordred'
   | 'oberon_standard'
   | 'oberon_chaos'
-  | 'minion';
+  | 'minion'
+  | 'lunatic'
+  | 'brute';
 
 interface RoleRevealModalProps {
   isOpen: boolean;
@@ -40,7 +42,7 @@ interface RoleRevealModalProps {
   evilRingVisibility?: EvilRingVisibility;
 }
 
-// Role-specific icons (Phase 2: added oberon variants)
+// Role-specific icons (Phase 2: added oberon variants, Feature 020: Big Box roles)
 const ROLE_ICONS: Record<SpecialRole, string> = {
   merlin: '🧙',
   percival: '🛡️',
@@ -51,6 +53,8 @@ const ROLE_ICONS: Record<SpecialRole, string> = {
   oberon_standard: '👤',
   oberon_chaos: '👻',
   minion: '😈',
+  lunatic: '🤪',
+  brute: '👊',
 };
 
 /**
@@ -413,6 +417,16 @@ export function RoleRevealModal({
               <>
                 👻 <strong>Complete isolation!</strong> No one knows you are evil —
                 not even Merlin! Work alone to sabotage the quests.
+              </>
+            ) : specialRole === 'lunatic' ? (
+              <>
+                🤪 <strong>Driven by madness!</strong> You MUST play Fail on every
+                quest you join — you have no choice! Your compulsion may reveal you.
+              </>
+            ) : specialRole === 'brute' ? (
+              <>
+                👊 <strong>Limited sabotage!</strong> You can only Fail on Quests
+                1, 2, and 3. On Quests 4 and 5, you MUST play Success. Plan carefully!
               </>
             ) : isEvil && evilRingVisibility?.enabled ? (
               <>

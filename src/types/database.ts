@@ -193,6 +193,7 @@ export type Role = 'good' | 'evil';
 
 // Special role enum (specific characters)
 // Phase 2: Split oberon into oberon_standard and oberon_chaos
+// Feature 020: Added lunatic and brute from Big Box expansion
 export type SpecialRole =
   | 'merlin'          // Good - knows evil players (except Mordred, Oberon Chaos)
   | 'percival'        // Good - knows Merlin (but Morgana looks the same)
@@ -202,7 +203,9 @@ export type SpecialRole =
   | 'mordred'         // Evil - hidden from Merlin
   | 'oberon_standard' // Evil - visible to Merlin, hidden from evil team
   | 'oberon_chaos'    // Evil - hidden from everyone including Merlin
-  | 'minion';         // Evil - basic minion
+  | 'minion'          // Evil - basic minion
+  | 'lunatic'         // Evil - MUST fail every quest (Big Box)
+  | 'brute';          // Evil - can only fail quests 1-3 (Big Box)
 
 // Convenience types from row types
 export type Player = Database['public']['Tables']['players']['Row'];

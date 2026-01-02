@@ -68,6 +68,8 @@ export function getVisibilityForRole(
     case 'morgana':
     case 'mordred':
     case 'minion':
+    case 'lunatic':   // Feature 020: Standard evil visibility
+    case 'brute':     // Feature 020: Standard evil visibility
       return getEvilVisibility(myPlayerId, mySpecialRole, allAssignments, roleConfig);
     case 'oberon_standard':
       return getOberonVisibility('standard', roleConfig);
@@ -378,6 +380,13 @@ export function getEvilVisibility(
     case 'mordred':
       abilityNote = 'Merlin does not know you are evil. Lead from the shadows!';
       break;
+    // Feature 020: Big Box roles
+    case 'lunatic':
+      abilityNote = 'You MUST play Fail on every quest. Your compulsion may reveal you!';
+      break;
+    case 'brute':
+      abilityNote = 'You can only Fail on Quests 1-3. On Quests 4-5, you must play Success!';
+      break;
     case 'minion':
     default:
       abilityNote = 'Work with your fellow minions to sabotage the quests!';
@@ -472,12 +481,15 @@ export function canSeeEvilTeammates(specialRole: SpecialRole): boolean {
     specialRole === 'assassin' ||
     specialRole === 'morgana' ||
     specialRole === 'mordred' ||
-    specialRole === 'minion'
+    specialRole === 'minion' ||
+    specialRole === 'lunatic' ||  // Feature 020
+    specialRole === 'brute'       // Feature 020
   );
 }
 
 /**
  * Check if a role is visible to Merlin
+ * Note: Lunatic and Brute are visible to Merlin (standard evil visibility)
  */
 export function isVisibleToMerlin(specialRole: SpecialRole): boolean {
   return (

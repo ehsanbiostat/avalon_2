@@ -112,11 +112,16 @@ export async function POST(request: Request, { params }: RouteParams) {
       );
     }
 
-    // Validate action (Good players can only submit success)
-    const actionError = validateQuestAction(playerRole.role, action);
-    if (actionError) {
+    // Validate action (Good players can only submit success, Lunatic/Brute constraints)
+    const actionValidation = validateQuestAction(
+      playerRole.role,
+      action,
+      playerRole.special_role,
+      game.current_quest
+    );
+    if (!actionValidation.valid) {
       return NextResponse.json(
-        { error: { code: 'INVALID_ACTION', message: actionError } },
+        { error: { code: actionValidation.errorCode || 'INVALID_ACTION', message: actionValidation.error } },
         { status: 400 }
       );
     }

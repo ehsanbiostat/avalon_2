@@ -68,6 +68,11 @@ export function validateRoleConfig(
     }
   }
 
+  // Feature 020: Check Lunatic/Brute 7+ player requirement
+  if ((config.lunatic || config.brute) && playerCount < 7) {
+    errors.push('Lunatic and Brute require 7+ players (need 3+ evil slots).');
+  }
+
   // Count special roles by team
   const goodSpecials = countGoodSpecials(config);
   const evilSpecials = countEvilSpecials(config);
@@ -141,6 +146,9 @@ function countEvilSpecials(config: RoleConfig): number {
   if (config.morgana) count++;
   if (config.mordred) count++;
   if (config.oberon) count++;
+  // Feature 020: Big Box roles
+  if (config.lunatic) count++;
+  if (config.brute) count++;
   return count;
 }
 
@@ -172,6 +180,9 @@ export function getRolesForConfig(
   if (config.mordred) evilRoles.push('mordred');
   if (config.oberon === 'standard') evilRoles.push('oberon_standard');
   if (config.oberon === 'chaos') evilRoles.push('oberon_chaos');
+  // Feature 020: Big Box roles
+  if (config.lunatic) evilRoles.push('lunatic');
+  if (config.brute) evilRoles.push('brute');
 
   // Fill remaining evil slots with minions
   while (evilRoles.length < ratio.evil) {
@@ -198,6 +209,9 @@ export function computeRolesInPlay(config: RoleConfig): string[] {
   if (config.mordred) roles.push('Mordred');
   if (config.oberon === 'standard') roles.push('Oberon');
   if (config.oberon === 'chaos') roles.push('Oberon (Chaos)');
+  // Feature 020: Big Box roles
+  if (config.lunatic) roles.push('Lunatic');
+  if (config.brute) roles.push('Brute');
 
   return roles;
 }
@@ -259,7 +273,10 @@ export function isDefaultConfig(config: RoleConfig): boolean {
     !config.merlin_decoy_enabled &&
     !config.merlin_split_intel_enabled &&
     !config.oberon_split_intel_enabled &&
-    !config.evil_ring_visibility_enabled
+    !config.evil_ring_visibility_enabled &&
+    // Feature 020: Big Box roles
+    !config.lunatic &&
+    !config.brute
   );
 }
 

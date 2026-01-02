@@ -187,6 +187,33 @@ export const SPECIAL_ROLES: Record<SpecialRole, SpecialRoleInfo> = {
     required: false,
     maxPerGame: 10,
   },
+  // Feature 020: Big Box Expansion Roles
+  lunatic: {
+    name: 'Lunatic',
+    team: 'evil',
+    description: 'Must play Fail on every quest',
+    emoji: '🤪',
+    knowsEvil: false,
+    knownToMerlin: true,      // Visible to Merlin
+    knowsMerlin: false,
+    appearsAsMerlin: false,
+    knowsTeammates: true,     // Knows evil teammates
+    required: false,
+    maxPerGame: 1,
+  },
+  brute: {
+    name: 'Brute',
+    team: 'evil',
+    description: 'Can only Fail on Quests 1-3',
+    emoji: '👊',
+    knowsEvil: false,
+    knownToMerlin: true,      // Visible to Merlin
+    knowsMerlin: false,
+    appearsAsMerlin: false,
+    knowsTeammates: true,     // Knows evil teammates
+    required: false,
+    maxPerGame: 1,
+  },
 };
 
 /**
@@ -197,7 +224,7 @@ export const GOOD_SPECIAL_ROLES: SpecialRole[] = ['merlin', 'percival', 'servant
 /**
  * Evil team special roles (for UI grouping)
  */
-export const EVIL_SPECIAL_ROLES: SpecialRole[] = ['assassin', 'morgana', 'mordred', 'oberon_standard', 'oberon_chaos', 'minion'];
+export const EVIL_SPECIAL_ROLES: SpecialRole[] = ['assassin', 'morgana', 'mordred', 'oberon_standard', 'oberon_chaos', 'minion', 'lunatic', 'brute'];
 
 /**
  * Optional good roles that can be configured
@@ -207,7 +234,7 @@ export const OPTIONAL_GOOD_ROLES: SpecialRole[] = ['percival'];
 /**
  * Optional evil roles that can be configured
  */
-export const OPTIONAL_EVIL_ROLES: SpecialRole[] = ['morgana', 'mordred', 'oberon_standard', 'oberon_chaos'];
+export const OPTIONAL_EVIL_ROLES: SpecialRole[] = ['morgana', 'mordred', 'oberon_standard', 'oberon_chaos', 'lunatic', 'brute'];
 
 /**
  * Get role distribution for a player count
@@ -261,6 +288,10 @@ export const ERROR_CODES = {
   // Game errors
   NOT_ALL_CONFIRMED: 'NOT_ALL_CONFIRMED',
   ALREADY_STARTED: 'ALREADY_STARTED',
+
+  // Feature 020: Lunatic/Brute quest action errors
+  LUNATIC_MUST_FAIL: 'LUNATIC_MUST_FAIL',
+  BRUTE_CANNOT_FAIL_LATE_QUEST: 'BRUTE_CANNOT_FAIL_LATE_QUEST',
 } as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];

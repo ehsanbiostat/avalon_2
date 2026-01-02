@@ -90,6 +90,8 @@ export const SPECIAL_ROLE_NAMES: Record<SpecialRole, string> = {
   oberon_standard: 'Oberon',
   oberon_chaos: 'Oberon (Chaos)',
   minion: 'Minion of Mordred',
+  lunatic: 'Lunatic',
+  brute: 'Brute',
 };
 
 /**
@@ -105,6 +107,8 @@ export const SPECIAL_ROLE_DESCRIPTIONS: Record<SpecialRole, string> = {
   oberon_standard: 'You are Oberon, the mysterious evil. You do not know the other evil players, and they do not know you. Merlin can see you. Work alone to sabotage the quests!',
   oberon_chaos: 'You are Oberon in Chaos mode! No one knows you are evil - not even Merlin! You work completely alone.',
   minion: 'You serve the dark lord Mordred. Sabotage the quests and avoid detection. You know who your fellow minions are.',
+  lunatic: 'You are the Lunatic, a servant of Mordred driven by madness. You MUST play Fail on every quest you join—you have no choice.',
+  brute: 'You are the Brute, a servant of Mordred who has some tricks, but not many. You can only play Fail on Quests 1, 2, and 3. On Quests 4 and 5, you MUST play Success. Use your early sabotage wisely!',
 };
 
 /**
@@ -128,6 +132,13 @@ export const ROLE_DESCRIPTIONS: Record<Role, string> = {
  */
 export function isGoodRole(specialRole: SpecialRole): boolean {
   return specialRole === 'merlin' || specialRole === 'percival' || specialRole === 'servant';
+}
+
+/**
+ * Check if a special role is a Big Box expansion role
+ */
+export function isBigBoxRole(specialRole: SpecialRole): boolean {
+  return specialRole === 'lunatic' || specialRole === 'brute';
 }
 
 /**

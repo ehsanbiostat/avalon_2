@@ -48,6 +48,12 @@ export interface RoleConfig {
   // Prerequisite: 3+ non-Oberon evil players (7+ total players without Oberon, 10 with Oberon)
   // Compatible with all Merlin visibility modes (Split Intel, Oberon Split Intel, Decoy)
   evil_ring_visibility_enabled?: boolean;
+
+  // Feature 020: Big Box Expansion Roles
+  // Lunatic: Must play Fail on every quest (7+ players required)
+  lunatic?: boolean;
+  // Brute: Can only Fail on Quests 1-3, must play Success on Quests 4-5 (7+ players required)
+  brute?: boolean;
 }
 
 /**
@@ -136,6 +142,10 @@ export function isValidRoleConfig(config: unknown): config is RoleConfig {
 
   // Check oberon mode
   if (c.oberon !== undefined && !isValidOberonMode(c.oberon)) return false;
+
+  // Feature 020: Check Big Box role fields
+  if (c.lunatic !== undefined && typeof c.lunatic !== 'boolean') return false;
+  if (c.brute !== undefined && typeof c.brute !== 'boolean') return false;
 
   return true;
 }

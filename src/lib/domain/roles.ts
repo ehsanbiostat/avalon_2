@@ -12,7 +12,8 @@ export type Alignment = 'good' | 'evil';
 
 // Specific character roles
 // Phase 2: Split oberon into oberon_standard and oberon_chaos
-export type SpecialRole = 
+// Feature 020: Added lunatic and brute from Big Box expansion
+export type SpecialRole =
   | 'merlin'          // Good - knows evil players (except Mordred, Oberon Chaos)
   | 'percival'        // Good - knows Merlin (but Morgana looks the same)
   | 'assassin'        // Evil - can assassinate Merlin at end
@@ -21,7 +22,9 @@ export type SpecialRole =
   | 'oberon_standard' // Evil - visible to Merlin, hidden from evil team
   | 'oberon_chaos'    // Evil - hidden from everyone including Merlin
   | 'servant'         // Good - basic loyal servant
-  | 'minion';         // Evil - basic minion
+  | 'minion'          // Evil - basic minion
+  | 'lunatic'         // Evil - MUST fail every quest (Big Box)
+  | 'brute';          // Evil - can only fail quests 1-3 (Big Box)
 
 // For database storage, we still use 'good' | 'evil' as the base role
 export type Role = 'good' | 'evil';
@@ -74,11 +77,11 @@ import type { RoleConfig } from '@/types/role-config';
  */
 function getSpecialRolesForCount(playerCount: number): { good: SpecialRole[]; evil: SpecialRole[] } {
   const ratio = getRoleRatio(playerCount);
-  
+
   // Always include Merlin and Assassin
   const goodRoles: SpecialRole[] = ['merlin'];
   const evilRoles: SpecialRole[] = ['assassin'];
-  
+
   // Fill remaining slots with basic roles
   while (goodRoles.length < ratio.good) {
     goodRoles.push('servant');
@@ -86,7 +89,7 @@ function getSpecialRolesForCount(playerCount: number): { good: SpecialRole[]; ev
   while (evilRoles.length < ratio.evil) {
     evilRoles.push('minion');
   }
-  
+
   return { good: goodRoles, evil: evilRoles };
 }
 
@@ -99,28 +102,31 @@ export function generateRolePool(
   playerCount: number
 ): { good: SpecialRole[]; evil: SpecialRole[] } {
   const ratio = getRoleRatio(playerCount);
-  
+
   // Build good team roles
   const goodRoles: SpecialRole[] = ['merlin']; // Always included
   if (roleConfig.percival) goodRoles.push('percival');
-  
+
   // Fill remaining good slots with servants
   while (goodRoles.length < ratio.good) {
     goodRoles.push('servant');
   }
-  
+
   // Build evil team roles
   const evilRoles: SpecialRole[] = ['assassin']; // Always included
   if (roleConfig.morgana) evilRoles.push('morgana');
   if (roleConfig.mordred) evilRoles.push('mordred');
   if (roleConfig.oberon === 'standard') evilRoles.push('oberon_standard');
   if (roleConfig.oberon === 'chaos') evilRoles.push('oberon_chaos');
-  
+  // Feature 020: Big Box roles
+  if (roleConfig.lunatic) evilRoles.push('lunatic');
+  if (roleConfig.brute) evilRoles.push('brute');
+
   // Fill remaining evil slots with minions
   while (evilRoles.length < ratio.evil) {
     evilRoles.push('minion');
   }
-  
+
   return { good: goodRoles, evil: evilRoles };
 }
 
@@ -134,9 +140,9 @@ export function distributeRoles(
   roleConfig?: RoleConfig
 ): RoleAssignment[] {
   const playerCount = playerIds.length;
-  
+
   // Use config-based role pool if provided, otherwise use MVP default
-  const specialRoles = roleConfig 
+  const specialRoles = roleConfig
     ? generateRolePool(roleConfig, playerCount)
     : getSpecialRolesForCount(playerCount);
 
@@ -245,6 +251,25 @@ const ROLE_INFO: Record<SpecialRole, Omit<RoleInfo, 'role'>> = {
     knows_merlin: false,
     appears_as_merlin: false,
   },
+  // Feature 020: Big Box Expansion Roles
+  lunatic: {
+    specialRole: 'lunatic',
+    role_name: 'Lunatic',
+    role_description: 'You are the Lunatic, a servant of Mordred driven by madness. You MUST play Fail on every quest you join—you have no choice.',
+    knows_evil: false,
+    known_to_merlin: true,
+    knows_merlin: false,
+    appears_as_merlin: false,
+  },
+  brute: {
+    specialRole: 'brute',
+    role_name: 'Brute',
+    role_description: 'You are the Brute, a servant of Mordred who has some tricks, but not many. You can only play Fail on Quests 1, 2, and 3. On Quests 4 and 5, you MUST play Success. Use your early sabotage wisely!',
+    knows_evil: false,
+    known_to_merlin: true,
+    knows_merlin: false,
+    appears_as_merlin: false,
+  },
 };
 
 /**
@@ -254,7 +279,7 @@ export function getRoleInfo(role: Role, specialRole?: SpecialRole): RoleInfo {
   // Default to basic roles if no special role specified
   const sr = specialRole || (role === 'good' ? 'servant' : 'minion');
   const info = ROLE_INFO[sr];
-  
+
   return {
     role,
     ...info,
@@ -309,9 +334,9 @@ export function validateRoleDistribution(
  */
 export function getPlayersVisibleToMerlin(assignments: RoleAssignment[]): string[] {
   return assignments
-    .filter(a => 
-      a.role === 'evil' && 
-      a.specialRole !== 'mordred' && 
+    .filter(a =>
+      a.role === 'evil' &&
+      a.specialRole !== 'mordred' &&
       a.specialRole !== 'oberon_chaos'
     )
     .map(a => a.playerId);
@@ -337,18 +362,18 @@ export function getEvilTeammatesForPlayer(
   if (!playerAssignment || playerAssignment.role !== 'evil') {
     return [];
   }
-  
+
   // Oberon (both variants) doesn't know other evil players
-  if (playerAssignment.specialRole === 'oberon_standard' || 
+  if (playerAssignment.specialRole === 'oberon_standard' ||
       playerAssignment.specialRole === 'oberon_chaos') {
     return [];
   }
-  
+
   // Other evil players see all evil except Oberon (both variants)
   return assignments
-    .filter(a => 
-      a.role === 'evil' && 
-      a.playerId !== playerId && 
+    .filter(a =>
+      a.role === 'evil' &&
+      a.playerId !== playerId &&
       a.specialRole !== 'oberon_standard' &&
       a.specialRole !== 'oberon_chaos'
     )
