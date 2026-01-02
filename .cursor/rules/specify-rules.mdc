@@ -21,6 +21,8 @@ Auto-generated from all feature plans. Last updated: 2025-12-02
 - Supabase Postgres with RLS (019-evil-ring-visibility)
 - TypeScript 5.x with React 18+ (Next.js App Router) + Next.js 14+, Supabase, React, Tailwind CSS (020-lunatic-brute-roles)
 - Supabase PostgreSQL (player_roles table, role_config JSONB) (020-lunatic-brute-roles)
+- TypeScript 5.x with Next.js 14 (App Router) + React, Supabase (Postgres + Realtime), TailwindCSS (021-parallel-merlin-quiz)
+- Supabase Postgres (games, merlin_quiz_votes tables) (021-parallel-merlin-quiz)
 
 - TypeScript 5.x, Node.js 20.x + Next.js 14+ (App Router), React 18+, Supabase JS Client v2, Tailwind CSS 3.x (001-avalon-mvp-lobby)
 
@@ -40,9 +42,9 @@ npm test && npm run lint
 TypeScript 5.x, Node.js 20.x: Follow standard conventions
 
 ## Recent Changes
+- 021-parallel-merlin-quiz: Added TypeScript 5.x with Next.js 14 (App Router) + React, Supabase (Postgres + Realtime), TailwindCSS
 - 020-lunatic-brute-roles: Added TypeScript 5.x with React 18+ (Next.js App Router) + Next.js 14+, Supabase, React, Tailwind CSS
 - 019-evil-ring-visibility: Added TypeScript 5.x, React 18.x, Next.js 14.x (App Router) + React, Next.js, Supabase, Tailwind CSS
-- 016-realtime-broadcast: Added TypeScript 5.7.2, React 18.3.1, Next.js 15.1.9 + `@supabase/supabase-js ^2.47.12` (Realtime included), React hooks
 
 
 <!-- MANUAL ADDITIONS START -->
