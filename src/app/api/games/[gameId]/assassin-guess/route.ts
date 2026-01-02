@@ -6,7 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase/server';
+import { createServerClient, getPlayerIdFromRequest } from '@/lib/supabase/server';
+import { findPlayerByPlayerId } from '@/lib/supabase/players';
 import { getGameById, updateGame } from '@/lib/supabase/games';
 import { updateRoomStatus } from '@/lib/supabase/rooms';
 import { checkAssassinGuess } from '@/lib/domain/win-conditions';
@@ -19,17 +20,38 @@ export async function POST(
 ) {
   try {
     const { gameId } = await context.params;
-    const body = await request.json();
-    const { player_id, guessed_player_id } = body;
 
-    if (!player_id || !guessed_player_id) {
+    // Validate player ID from header
+    const headerPlayerId = getPlayerIdFromRequest(request);
+    if (!headerPlayerId) {
       return NextResponse.json(
-        { error: 'player_id and guessed_player_id are required' },
+        { error: { code: 'UNAUTHORIZED', message: 'Player ID required' } },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const { guessed_player_id } = body;
+
+    if (!guessed_player_id) {
+      return NextResponse.json(
+        { error: 'guessed_player_id is required' },
         { status: 400 }
       );
     }
 
-    const supabase = await createServerClient();
+    const supabase = createServerClient();
+
+    // Get player record from localStorage player ID
+    const player = await findPlayerByPlayerId(supabase, headerPlayerId);
+    if (!player) {
+      return NextResponse.json(
+        { error: { code: 'PLAYER_NOT_FOUND', message: 'Player not registered' } },
+        { status: 404 }
+      );
+    }
+
+    const player_id = player.id; // Use database UUID for actual logic
 
     // Get game state
     const game = await getGameById(supabase, gameId);

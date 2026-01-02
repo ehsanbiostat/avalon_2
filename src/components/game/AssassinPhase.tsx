@@ -6,6 +6,7 @@
  */
 
 import { useState } from 'react';
+import { getPlayerId } from '@/lib/utils/player-id';
 import type { GamePlayer, AssassinPhaseState } from '@/types/game';
 
 interface AssassinPhaseProps {
@@ -41,13 +42,16 @@ export function AssassinPhase({
     setError(null);
 
     try {
+      // Use localStorage player ID for API auth header
+      const localStoragePlayerId = getPlayerId();
       const response = await fetch(`/api/games/${gameId}/assassin-guess`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-player-id': currentPlayerId,
+          'x-player-id': localStoragePlayerId,
         },
         body: JSON.stringify({
+          // Use the database player ID (currentPlayerId) for the actual guess
           player_id: currentPlayerId,
           guessed_player_id: selectedPlayerId,
         }),
@@ -178,4 +182,3 @@ export function AssassinPhase({
     </div>
   );
 }
-

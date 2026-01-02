@@ -10,6 +10,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createBrowserClient } from '@/lib/supabase/client';
+import { getPlayerId } from '@/lib/utils/player-id';
 import type { GamePlayer, MerlinQuizState, MerlinQuizVote, ParallelQuizState } from '@/types/game';
 import { QUIZ_TIMEOUT_SECONDS, getRemainingSeconds } from '@/lib/domain/merlin-quiz';
 
@@ -50,9 +51,11 @@ export function MerlinQuiz({
   // Fetch quiz state
   const fetchQuizState = useCallback(async () => {
     try {
+      // Use localStorage player ID for API auth, not the database UUID
+      const localStoragePlayerId = getPlayerId();
       const response = await fetch(`/api/games/${gameId}/merlin-quiz`, {
         headers: {
-          'x-player-id': currentPlayerId,
+          'x-player-id': localStoragePlayerId,
         },
       });
 
@@ -141,11 +144,13 @@ export function MerlinQuiz({
     setError(null);
 
     try {
+      // Use localStorage player ID for API auth, not the database UUID
+      const localStoragePlayerId = getPlayerId();
       const response = await fetch(`/api/games/${gameId}/merlin-quiz`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-player-id': currentPlayerId,
+          'x-player-id': localStoragePlayerId,
         },
         body: JSON.stringify({
           suspected_player_id: suspectedId,
