@@ -68,8 +68,11 @@ export function ParallelQuizWaiting({
       const remaining = Math.max(0, 60 - elapsed);
       setTimeRemaining(remaining);
 
-      // Trigger completion check when timer hits 0
-      if (remaining === 0 && parallelQuizState.assassin_submitted) {
+      // Trigger completion check when conditions are met:
+      // 1. Timer expired (remaining === 0) OR quiz is already complete (all votes in)
+      // 2. AND assassin has submitted
+      const shouldComplete = (remaining === 0 || parallelQuizState.quiz_complete) && parallelQuizState.assassin_submitted;
+      if (shouldComplete) {
         triggerCompletion();
       }
     };
@@ -78,7 +81,7 @@ export function ParallelQuizWaiting({
     const interval = setInterval(calculateRemaining, 1000);
 
     return () => clearInterval(interval);
-  }, [parallelQuizState.quiz_start_time, parallelQuizState.assassin_submitted, triggerCompletion]);
+  }, [parallelQuizState.quiz_start_time, parallelQuizState.assassin_submitted, parallelQuizState.quiz_complete, triggerCompletion]);
 
   const { quiz_votes_submitted, eligible_player_ids, outcome, assassin_submitted } = parallelQuizState;
   const totalEligible = eligible_player_ids.length;

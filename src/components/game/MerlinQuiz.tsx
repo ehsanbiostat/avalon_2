@@ -119,6 +119,16 @@ export function MerlinQuiz({
     }
   }, [gameId, isParallelMode, onVoteSubmitted]);
 
+  // Feature 021: Check for completion on mount/state change in parallel mode
+  useEffect(() => {
+    if (!isParallelMode || !parallelQuizState) return;
+
+    // If both assassin submitted and quiz complete, trigger phase completion
+    if (parallelQuizState.assassin_submitted && parallelQuizState.quiz_complete) {
+      triggerPhaseCompletion();
+    }
+  }, [isParallelMode, parallelQuizState?.assassin_submitted, parallelQuizState?.quiz_complete, triggerPhaseCompletion]);
+
   // Countdown timer
   useEffect(() => {
     if (!quizState?.quiz_active || quizState.quiz_complete) return;
