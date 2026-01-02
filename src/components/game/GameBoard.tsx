@@ -217,7 +217,8 @@ export function GameBoard({ gameId }: GameBoardProps) {
     if (quiz_eligibility.showAssassination) {
       // Assassin: Check if they've already submitted their guess
       if (parallel_quiz.assassin_submitted) {
-        // Assassin has submitted - show waiting state
+        // Assassin has submitted - show waiting state with ParallelQuizWaiting component
+        // which handles the completion trigger
         return (
           <div className="max-w-2xl mx-auto space-y-6">
             {/* Quest Tracker */}
@@ -228,33 +229,24 @@ export function GameBoard({ gameId }: GameBoardProps) {
               voteTrack={game.vote_track}
             />
 
-            {/* Waiting for quiz to complete */}
+            {/* Assassin waiting screen - uses ParallelQuizWaiting for timer and completion trigger */}
             <div className="bg-gradient-to-br from-slate-900 to-purple-900 rounded-xl p-6 shadow-2xl border border-purple-500/30">
-              <div className="text-center">
+              <div className="text-center mb-4">
                 <div className="text-5xl mb-2">⚔️</div>
                 <h2 className="text-2xl font-bold text-purple-300 mb-2">
                   Target Chosen!
                 </h2>
-                <p className="text-slate-300 text-sm mb-4">
+                <p className="text-slate-300 text-sm">
                   Your choice has been locked in. Waiting for other players to finish their guesses...
                 </p>
-                <div className="bg-slate-800/50 rounded-lg p-4 border border-purple-500/20">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-slate-400 text-sm">Quiz progress</span>
-                    <span className="text-purple-300 font-semibold">
-                      {parallel_quiz.quiz_votes_submitted} / {parallel_quiz.eligible_player_ids.length}
-                    </span>
-                  </div>
-                  <div className="w-full bg-slate-700 rounded-full h-2">
-                    <div
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
-                      style={{
-                        width: `${(parallel_quiz.quiz_votes_submitted / parallel_quiz.eligible_player_ids.length) * 100}%`,
-                      }}
-                    />
-                  </div>
-                </div>
               </div>
+              <ParallelQuizWaiting
+                gameId={gameId}
+                parallelQuizState={parallel_quiz}
+                quizEligibility={quiz_eligibility}
+                hasSubmittedVote={true}
+                onPhaseComplete={handleAction}
+              />
             </div>
           </div>
         );
@@ -332,8 +324,10 @@ export function GameBoard({ gameId }: GameBoardProps) {
         {/* Waiting screen */}
         <div className="bg-avalon-dark-blue/30 rounded-xl p-6 border border-avalon-silver/10">
           <ParallelQuizWaiting
+            gameId={gameId}
             parallelQuizState={parallel_quiz}
             quizEligibility={quiz_eligibility}
+            onPhaseComplete={handleAction}
           />
         </div>
       </div>

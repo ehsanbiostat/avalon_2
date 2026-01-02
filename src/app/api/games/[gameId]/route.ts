@@ -338,7 +338,13 @@ export async function GET(request: Request, { params }: RouteParams) {
 
       const quizStartTime = firstVote?.submitted_at ?? new Date().toISOString();
       const votesSubmitted = quizVotesCount ?? 0;
-      const quizComplete = votesSubmitted >= eligiblePlayerIds.length;
+
+      // Feature 021: Quiz is complete if all votes submitted OR timeout elapsed
+      const allVotesSubmitted = votesSubmitted >= eligiblePlayerIds.length;
+      const timeoutElapsed = firstVote
+        ? (Date.now() - new Date(firstVote.submitted_at).getTime()) / 1000 >= 60
+        : false;
+      const quizComplete = allVotesSubmitted || timeoutElapsed;
 
       // Check if assassin has submitted (only for good_win)
       const assassinSubmitted = outcome === 'evil_win' || game.assassin_guess_id !== null;

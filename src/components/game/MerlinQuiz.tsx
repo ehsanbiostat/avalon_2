@@ -93,6 +93,32 @@ export function MerlinQuiz({
     return () => clearInterval(pollInterval);
   }, [fetchQuizState]);
 
+  // Feature 021: Trigger phase completion when timer expires in parallel mode
+  const triggerPhaseCompletion = useCallback(async () => {
+    if (!isParallelMode) return;
+
+    try {
+      const localStoragePlayerId = getPlayerId();
+      const response = await fetch(`/api/games/${gameId}/complete-parallel-phase`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-player-id': localStoragePlayerId,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.phase_completed && onVoteSubmitted) {
+          // Trigger a refetch to get the new game state
+          onVoteSubmitted();
+        }
+      }
+    } catch (err) {
+      console.error('Failed to trigger phase completion:', err);
+    }
+  }, [gameId, isParallelMode, onVoteSubmitted]);
+
   // Countdown timer
   useEffect(() => {
     if (!quizState?.quiz_active || quizState.quiz_complete) return;
@@ -100,15 +126,21 @@ export function MerlinQuiz({
     const timer = setInterval(() => {
       setRemainingSeconds((prev) => {
         const newValue = Math.max(0, prev - 1);
-        if (newValue === 0 && onQuizComplete) {
-          onQuizComplete();
+        if (newValue === 0) {
+          // Timer expired
+          if (isParallelMode) {
+            // In parallel mode, trigger phase completion check
+            triggerPhaseCompletion();
+          } else if (onQuizComplete) {
+            onQuizComplete();
+          }
         }
         return newValue;
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [quizState?.quiz_active, quizState?.quiz_complete, onQuizComplete]);
+  }, [quizState?.quiz_active, quizState?.quiz_complete, onQuizComplete, isParallelMode, triggerPhaseCompletion]);
 
   // Real-time subscription for quiz votes
   useEffect(() => {

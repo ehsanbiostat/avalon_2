@@ -7,22 +7,57 @@
  * Shows vote count progress without revealing who has voted.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { getPlayerId } from '@/lib/utils/player-id';
 import type { ParallelQuizState, QuizEligibility } from '@/types/game';
 import { getEligibilityExplanation } from '@/lib/domain/quiz-eligibility';
 
 interface ParallelQuizWaitingProps {
+  gameId: string;
   parallelQuizState: ParallelQuizState;
   quizEligibility: QuizEligibility;
   hasSubmittedVote?: boolean;
+  onPhaseComplete?: () => void;
 }
 
 export function ParallelQuizWaiting({
+  gameId,
   parallelQuizState,
   quizEligibility,
   hasSubmittedVote = false,
+  onPhaseComplete,
 }: ParallelQuizWaitingProps) {
   const [timeRemaining, setTimeRemaining] = useState(60);
+  const completionTriggeredRef = useRef(false);
+
+  // Trigger phase completion when conditions are met
+  const triggerCompletion = useCallback(async () => {
+    if (completionTriggeredRef.current) return;
+    completionTriggeredRef.current = true;
+
+    try {
+      const localStoragePlayerId = getPlayerId();
+      const response = await fetch(`/api/games/${gameId}/complete-parallel-phase`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-player-id': localStoragePlayerId,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.phase_completed && onPhaseComplete) {
+          onPhaseComplete();
+        }
+      }
+    } catch (err) {
+      console.error('Failed to trigger phase completion:', err);
+    } finally {
+      // Reset so we can retry if needed
+      completionTriggeredRef.current = false;
+    }
+  }, [gameId, onPhaseComplete]);
 
   // Calculate time remaining from quiz start
   useEffect(() => {
@@ -32,13 +67,18 @@ export function ParallelQuizWaiting({
       const elapsed = Math.floor((now - startTime) / 1000);
       const remaining = Math.max(0, 60 - elapsed);
       setTimeRemaining(remaining);
+
+      // Trigger completion check when timer hits 0
+      if (remaining === 0 && parallelQuizState.assassin_submitted) {
+        triggerCompletion();
+      }
     };
 
     calculateRemaining();
     const interval = setInterval(calculateRemaining, 1000);
 
     return () => clearInterval(interval);
-  }, [parallelQuizState.quiz_start_time]);
+  }, [parallelQuizState.quiz_start_time, parallelQuizState.assassin_submitted, triggerCompletion]);
 
   const { quiz_votes_submitted, eligible_player_ids, outcome, assassin_submitted } = parallelQuizState;
   const totalEligible = eligible_player_ids.length;
